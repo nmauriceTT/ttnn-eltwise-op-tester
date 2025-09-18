@@ -101,8 +101,11 @@ def plot_heatmap(plot_entry):
     # Set background color for NaN values to Yellow
     plt.gca().set_facecolor("yellow")
 
-    plt.gca().set_xscale("symlog")
-    plt.gca().set_yscale("symlog")
+
+    ascale = plot_params.get("ascale", "symlog")
+    bscale = plot_params.get("bscale", "symlog")
+    plt.gca().set_xscale(ascale)
+    plt.gca().set_yscale(bscale)
 
     # Use limits from JSON config
     plt.gca().set_xlim(alim[0], alim[1])

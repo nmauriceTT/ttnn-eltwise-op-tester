@@ -20,7 +20,9 @@
                         {"threshold": 10, "color": "#8B0000"}
                     ],
                     "alim": [-1e9, 1e9],
-                    "blim": [-1e9, 1e9]
+                    "blim": [-1e9, 1e9],
+                    "ascale": "symlog",
+                    "bscale": "symlog"
                 }
             },
             "plots": [
@@ -35,11 +37,15 @@
                     ],
                     "plot_params": {
                         "horizontal_lines": [
-                            [2, "x^2"]
+                            [0, "$y = a^{0}$"]
                         ],
                         "vertical_lines": [
-                            [2, "2^x"]
-                        ]
+                            [1, "$y = 1^{b}$"]
+                        ],
+                        "alim": [1e-12, 1e12],
+                        "blim": [-1e3, 1e3],
+                        "ascale": "log",
+                        "bscale": "symlog"
                     }
                 },
                 {

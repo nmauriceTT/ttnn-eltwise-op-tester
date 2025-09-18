@@ -17,7 +17,7 @@ from pathlib import Path
 from datetime import datetime
 
 
-def load_report_params(params_file="report-params.json"):
+def load_report_params(params_file="eltwise-accuracy/report-params.json"):
     """Load report parameters from JSON file."""
     try:
         with open(params_file, 'r') as f:

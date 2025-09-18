@@ -510,7 +510,9 @@
                 "name": "cbrt",
                 "outputs": ["accuracy_results/plots/ulp/cbrt-bfloat16.png"],
                 "files": [
-                    "accuracy_results/results/cbrt-bfloat16-[1].csv"
+                    "accuracy_results/results/cbrt-bfloat16-[1].csv",
+                    "accuracy_results/results/cbrt-pow1d3-bfloat16-[1].csv",
+                    "accuracy_results/results/cbrt-pow1d3-fp32-bfloat16-[1].csv"
                 ],
                 "plot_params": {
                     "ylim": [0, 100],

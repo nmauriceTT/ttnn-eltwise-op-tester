@@ -161,22 +161,26 @@
                     {
                         "id": "divide-bfloat16",
                         "title": "ttnn.divide",
-                        "image": "accuracy_results/plots/binary_heatmaps/divide[bfloat16].png"
+                        "image": "accuracy_results/plots/binary_heatmaps/divide[bfloat16].png",
+                        "description": "ttnn.divide (SFPU + FPU)"
                     },
                     {
                         "id": "divide-sfpu-bfloat16",
                         "title": "ttnn.divide-sfpu",
-                        "image": "accuracy_results/plots/binary_heatmaps/divide-sfpu[bfloat16].png"
+                        "image": "accuracy_results/plots/binary_heatmaps/divide-sfpu[bfloat16].png",
+                        "description": "ttnn.divide (SFPU Only)"
                     },
                     {
                         "id": "div-bfloat16",
                         "title": "ttnn.div",
-                        "image": "accuracy_results/plots/binary_heatmaps/div[bfloat16].png"
+                        "image": "accuracy_results/plots/binary_heatmaps/div[bfloat16].png",
+                        "description": "ttnn.div (should be same as ttnn.divide)"
                     },
                     {
                         "id": "div-accurate-bfloat16",
                         "title": "ttnn.div-accurate",
-                        "image": "accuracy_results/plots/binary_heatmaps/div-accurate[bfloat16].png"
+                        "image": "accuracy_results/plots/binary_heatmaps/div-accurate[bfloat16].png",
+                        "description": "ttnn.div-accurate (composite operation)"
                     },
                     {
                         "id": "pow-bfloat16",

@@ -3,9 +3,46 @@ import torch
 import math
 
 
+global_device = None
+
 def run_op_fp32(ttnn_op, args, device=None):
     ttnn_args = [convert_to_ttn(arg, device) for arg in args]
     return ttnn_op(*ttnn_args)
+
+
+def cbrt_pow1d3(x, out):
+
+    ttnn_1d3 = ttnn.full_like(x, 1/3)
+    return ttnn.pow(x, ttnn_1d3)
+
+
+def convert_to_ttn(tensor, device):
+
+    if isinstance(tensor, ttnn.Tensor):
+        return tensor
+
+    # Shard data on all cores to speed-up computation
+    ttnn_tensor = ttnn.from_torch(tensor, layout=ttnn.Layout.TILE, device=device)
+    
+    return ttnn_tensor
+
+def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
+
+    global global_device
+    device = args[0].device
+    assert device is not None
+
+    host_bf16_args = [convert_to_ttn(arg, device) for arg in args]
+    host_f32_args = [arg.to(torch.float32) for arg in host_bf16_args]
+    ttnn_args = [ttnn.from_torch(arg, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT, device=device) for arg in host_f32_args]
+
+    result = ttnn_op(*ttnn_args)
+    
+    # Convert back to bf16
+    result = ttnn.to_torch(result)
+    result = result.to(torch.bfloat16)
+    result = ttnn.from_torch(result, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device)
+    return result
 
 
 UNARY_OPERATIONS = {
@@ -150,6 +187,16 @@ UNARY_OPERATIONS = {
         lambda x, output_tensor: ttnn.cbrt(x), 
         None, 
         "cbrt"),
+    "cbrt-pow1d3": (
+        lambda x, out: torch.pow(x, 1/3), 
+        lambda x, output_tensor: cbrt_pow1d3(x, output_tensor), 
+        None, 
+        "cbrt"),
+    "cbrt-pow1d3-fp32": (
+        lambda x, out: torch.pow(x, 1/3), 
+        lambda x, output_tensor: run_ttnn_fp32_and_round_bf16(ttnn.cbrt, [x]), 
+        None, 
+        "cbrt"),
     "rsqrt": (
         torch.rsqrt,
         lambda x, output_tensor: ttnn.rsqrt(x, output_tensor=output_tensor),
@@ -188,8 +235,6 @@ UNARY_OPERATIONS = {
     ),  # ttnn.tan
 }
 
-
-global_device = None
 
 def divide_sfpu(x, y):
     assert isinstance(x, ttnn.Tensor)
@@ -235,7 +280,7 @@ BINARY_OPERATIONS = {
         "torch": torch.div,
     },
     "divide-sfpu": {
-        "ttnn": lambda x, y: divide_sfpu(x, y),
+        "ttnn": lambda x, y: run_ttnn_fp32_and_round_bf16(ttnn.divide, [x, y]),
         "torch": torch.div,
     },
     "div": {
@@ -249,15 +294,6 @@ BINARY_OPERATIONS = {
 }
 
 
-def convert_to_ttn(tensor, device):
-
-    if isinstance(tensor, ttnn.Tensor):
-        return tensor
-
-    # Shard data on all cores to speed-up computation
-    ttnn_tensor = ttnn.from_torch(tensor, layout=ttnn.Layout.TILE, device=device)
-    
-    return ttnn_tensor
 
 
 def run_ttnn_op(fun, args, device):

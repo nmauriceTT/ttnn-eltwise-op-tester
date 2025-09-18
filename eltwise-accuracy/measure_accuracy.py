@@ -10,6 +10,8 @@ import traceback
 import scipy
 
 import utils
+from models.utility_functions import ulp
+
 from operations import UNARY_OPERATIONS
 
 device_id = 0
@@ -454,12 +456,16 @@ def measure_op_accuracy_bf16(operation_name, dest_dir, group_size=None):
     np_ttnn_output_f64 = torch_ttnn_output_f64.flatten().numpy()
     np_diff = np.abs(np_golden_f64 - np_ttnn_output_f64)
 
+    golden_ulp = ulp(torch_golden_bf16).to(torch.float64)
+    ulp_delta = np_diff / golden_ulp.flatten().numpy()
+
     torch_ulp_value = utils.ulp_bf16(torch_golden_bf16).to(torch.float64)
     torch_eps = torch.full(torch_input_bf16.size(), EPSILON, dtype=torch.float64)
     np_eps = np.full(2**16, EPSILON)
 
     np_rel_error = np_diff / np.maximum(np.abs(np_golden_f64), np_eps)
     np_ulp_error = np_diff / torch_ulp_value.flatten().numpy()
+    np_ulp_error = ulp_delta
 
     finite_mask = np.isfinite(np_golden_f64) & np.isfinite(np_ttnn_output_f64)  # Don't compute PCC on NaN and infinity
     pcc = scipy.stats.pearsonr(np_golden_f64[finite_mask], np_ttnn_output_f64[finite_mask])
@@ -687,7 +693,7 @@ def main(args):
         # "pow(x,5)",
         # "pow(x,10)",
         # "pow(x,0)",
-        # "pow(x,0.5)",
+        "pow(x,0.5)",
         # "pow(x,2)",
         # "pow(x,5)",
         # "pow(x,10)",
@@ -696,35 +702,37 @@ def main(args):
         # "pow21f(x,2)",
         # "pow21f(x,5)",
         # "pow21f(x,10)",
-        "log",
-        "log10",
-        "log2",
-        "log1p",
-        "tanh",
-        "tanh-approx",
-        "cosh",
-        "sinh",
-        "tan",
-        "atan",
-        "cos",
-        "sin",
-        "silu",
-        "gelu",
-        "gelu_approx",
-        "logit",
-        "swish",
-        "mish",
-        "elu",
-        "selu",
-        "softplus",
-        "softsign",
-        "sqrt",
-        "cbrt",
-        "rsqrt",
-        "reciprocal",
-        "digamma",
-        "lgamma",
-        "tanhshrink",
+        # "log",
+        # "log10",
+        # "log2",
+        # "log1p",
+        # "tanh",
+        # "tanh-approx",
+        # "cosh",
+        # "sinh",
+        # "tan",
+        # "atan",
+        # "cos",
+        # "sin",
+        # "silu",
+        # "gelu",
+        # "gelu_approx",
+        # "logit",
+        # "swish",
+        # "mish",
+        # "elu",
+        # "selu",
+        # "softplus",
+        # "softsign",
+        # "sqrt",
+        # "cbrt",
+        # "cbrt-pow1d3",
+        "cbrt-pow1d3-fp32",
+        # "rsqrt",
+        # "reciprocal",
+        # "digamma",
+        # "lgamma",
+        # "tanhshrink",
     ]
 
     # all_operations += powers
