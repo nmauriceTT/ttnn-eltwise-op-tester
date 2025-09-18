@@ -220,11 +220,15 @@ def plot_heatmap(plot_entry):
     plt.gca().set_ylim(blim[0], blim[1])
 
     # Add reference lines
-    plt.axhline(y=0, color="red", linestyle="--", linewidth=1.5, label="y = a**0", alpha=0.5)
-    plt.text(x=plt.gca().get_xlim()[0], y=0, s="$y = a^{0}$", color="red", va="bottom", ha="left")
+    if "horizontal_lines" in plot_params:
+        for horizontal_line in plot_params["horizontal_lines"]:
+            plt.axhline(y=horizontal_line[0], color="red", linestyle="--", linewidth=1.5, label=horizontal_line[1], alpha=0.5)
+            plt.text(x=plt.gca().get_xlim()[0], y=horizontal_line[0], s=horizontal_line[1], color="red", va="bottom", ha="left")
 
-    plt.axvline(x=1, color="red", linestyle="--", linewidth=1.5, label="y = 1**b", alpha=0.5)
-    plt.text(x=2, y=plt.gca().get_ylim()[1] * 0.9, s="$y = 1^{b}$", color="red", va="top", ha="left")
+    if "vertical_lines" in plot_params:
+        for vertical_line in plot_params["vertical_lines"]:
+            plt.axvline(x=vertical_line[0], color="red", linestyle="--", linewidth=1.5, label=vertical_line[1], alpha=0.5)
+            plt.text(x=vertical_line[0], y=plt.gca().get_ylim()[1] * 0.9, s=vertical_line[1], color="red", va="top", ha="left")
 
     # Set title and labels
     plt.title(f"{operation_name}(A, B) - ULP Error Heatmap\n(Yellow = NaN or Inf)", pad=20)
