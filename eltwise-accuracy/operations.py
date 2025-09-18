@@ -65,9 +65,9 @@ UNARY_OPERATIONS = {
         math.tanh,
         "tanh",
     ),  # ttnn.tanh() does not support output_tensor ?
-    "tanh_accurate": (
+    "tanh-approx": (
         torch.tanh,
-        lambda x, output_tensor: ttnn.tanh(x, accuracy=True, output_tensor=output_tensor),
+        lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
         math.tanh,
         "tanh",
     ),
@@ -145,10 +145,14 @@ UNARY_OPERATIONS = {
     "cos": (torch.cos, ttnn.cos, math.cos, "cos"),
     # Miscellaneous functions
     "sqrt": (torch.sqrt, ttnn.sqrt, math.sqrt, "sqrt"),
-    "cbrt": (torch.cbrt, ttnn.cbrt, math.cbrt, "cbrt"),
+    "cbrt": (
+        lambda x, out: torch.pow(x, 1/3), 
+        lambda x, output_tensor: ttnn.cbrt(x), 
+        None, 
+        "cbrt"),
     "rsqrt": (
         torch.rsqrt,
-        lambda x, output_tensor: ttnn.rsqrt(x, fast_and_approximate_mode=False, output_tensor=output_tensor),
+        lambda x, output_tensor: ttnn.rsqrt(x, output_tensor=output_tensor),
         None,
         "rsqrt",
     ),
@@ -198,9 +202,6 @@ def divide_sfpu(x, y):
     global global_device
     device = global_device
     assert device is not None
-
-    print(f"device =\n{device}")
-    print(f"layout =\n{layout}")
 
     host_bf16_x = ttnn.to_torch(x)
     host_bf16_y = ttnn.to_torch(y)

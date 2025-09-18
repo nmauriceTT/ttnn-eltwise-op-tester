@@ -17,7 +17,12 @@
                 "xlabel": "x",
                 "ylabel": "ULP Error",
                 "yscale": "asinh",
-                "ylim": [0, null]
+                "ylim": [0, null],
+                "horizontal_lines": [
+                    [1, "1 ULP - \"great\""],
+                    [3, "3 ULP - \"accurate\""],
+                    [10, "10 ULP - \"approx\""]
+                ]
             }
           },
           "plots": [
@@ -206,13 +211,15 @@
                 "outputs": ["accuracy_results/plots/ulp/tanh-bfloat16.png"],
                 "files": [
                     "accuracy_results/results/tanh-bfloat16-[1].csv",
-                    "accuracy_results/results/tanh_accurate-bfloat16-[1].csv"
+                    "accuracy_results/results/tanh-approx-bfloat16-[1].csv"
                 ],
                 "plot_params": {
                     "xbase": 2,
                     "yscale": "linear",
                     "ylim": [0, 100],
-                    "xlim": [-10, 10]
+                    "xlim": [-10, 10],
+                    "horizontal_lines": [
+                    ]
                 }
             },
             {
@@ -224,6 +231,7 @@
                 ],
                 "plot_params": {
                     "xbase": 2,
+                    "ylim": [0, 10],
                     "yscale": "linear"
                 }
             },
@@ -248,8 +256,9 @@
                     "accuracy_results/results/log-bfloat16-[1].csv"
                 ],
                 "plot_params": {
-                    "xlim": [0, 100],
-                    "ylim": [0, 1e38]
+                    "xlim": [0, 1e38],
+                    "ylim": [0, 100],
+                    "yscale": "linear"
                 }
             },
             {
@@ -260,8 +269,9 @@
                     "accuracy_results/results/log10-bfloat16-[1].csv"
                 ],
                 "plot_params": {
-                    "xlim": [0, 100],
-                    "ylim": [0, 100]
+                    "xlim": [0, 1e38],
+                    "ylim": [0, 100],
+                    "yscale": "linear"
                 }
             },
             {
@@ -272,8 +282,9 @@
                     "accuracy_results/results/log2-bfloat16-[1].csv"
                 ],
                 "plot_params": {
-                    "xlim": [0, 100],
-                    "ylim": [0, 100]
+                    "xlim": [0, 1e38],
+                    "ylim": [0, 100],
+                    "yscale": "linear"
                 }
             },
             {
@@ -284,8 +295,9 @@
                     "accuracy_results/results/log1p-bfloat16-[1].csv"
                 ],
                 "plot_params": {
-                    "xlim": [-0.9, 100],
-                    "ylim": [0, 100]
+                    "xlim": [-0.9, 1e38],
+                    "ylim": [0, 100],
+                    "yscale": "linear"
                 }
             },
             {
@@ -309,7 +321,7 @@
                 "plot_params": {
                     "xlim": [-10, 10],
                     "yscale": "linear",
-                    "ylim": [0, 10]
+                    "ylim": [0, 20]
                 }
             },
             {
@@ -346,7 +358,8 @@
                     "accuracy_results/results/silu-bfloat16-[1].csv"
                 ],
                 "plot_params": {
-                    "xlim": [-1000, 1000]
+                    "xlim": [-1000, 1000],
+                    "ylim": [0, 200]
                 }
             },
             {
@@ -408,6 +421,8 @@
                 ],
                 "plot_params": {
                     "xlim": [-0.01, 1.01],
+                    "ylim": [0, 200],
+                    "yscale": "linear",
                     "xscale": "linear"
                 }
             },
@@ -421,7 +436,8 @@
                 "plot_params": {
                     "xlim": [-0.01, 1.01],
                     "xscale": "linear",
-                    "ylim": [0, 1000]
+                    "ylim": [0, 200],
+                    "yscale": "linear"
                 }
             },
             {
@@ -433,7 +449,8 @@
                 ],
                 "plot_params": {
                     "xlim": [-200, 200],
-                    "yscale": "asinh"
+                    "ylim": [0, 200],
+                    "yscale": "linear"
                 }
             },
             {
@@ -463,6 +480,19 @@
                 }
             },
             {
+                "id": "celu-bfloat16-ulp",
+                "name": "celu",
+                "outputs": ["accuracy_results/plots/ulp/celu-bfloat16.png"],
+                "files": [
+                    "accuracy_results/results/celu-bfloat16-[1].csv"
+                ],
+                "plot_params": {
+                    "xlim": [-100, 100],
+                    "ylim": [0, 50],
+                    "yscale": "linear"
+                }
+            },
+            {
                 "id": "sqrt-bfloat16-ulp",
                 "name": "sqrt",
                 "outputs": ["accuracy_results/plots/ulp/sqrt-bfloat16.png"],
@@ -471,7 +501,20 @@
                 ],
                 "plot_params": {
                     "xbase": 2,
-                    "xlim": [-0.01, null]
+                    "xlim": [-0.01, null],
+                    "ylim": [0, 200]
+                }
+            },
+            {
+                "id": "cbrt-bfloat16-ulp",
+                "name": "cbrt",
+                "outputs": ["accuracy_results/plots/ulp/cbrt-bfloat16.png"],
+                "files": [
+                    "accuracy_results/results/cbrt-bfloat16-[1].csv"
+                ],
+                "plot_params": {
+                    "ylim": [0, 100],
+                    "yscale": "linear"
                 }
             },
             {
@@ -479,13 +522,12 @@
                 "name": "rsqrt",
                 "outputs": ["accuracy_results/plots/ulp/rsqrt-bfloat16.png"],
                 "files": [
-                    "accuracy_results/results/rsqrt-bfloat16-[1].csv",
-                    "accuracy_results/results/rsqrt_approx-bfloat16-[1].csv"
+                    "accuracy_results/results/rsqrt-bfloat16-[1].csv"
                 ],
                 "plot_params": {
                     "yscale": "linear",
                     "ylim": [0, 20],
-                    "xlim": [-0.1, 1e9]
+                    "xlim": [-0.1, 1e38]
                 }
             },
             {
@@ -496,7 +538,8 @@
                     "accuracy_results/results/reciprocal-bfloat16-[1].csv"
                 ],
                 "plot_params": {
-                    "yscale": "log"
+                    "yscale": "linear",
+                    "ylim": [0, 100]
                 }
             },
             {
@@ -610,7 +653,7 @@
                     "outputs": ["accuracy_results/plots/tanh-bfloat16.png"],
                     "files": [
                         "accuracy_results/results/tanh-bfloat16-[32].csv",
-                        "accuracy_results/results/tanh_accurate-bfloat16-[32].csv"
+                        "accuracy_results/results/tanh-approx-bfloat16-[32].csv"
                     ],
                     "plot_params": {
                         "xlim": [-10, 10],
@@ -787,8 +830,9 @@
                         "accuracy_results/results/selu-bfloat16-[32].csv"
                     ],
                     "plot_params": {
-                        "xlim": [-10, 10],
-                        "ybase": 10
+                        "ybase": 10,
+                        "ylim": [0, 10],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -840,6 +884,7 @@
                         "xlim": [-0.01, 1],
                         "ylim": [0, 5],
                         "xscale": "linear",
+                        "yscale": "linear",
                         "ybase": 10,
                         "yticks": [0, 0.01, 0.05, 0.1, 0.5, 1, 2]
                     }
@@ -900,8 +945,7 @@
                     "name": "rsqrt",
                     "outputs": ["accuracy_results/plots/rsqrt-bfloat16.png"],
                     "files": [
-                        "accuracy_results/results/rsqrt-bfloat16-[32].csv",
-                        "accuracy_results/results/rsqrt_approx-bfloat16-[32].csv"
+                        "accuracy_results/results/rsqrt-bfloat16-[32].csv"
                     ],
                     "plot_params": {
                         "ybase": 10,
@@ -1040,7 +1084,7 @@
                     "outputs": ["accuracy_results/plots/tanh-bfloat16-zoom.png"],
                     "files": [
                         "accuracy_results/results/tanh-bfloat16-[1].csv",
-                        "accuracy_results/results/tanh_accurate-bfloat16-[1].csv"
+                        "accuracy_results/results/tanh-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [-10, 10],
@@ -1304,8 +1348,7 @@
                     "name": "rsqrt",
                     "outputs": ["accuracy_results/plots/rsqrt-bfloat16-zoom.png"],
                     "files": [
-                        "accuracy_results/results/rsqrt-bfloat16-[1].csv",
-                        "accuracy_results/results/rsqrt_approx-bfloat16-[1].csv"
+                        "accuracy_results/results/rsqrt-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [0, 10],
@@ -1430,7 +1473,7 @@
                     "outputs": ["accuracy_results/plots/abs/tanh-bfloat16.png"],
                     "files": [
                         "accuracy_results/results/tanh-bfloat16-[32].csv",
-                        "accuracy_results/results/tanh_accurate-bfloat16-[32].csv"
+                        "accuracy_results/results/tanh-approx-bfloat16-[32].csv"
                     ],
                     "plot_params": {
                         "xbase": 2
@@ -1658,8 +1701,7 @@
                     "name": "rsqrt",
                     "outputs": ["accuracy_results/plots/abs/rsqrt-bfloat16.png"],
                     "files": [
-                        "accuracy_results/results/rsqrt-bfloat16-[32].csv",
-                        "accuracy_results/results/rsqrt_approx-bfloat16-[32].csv"
+                        "accuracy_results/results/rsqrt-bfloat16-[32].csv"
                     ],
                     "plot_params": {
                         "xlim": [0, 100]

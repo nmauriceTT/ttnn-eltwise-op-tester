@@ -106,7 +106,7 @@ def main(args):
     # np.seterr(invalid="ignore")
     # np.seterr(over="ignore")
 
-    operation_names = ["divide-sfpu"] # "pow21f", "divide", "div", "div-accurate", 
+    operation_names = ["divide-sfpu", "pow", "divide", "div", "div-accurate"]
     all_operations = {name: operations.BINARY_OPERATIONS[name] for name in operation_names}
 
     (successes, failed) = utils.execute_benchmarks(bench_binary_op, all_operations, dest_dir)

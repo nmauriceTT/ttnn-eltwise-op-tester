@@ -25,6 +25,24 @@
             },
             "plots": [
                 {
+                    "id": "pow-bfloat16-ulp",
+                    "name": "pow",
+                    "outputs": [
+                        "accuracy_results/plots/binary_heatmaps/pow[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/pow[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [2, "x^2"]
+                        ],
+                        "vertical_lines": [
+                            [2, "2^x"]
+                        ]
+                    }
+                },
+                {
                     "id": "divide-bfloat16-ulp",
                     "name": "divide",
                     "outputs": [

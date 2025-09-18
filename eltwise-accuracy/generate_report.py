@@ -118,6 +118,7 @@ The following sections contain accuracy plots for different types of operations:
 - Accuracy data: `accuracy_results/results/`
 - Plot configurations: `eltwise-accuracy/plot-params.json` and `eltwise-accuracy/binary-plot-params.json`
 - Report configuration: `report-params.json`
+- Default `memory_config`
 
 ## ULP 
 
