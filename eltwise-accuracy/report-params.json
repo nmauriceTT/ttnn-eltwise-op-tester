@@ -1,0 +1,190 @@
+{
+    "groups": [
+        {
+            "unary": {
+                "default_params": {
+                    "description": ""
+                },
+                "operations": [
+                    {
+                        "id": "exp-bfloat16",
+                        "title": "ttnn.exp",
+                        "image": "accuracy_results/plots/ulp/exp-bfloat16.png"
+                    },
+                    {
+                        "id": "log-bfloat16",
+                        "title": "ttnn.log",
+                        "image": "accuracy_results/plots/ulp/log-bfloat16.png"
+                    },
+                    {
+                        "id": "log10-bfloat16",
+                        "title": "ttnn.log10",
+                        "image": "accuracy_results/plots/ulp/log10-bfloat16.png"
+                    },
+                    {
+                        "id": "log2-bfloat16",
+                        "title": "ttnn.log2",
+                        "image": "accuracy_results/plots/ulp/log2-bfloat16.png"
+                    },
+                    {
+                        "id": "log1p-bfloat16",
+                        "title": "ttnn.log1p",
+                        "image": "accuracy_results/plots/ulp/log1p-bfloat16.png"
+                    },
+                    {
+                        "id": "tanh-bfloat16",
+                        "title": "ttnn.tanh",
+                        "image": "accuracy_results/plots/ulp/tanh-bfloat16.png"
+                    },
+                    {
+                        "id": "cosh-bfloat16",
+                        "title": "ttnn.cosh",
+                        "image": "accuracy_results/plots/ulp/cosh-bfloat16.png"
+                    },
+                    {
+                        "id": "sinh-bfloat16",
+                        "title": "ttnn.sinh",
+                        "image": "accuracy_results/plots/ulp/sinh-bfloat16.png"
+                    },
+                    {
+                        "id": "tan-bfloat16",
+                        "title": "ttnn.tan",
+                        "image": "accuracy_results/plots/ulp/tan-bfloat16.png"
+                    },
+                    {
+                        "id": "atan-bfloat16",
+                        "title": "ttnn.atan",
+                        "image": "accuracy_results/plots/ulp/atan-bfloat16.png"
+                    },
+                    {
+                        "id": "cos-bfloat16",
+                        "title": "ttnn.cos",
+                        "image": "accuracy_results/plots/ulp/cos-bfloat16.png"
+                    },
+                    {
+                        "id": "sin-bfloat16",
+                        "title": "ttnn.sin",
+                        "image": "accuracy_results/plots/ulp/sin-bfloat16.png"
+                    },
+                    {
+                        "id": "silu-bfloat16",
+                        "title": "ttnn.silu",
+                        "image": "accuracy_results/plots/ulp/silu-bfloat16.png"
+                    },
+                    {
+                        "id": "gelu-bfloat16",
+                        "title": "ttnn.gelu",
+                        "image": "accuracy_results/plots/ulp/gelu-bfloat16.png"
+                    },
+                    {
+                        "id": "logit-bfloat16",
+                        "title": "ttnn.logit",
+                        "image": "accuracy_results/plots/ulp/logit-bfloat16.png"
+                    },
+                    {
+                        "id": "swish-bfloat16",
+                        "title": "ttnn.swish",
+                        "image": "accuracy_results/plots/ulp/swish-bfloat16.png"
+                    },
+                    {
+                        "id": "mish-bfloat16",
+                        "title": "ttnn.mish",
+                        "image": "accuracy_results/plots/ulp/mish-bfloat16.png"
+                    },
+                    {
+                        "id": "elu-bfloat16",
+                        "title": "ttnn.elu",
+                        "image": "accuracy_results/plots/ulp/elu-bfloat16.png"
+                    },
+                    {
+                        "id": "celu-bfloat16",
+                        "title": "ttnn.celu",
+                        "image": "accuracy_results/plots/ulp/celu-bfloat16.png"
+                    },
+                    {
+                        "id": "selu-bfloat16",
+                        "title": "ttnn.selu",
+                        "image": "accuracy_results/plots/ulp/selu-bfloat16.png"
+                    },
+                    {
+                        "id": "softplus-bfloat16",
+                        "title": "ttnn.softplus",
+                        "image": "accuracy_results/plots/ulp/softplus-bfloat16.png"
+                    },
+                    {
+                        "id": "softsign-bfloat16",
+                        "title": "ttnn.softsign",
+                        "image": "accuracy_results/plots/ulp/softsign-bfloat16.png"
+                    },
+                    {
+                        "id": "sqrt-bfloat16",
+                        "title": "ttnn.sqrt",
+                        "image": "accuracy_results/plots/ulp/sqrt-bfloat16.png"
+                    },
+                    {
+                        "id": "cbrt-bfloat16",
+                        "title": "ttnn.cbrt",
+                        "image": "accuracy_results/plots/ulp/cbrt-bfloat16.png"
+                    },
+                    {
+                        "id": "rsqrt-bfloat16",
+                        "title": "ttnn.rsqrt",
+                        "image": "accuracy_results/plots/ulp/rsqrt-bfloat16.png"
+                    },
+                    {
+                        "id": "reciprocal-bfloat16",
+                        "title": "ttnn.reciprocal",
+                        "image": "accuracy_results/plots/ulp/reciprocal-bfloat16.png"
+                    },
+                    {
+                        "id": "digamma-bfloat16",
+                        "title": "ttnn.digamma",
+                        "image": "accuracy_results/plots/ulp/digamma-bfloat16.png"
+                    },
+                    {
+                        "id": "lgamma-bfloat16",
+                        "title": "ttnn.lgamma",
+                        "image": "accuracy_results/plots/ulp/lgamma-bfloat16.png"
+                    },
+                    {
+                        "id": "tanhshrink-bfloat16",
+                        "title": "ttnn.tanhshrink",
+                        "image": "accuracy_results/plots/ulp/tanhshrink-bfloat16.png"
+                    }
+                ]
+            },
+            "binary": {
+                "default_params": {
+                    "description": ""
+                },
+                "operations": [
+                    {
+                        "id": "divide-bfloat16",
+                        "title": "ttnn.divide",
+                        "image": "accuracy_results/plots/binary_heatmaps/divide[bfloat16].png"
+                    },
+                    {
+                        "id": "divide-sfpu-bfloat16",
+                        "title": "ttnn.divide-sfpu",
+                        "image": "accuracy_results/plots/binary_heatmaps/divide-sfpu[bfloat16].png"
+                    },
+                    {
+                        "id": "div-bfloat16",
+                        "title": "ttnn.div",
+                        "image": "accuracy_results/plots/binary_heatmaps/div[bfloat16].png"
+                    },
+                    {
+                        "id": "div-accurate-bfloat16",
+                        "title": "ttnn.div-accurate",
+                        "image": "accuracy_results/plots/binary_heatmaps/div-accurate[bfloat16].png"
+                    },
+                    {
+                        "id": "pow-bfloat16",
+                        "title": "ttnn.pow",
+                        "image": "accuracy_results/plots/binary_heatmaps/pow[bfloat16].png"
+                    }
+                ]
+            }
+        }
+    ]
+}
