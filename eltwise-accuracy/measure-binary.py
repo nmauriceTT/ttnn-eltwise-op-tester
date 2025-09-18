@@ -40,6 +40,9 @@ def reduce_on_batch_and_cols(tensor):
 
 
 def bench_binary_op(operation_name, dest_dir):
+    assert device is not None
+    print(f"device =\n{device}")
+
     df_all_results = pd.DataFrame()
     batch_size = 128
 
@@ -53,7 +56,7 @@ def bench_binary_op(operation_name, dest_dir):
 
         # Run OP
         golden_result = torch_op(tensor_a.to(torch.float32), tensor_b.to(torch.float32))
-        ttnn_result = run_ttnn_op(ttnn_op, [tensor_a, tensor_b])
+        ttnn_result = run_ttnn_op(ttnn_op, [tensor_a, tensor_b], device=device)
 
         torch_result = ttnn.to_torch(ttnn_result).to(torch.float32)
 
@@ -103,7 +106,7 @@ def main(args):
     # np.seterr(invalid="ignore")
     # np.seterr(over="ignore")
 
-    operation_names = ["pow21f", "divide", "div", "div-accurate", "divide-sfpu"]
+    operation_names = ["divide-sfpu"] # "pow21f", "divide", "div", "div-accurate", 
     all_operations = {name: operations.BINARY_OPERATIONS[name] for name in operation_names}
 
     (successes, failed) = utils.execute_benchmarks(bench_binary_op, all_operations, dest_dir)

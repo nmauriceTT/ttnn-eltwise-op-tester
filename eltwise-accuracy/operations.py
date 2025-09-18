@@ -190,10 +190,23 @@ UNARY_OPERATIONS = {
 }
 
 
+global_device = None
+
 def divide_sfpu(x, y):
+    assert isinstance(x, ttnn.Tensor)
+    assert isinstance(y, ttnn.Tensor)
+
     # Convert on host to ensure proper rounding
-    device = x.device
+    # device = x.device
     layout = x.layout
+
+    global global_device
+    device = global_device
+    assert device is not None
+
+    print(f"device =\n{device}")
+    print(f"layout =\n{layout}")
+
     host_bf16_x = ttnn.to_torch(x)
     host_bf16_y = ttnn.to_torch(y)
 
@@ -201,14 +214,14 @@ def divide_sfpu(x, y):
     host_f32_x = host_bf16_x.to(torch.float32)
     host_f32_y = host_bf16_y.to(torch.float32)
 
-    x = ttnn.from_torch(host_f32_x, dtype=ttnn.float32, device=device, layout=layout)
-    y = ttnn.from_torch(host_f32_y, dtype=ttnn.float32, device=device, layout=layout)
-    result = ttnn.divide(x, y)
+    ttnn_x = ttnn.from_torch(host_f32_x, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT, device=device)
+    ttnn_y = ttnn.from_torch(host_f32_y, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT, device=device)
+    result = ttnn.divide(ttnn_x, ttnn_y)
 
     # Convert back to bf16
     result = ttnn.to_torch(result)
     result = result.to(torch.bfloat16)
-    result = ttnn.from_torch(result, dtype=ttnn.bfloat16, device=device, layout=layout)
+    result = ttnn.from_torch(result, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device)
     return result
 
 
@@ -226,7 +239,7 @@ BINARY_OPERATIONS = {
         "torch": torch.div,
     },
     "divide-sfpu": {
-        "ttnn": divide_sfpu,
+        "ttnn": lambda x, y: divide_sfpu(x, y),
         "torch": torch.div,
     },
     "div": {
@@ -240,16 +253,21 @@ BINARY_OPERATIONS = {
 }
 
 
-def convert_to_ttn(tensor, device=None):
+def convert_to_ttn(tensor, device):
+
     if isinstance(tensor, ttnn.Tensor):
         return tensor
 
     # Shard data on all cores to speed-up computation
     ttnn_tensor = ttnn.from_torch(tensor, layout=ttnn.Layout.TILE, device=device)
-
+    
     return ttnn_tensor
 
 
-def run_ttnn_op(fun, args, device=None):
+def run_ttnn_op(fun, args, device):
+    global global_device
+    global_device = device
+
     ttnn_args = [convert_to_ttn(arg, device) for arg in args if isinstance(arg, torch.Tensor)]
+
     return fun(*ttnn_args)
