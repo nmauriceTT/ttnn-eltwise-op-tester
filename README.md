@@ -1,3 +1,7 @@
+# TTNN Eltwise Operation Tester
+
+Test and plot accuracy of TTNN's element-wise operations.
+
 # Setup 
 For now, this repository relies on tt-metal configuration.
 
