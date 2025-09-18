@@ -12,6 +12,7 @@
                     ["max_ulp_error", "", "-"]
                 ],
                 "plot_params": {
+                    "title": "ULP Error of ttnn.{} against torch\n[bfloat16]",
                     "colormap": [
                         {"threshold": 0, "color": "#2E8B57"},
                         {"threshold": 2, "color": "#FFD700"},

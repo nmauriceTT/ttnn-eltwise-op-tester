@@ -3,6 +3,8 @@ import torch
 import traceback
 
 import pytest
+from models.utility_functions import ulp
+
 
 TERM_RED = "\033[91m"
 TERM_GREEN = "\033[92m"
@@ -130,9 +132,9 @@ def setexp_bf16_(input_tensor, exponent):
     return input_tensor
 
 
-def ulp(input_tensor):
-    torch_max = torch.full(input_tensor.size(), torch.finfo(input_tensor.dtype).max, dtype=input_tensor.dtype)
-    return torch.abs(input_tensor - torch.nextafter(input_tensor, torch_max))
+# def ulp(input_tensor):
+#     torch_max = torch.full(input_tensor.size(), torch.finfo(input_tensor.dtype).max, dtype=input_tensor.dtype)
+#     return torch.abs(input_tensor - torch.nextafter(input_tensor, torch_max))
 
 
 def ulp_diff(output, golden):

@@ -661,7 +661,7 @@ def main(args):
     highres_operations = [
         # "exp_hybrid",
         "exp",
-        "exp-approx",
+        "exp-fast-approx",
         # "exp-fast-approx-v2",
         # "exp21f",
         # "exp_cond",
@@ -719,6 +719,7 @@ def main(args):
         "softplus",
         "softsign",
         "sqrt",
+        "cbrt",
         "rsqrt",
         "rsqrt_approx",
         "reciprocal",

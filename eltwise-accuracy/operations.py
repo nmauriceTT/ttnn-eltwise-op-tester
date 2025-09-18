@@ -59,18 +59,6 @@ UNARY_OPERATIONS = {
         None,
         "exp",
     ),
-    # "exp_accurate_python": (
-    #     torch.exp,
-    #     exp_accurate_python,
-    #     None,
-    #     "exp",
-    # ),
-    # "exp_python_alt1": (
-    #     torch.exp,
-    #     lambda x, output_tensor: exp_accurate_python(x, output_tensor, exp_regression=exp_regression_0p5_to_1_alt1),
-    #     None,
-    #     "exp",
-    # ),
     "tanh": (
         torch.tanh,
         ttnn.tanh,
@@ -130,6 +118,12 @@ UNARY_OPERATIONS = {
         None,
         "elu",
     ),  # Unlike torch, ttnn.elu does not use alpha=1 by default
+    "celu": (
+        lambda x, out: torch.nn.CELU()(x),
+        lambda x, output_tensor: ttnn.celu(x, output_tensor=output_tensor, alpha=1.0),
+        None,
+        "celu",
+    ),
     "selu": (
         lambda x, out: torch.nn.SELU()(x),
         lambda x, output_tensor: ttnn.selu(x),
@@ -151,6 +145,7 @@ UNARY_OPERATIONS = {
     "cos": (torch.cos, ttnn.cos, math.cos, "cos"),
     # Miscellaneous functions
     "sqrt": (torch.sqrt, ttnn.sqrt, math.sqrt, "sqrt"),
+    "cbrt": (torch.cbrt, ttnn.cbrt, math.cbrt, "cbrt"),
     "rsqrt": (
         torch.rsqrt,
         lambda x, output_tensor: ttnn.rsqrt(x, fast_and_approximate_mode=False, output_tensor=output_tensor),
