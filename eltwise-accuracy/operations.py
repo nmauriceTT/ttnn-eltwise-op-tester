@@ -3,6 +3,11 @@ import torch
 import math
 
 
+def run_op_fp32(ttnn_op, args, device=None):
+    ttnn_args = [convert_to_ttn(arg, device) for arg in args]
+    return ttnn_op(*ttnn_args)
+
+
 UNARY_OPERATIONS = {
     # Exponential functions
     "exp": (torch.exp, ttnn.exp, math.exp, "exp"),
@@ -185,6 +190,28 @@ UNARY_OPERATIONS = {
 }
 
 
+def divide_sfpu(x, y):
+    # Convert on host to ensure proper rounding
+    device = x.device
+    layout = x.layout
+    host_bf16_x = ttnn.to_torch(x)
+    host_bf16_y = ttnn.to_torch(y)
+
+    # Convert to float32
+    host_f32_x = host_bf16_x.to(torch.float32)
+    host_f32_y = host_bf16_y.to(torch.float32)
+
+    x = ttnn.from_torch(host_f32_x, dtype=ttnn.float32, device=device, layout=layout)
+    y = ttnn.from_torch(host_f32_y, dtype=ttnn.float32, device=device, layout=layout)
+    result = ttnn.divide(x, y)
+
+    # Convert back to bf16
+    result = ttnn.to_torch(result)
+    result = result.to(torch.bfloat16)
+    result = ttnn.from_torch(result, dtype=ttnn.bfloat16, device=device, layout=layout)
+    return result
+
+
 BINARY_OPERATIONS = {
     "pow": {
         "ttnn": ttnn.pow,
@@ -194,4 +221,35 @@ BINARY_OPERATIONS = {
         "ttnn": ttnn.pow,
         "torch": torch.pow,
     },
+    "divide": {
+        "ttnn": ttnn.divide,
+        "torch": torch.div,
+    },
+    "divide-sfpu": {
+        "ttnn": divide_sfpu,
+        "torch": torch.div,
+    },
+    "div": {
+        "ttnn": ttnn.div,
+        "torch": torch.div,
+    },
+    "div-accurate": {
+        "ttnn": lambda x, y: ttnn.div(x, y, accurate_mode=True),
+        "torch": torch.div,
+    },
 }
+
+
+def convert_to_ttn(tensor, device=None):
+    if isinstance(tensor, ttnn.Tensor):
+        return tensor
+
+    # Shard data on all cores to speed-up computation
+    ttnn_tensor = ttnn.from_torch(tensor, layout=ttnn.Layout.TILE, device=device)
+
+    return ttnn_tensor
+
+
+def run_ttnn_op(fun, args, device=None):
+    ttnn_args = [convert_to_ttn(arg, device) for arg in args if isinstance(arg, torch.Tensor)]
+    return fun(*ttnn_args)

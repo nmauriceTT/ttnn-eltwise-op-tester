@@ -1,0 +1,59 @@
+{
+    "groups": [
+        {
+            "id": "ulp_plots",
+            "default_params": {
+                "type": "heatmap",
+                "dtype": "bfloat16",
+                "aname": "a",
+                "bname": "b",
+                "valuename": "max_ulp_error",
+                "ynames": [
+                    ["max_ulp_error", "", "-"]
+                ],
+                "plot_params": {
+                    "colormap": [
+                        {"threshold": 0, "color": "#2E8B57"},
+                        {"threshold": 2, "color": "#FFD700"},
+                        {"threshold": 5, "color": "#FF6347"},
+                        {"threshold": 10, "color": "#8B0000"}
+                    ],
+                    "alim": [-1e9, 1e9],
+                    "blim": [-1e9, 1e9]
+                }
+            },
+            "plots": [
+                {
+                    "id": "divide-bfloat16-ulp",
+                    "name": "divide",
+                    "outputs": [
+                        "accuracy_results/plots/binary_heatmaps/divide[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide[bfloat16].csv"
+                    ]
+                },
+                {
+                    "id": "div-bfloat16-ulp",
+                    "name": "div",
+                    "outputs": [
+                        "accuracy_results/plots/binary_heatmaps/div[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div[bfloat16].csv"
+                    ]
+                },
+                {
+                    "id": "div-accurate-bfloat16-ulp",
+                    "name": "div-accurate",
+                    "outputs": [
+                        "accuracy_results/plots/binary_heatmaps/div-accurate[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div-accurate[bfloat16].csv"
+                    ]
+                }
+            ]
+        }
+]
+}

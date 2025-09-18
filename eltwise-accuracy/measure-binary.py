@@ -9,6 +9,7 @@ from utils import TERM_RED, TERM_GREEN, TERM_RESET
 
 from models.utility_functions import ulp
 import operations
+from operations import run_ttnn_op
 
 device = ttnn.open_device(device_id=0)
 
@@ -38,13 +39,6 @@ def reduce_on_batch_and_cols(tensor):
     return {"min": tensor_min, "max": tensor_max, "mean": tensor_mean}
 
 
-def convert_to_ttn(torch_tensor):
-    # Shard data on all cores to speed-up computation
-    ttnn_tensor = ttnn.from_torch(torch_tensor, layout=ttnn.Layout.TILE, device=device)
-
-    return ttnn_tensor
-
-
 def bench_binary_op(operation_name, dest_dir):
     df_all_results = pd.DataFrame()
     batch_size = 128
@@ -56,12 +50,10 @@ def bench_binary_op(operation_name, dest_dir):
     i = 0
     for tensor_a, tensor_b in utils.generate_binary_tensors_bf16():
         print(f"Iteration = {i}")
-        ttnn_tensor_a = convert_to_ttn(tensor_a)
-        ttnn_tensor_b = convert_to_ttn(tensor_b)
 
         # Run OP
         golden_result = torch_op(tensor_a.to(torch.float32), tensor_b.to(torch.float32))
-        ttnn_result = ttnn_op(ttnn_tensor_a, ttnn_tensor_b)
+        ttnn_result = run_ttnn_op(ttnn_op, [tensor_a, tensor_b])
 
         torch_result = ttnn.to_torch(ttnn_result).to(torch.float32)
 
@@ -111,7 +103,7 @@ def main(args):
     # np.seterr(invalid="ignore")
     # np.seterr(over="ignore")
 
-    operation_names = ["pow21f"]
+    operation_names = ["pow21f", "divide", "div", "div-accurate", "divide-sfpu"]
     all_operations = {name: operations.BINARY_OPERATIONS[name] for name in operation_names}
 
     (successes, failed) = utils.execute_benchmarks(bench_binary_op, all_operations, dest_dir)
