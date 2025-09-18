@@ -1,9 +1,8 @@
- **/__pycache__/
- *~
+**/__pycache__/
+*~
 
- accuracy_results/
- accuracy_report.md
- *.pdf
- *.html
- *.png
- *.jpg
+accuracy_results/
+*.pdf
+*.html
+*.png
+*.jpg
