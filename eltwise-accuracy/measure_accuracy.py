@@ -10,7 +10,7 @@ import traceback
 import scipy
 
 import utils
-from models.utility_functions import ulp
+from models.common.utility_functions import ulp
 
 from operations import UNARY_OPERATIONS
 
@@ -54,102 +54,6 @@ datatypes_parameters = {
 TERM_RED = "\033[91m"
 TERM_GREEN = "\033[92m"
 TERM_RESET = "\033[0m"
-
-
-def exp_regression_0p5_to_1(tensor_input):
-    tensor_constA = torch.full(tensor_input.size(), 0.863281, dtype=torch.bfloat16)
-    tensor_const1 = torch.full(tensor_input.size(), 1.0, dtype=torch.bfloat16)
-    tensor_const0p8373 = torch.full(tensor_input.size(), 0.837300003, dtype=torch.bfloat16)
-
-    # print(f"tensor_constA =\n{tensor_constA}")
-    # print(f"tensor_const1 =\n{tensor_const1}")
-    # print(f"tensor_const0p8373 =\n{tensor_const0p8373}")
-
-    # Linear regression approximation of torch.exp on [0.5; 1]
-    # y = x * (0.8373 * x + 0.863281) + 1
-    tensor_tmp = torch.add(torch.mul(tensor_input, tensor_const0p8373), tensor_constA)
-    # print(f"tensor_tmp =\n{tensor_tmp}")
-    tensor_val = torch.add(torch.mul(tensor_input, tensor_tmp), tensor_const1)
-
-    return tensor_val
-
-
-def exp_regression_0p5_to_1_alt1(tensor_input):
-    fun = lambda x: 1.1173422532270 + 0.535411571001 * x + 1.063234614758 * x**2
-
-    tensor_output = tensor_input.clone()
-    tensor_output = tensor_output.apply_(fun)
-
-    return tensor_output
-
-
-def exp_accurate_python(ttnn_input, output_tensor, exp_regression=exp_regression_0p5_to_1):
-    # setsgn => get sign of input and then multiply input by it to make numbers positive
-    # this shouldn't alter accuracy as -1 and 1 are exact and so are their multiples
-    torch.set_printoptions(precision=6)
-
-    input_tensor = ttnn.to_torch(ttnn_input)
-
-    tensor_positive_val = input_tensor.clone()
-
-    tensor_positive_val = utils.setsgn_bf16_(tensor_positive_val, 0)
-    tensor_exponent = utils.exexp_bf16(tensor_positive_val)
-
-    # print(f"tensor_positive_val =\n{tensor_positive_val}")
-    # print(f"tensor_exponent =\n{tensor_exponent}")
-    mask_positive_exponents = tensor_exponent >= 0
-
-    tensor_input_adjusted_exponent = tensor_positive_val.clone()
-    tensor_input_adjusted_exponent = utils.setexp_bf16_(tensor_input_adjusted_exponent, -1)
-    tensor_positive_val = torch.where(mask_positive_exponents, tensor_input_adjusted_exponent, tensor_positive_val)
-
-    # print(f"tensor_positive_val =\n{tensor_positive_val}")
-
-    tensor_positive_val = exp_regression(tensor_positive_val)
-
-    # print(f"tensor regression 0 =\n{tensor_positive_val}")
-
-    # Expand values with squaring method
-    mask_positive_exponent = tensor_exponent >= 0
-
-    tensor_square = torch.mul(tensor_positive_val, tensor_positive_val)
-    tensor_positive_val = torch.where(mask_positive_exponent, tensor_square, tensor_positive_val)
-
-    for s_iter in range(0, 7):
-        tensor_exponent = torch.where(mask_positive_exponent, tensor_exponent - 1, tensor_exponent)
-
-        # print(f"[{s_iter}] tensor_positive_val =\n{tensor_positive_val}")
-
-        mask_positive_exponent = (tensor_exponent >= 0) & mask_positive_exponent
-        tensor_square = torch.mul(tensor_positive_val, tensor_positive_val)
-        tensor_positive_val = torch.where(mask_positive_exponent, tensor_square, tensor_positive_val)
-
-    tensor_out = tensor_positive_val
-    mask_negative_input = input_tensor < 0
-    tensor_reciprocal = torch.reciprocal(tensor_out)
-    tensor_out = torch.where(mask_negative_input, tensor_reciprocal, tensor_out)
-
-    output_tensor = ttnn.from_torch(tensor_out, device=device, dtype=ttnn_input.dtype, layout=ttnn_input.layout)
-
-    return output_tensor
-
-
-def test_exp_accurate_python():
-    tensor_input = torch.from_numpy(np.array([4.25], dtype=np.float32)).type(torch.bfloat16)
-    ttnn_input = ttnn.from_torch(tensor_input, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
-    tensor_output = None
-    print(f"tensor_input =\n{tensor_input}")
-
-    tensor_output = exp_accurate_python(ttnn_input, tensor_output)
-
-    ttnn_output = ttnn.exp(ttnn_input)
-
-    tensor_output_torch = ttnn.to_torch(tensor_output)
-    ttnn_output_torch = ttnn.to_torch(ttnn_output)
-
-    print(f"torch.exp() =\n{torch.exp(tensor_input)}")
-    print(f"tensor_output =\n{tensor_output_torch}")
-    print(f"ttnn_output =\n{ttnn_output_torch}")
 
 
 # Add powers of [-1, 2, 3, 4, 5, 6, 7, 8, 9, 10] into dictionary
@@ -604,7 +508,6 @@ def main(args):
         # "exp-fast-approx",
         # "exp_approx0",
         # "exp_approx_21f",
-        # "exp_accurate_python",
         # "exp_python_alt1",
         # "pow_2",
         # "pow_3",
@@ -674,7 +577,6 @@ def main(args):
         # "exp_approx_21f",
         # "exp-fast-approx",
         # "exp_approx0",
-        # "exp_accurate_python",
         # "exp_python_alt1",
         # "pow21f_tiny",
         # "pow_2",
@@ -777,6 +679,5 @@ def main(args):
 args = sys.argv
 main(args)
 
-# test_exp_accurate_python()
 
 ttnn.close_device(device)

@@ -3,7 +3,7 @@ import torch
 import traceback
 
 import pytest
-from models.utility_functions import ulp
+from models.common.utility_functions import ulp
 
 
 TERM_RED = "\033[91m"
