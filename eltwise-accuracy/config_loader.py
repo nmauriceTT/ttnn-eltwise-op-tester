@@ -49,28 +49,6 @@ def get_operations_list(config_type: str) -> List[str]:
     return config["operations"]
 
 
-def get_highres_operations_list(config_type: str) -> List[str]:
-    """
-    Get list of high-resolution operations from configuration file.
-    Only available for unary operations.
-    
-    Args:
-        config_type: Either "unary" or "binary"
-        
-    Returns:
-        List of high-resolution operation names
-        
-    Raises:
-        KeyError: If highres_operations key is not present
-    """
-    config = load_operations_config(config_type)
-    
-    if "highres_operations" not in config:
-        raise KeyError(f"highres_operations not found in {config_type}_operations.json")
-    
-    return config["highres_operations"]
-
-
 def get_dtype(config_type: str) -> str:
     """
     Get data type from configuration file.
