@@ -67,8 +67,8 @@ def create_parser(operation_type="unary"):
         parser.add_argument(
             "--group-size", "-g",
             type=int,
-            default=1,
-            help="Group size for bfloat16 measurements (default: 32)"
+            default=None,
+            help="Size of measurements batches (default: 1 for bfloat16, 65536 for float32). Higher values increases size of output files."
         )
 
     return parser

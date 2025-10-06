@@ -1006,6 +1006,51 @@
             ]
         },
         {
+            "id": "ulp_plots_float32",
+            "default_params": {
+              "type": "scatterplot",
+              "dtype": "float32",
+              "xname": "base_x",
+              "ynames": [
+                  ["max_ulp_error", "", "-"]
+              ],
+              "hue": "operation",
+              "plot_params": {
+                  "title": "ULP Error of ttnn.{} against torch\n[float32]",
+                  "xscale": "symlog",
+                  "xlabel": "x",
+                  "ylabel": "ULP Error",
+                  "yscale": "asinh",
+                  "ylim": [0, null],
+                  "horizontal_lines": [
+                      [100, "100 ULP - \"great\""],
+                      [500, "500 ULP - \"accurate\""],
+                      [2000, "2000 ULP - \"approx\""]
+                  ]
+              }
+            },
+            "plots": [
+                {
+                  "id": "exp-float32-ulp",
+                  "name": "exp",
+                  "outputs": [
+                      "accuracy_results/plots/ulp/exp-float32.png"
+                  ],
+                  "files": [
+                      "accuracy_results/results/exp-float32-[65536].csv",
+                      "accuracy_results/results/exp-approx-float32-[65536].csv",
+                      "accuracy_results/results/exp-fast-approx-float32-[65536].csv"
+                  ],
+                  "plot_params": {
+                      "xlim": [-200, 200],
+                      "ylim": [0, 40000],
+                      "yscale": "linear",
+                      "xbase": 2
+                  }
+              }
+            ]
+        },
+        {
             "id": "relative_plots_zoom",
             "default_params": {
                 "dtype": "bfloat16",

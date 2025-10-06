@@ -130,8 +130,9 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
 
     np_input = torch_input.flatten().numpy()
 
-    sub_batches = torch_input.size(0) // group_size
-
+    torch_input_size = torch_input.nelement()
+    sub_batches = torch_input_size // group_size
+    
     # Initialize arrays for measurements
     [
         x_array,
@@ -144,6 +145,7 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
         max_rel_error_array,
         mean_rel_error_array,
     ] = [np.zeros([sub_batches], dtype=np.float64) for _ in range(9)]
+
 
     # Process each sub-batch
     for j in range(sub_batches):
@@ -188,9 +190,9 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
 
     accuracy_df = pd.DataFrame(
         {
-            "x": x_array,
-            "y": y_array,
-            "yref": yref_array,
+            "base_x": x_array,
+            "base_y": y_array,
+            "base_yref": yref_array,
             "max_abs_error": max_abs_error_array,
             "mean_abs_error": mean_abs_error_array,
             "max_ulp_error": max_ulp_error_array,
@@ -199,6 +201,7 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
             "mean_rel_error": mean_rel_error_array,
         }
     )
+
 
     return accuracy_df
 
@@ -224,11 +227,13 @@ def measure_op_accuracy_f32(operation_name, dest_dir, group_size=128):
         calculated_ttnn_fp32 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
 
         accuracy_df = compare_with_golden(input_tensor,golden_torch_fp64, calculated_ttnn_fp32, group_size)
+        accuracy_df["operation"] = operation_name
+        accuracy_df["dtype"] = "float32"
 
         all_df.append(accuracy_df)
 
     all_df = pd.concat(all_df)
-    all_df.to_csv(f"{dest_dir}/{operation_name}-f32.csv", na_rep="NaN", index_label="index")
+    all_df.to_csv(f"{dest_dir}/{operation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
 
 
 def measure_op_accuracy(operation_name, target_dtype, dest_dir, samples=None):
@@ -619,7 +624,6 @@ def parse_operations_config_file(config_file):
 def main(args):
 
     args = parse_args("unary")
-    group_size = args.group_size
 
 
     dest_dir = "accuracy_results/results/"
@@ -644,9 +648,18 @@ def main(args):
     else:
         all_operations = parse_operations_config_file("op_configs/unary_operations.json")
 
+    if args.group_size is None:
+        if args.type == "bfloat16":
+            group_size = 1
+        elif args.type == "float32":
+            group_size = 65536
+        else:
+            raise ValueError(f"Invalid data type: {args.type}")
+    else:
+        group_size = args.group_size
 
-    # all_operations += powers
-    # highres_operations += powers
+
+
 
     success_count = 0
     successfull_operations = []
