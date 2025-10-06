@@ -1,0 +1,11 @@
+{
+    "operations": [
+        "divide-sfpu",
+        "pow",
+        "pow21f",
+        "divide",
+        "div",
+        "div-accurate"
+    ],
+    "dtype": "bfloat16"
+}

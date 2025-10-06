@@ -8,9 +8,13 @@ import sys
 import os
 import traceback
 import scipy
+import json
 
 import utils
 from models.common.utility_functions import ulp
+
+from arg_parser import parse_args
+
 
 from operations import UNARY_OPERATIONS
 
@@ -98,6 +102,133 @@ for power in powers:
         None,
         "pow",
     )
+
+
+class Measurements:
+
+    def __init__(self):
+        pass
+
+    
+def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, calculated_ttnn: ttnn.Tensor, group_size: int):
+
+    # Move ttnn to torch
+    calculated_torch = ttnn.to_torch(calculated_ttnn)
+
+    # Convert torch output to ttnn dtype for ulp computation
+    golden_downcast = golden_torch.to(calculated_torch.dtype)
+    golden_ulp = ulp(golden_downcast)
+
+    golden_np_fp64 = golden_torch.to(torch.float64).flatten().numpy()
+    calculated_np_fp64 = calculated_torch.to(torch.float64).flatten().numpy()
+
+    EPSILON = 2**-9
+
+    abs_error_np = np.abs(golden_np_fp64 - calculated_np_fp64)
+    rel_error_np = abs_error_np / np.maximum(np.abs(golden_np_fp64), EPSILON)
+    ulp_error_np = abs_error_np / golden_ulp.flatten().numpy()
+
+    np_input = torch_input.flatten().numpy()
+
+    sub_batches = torch_input.size(0) // group_size
+
+    # Initialize arrays for measurements
+    [
+        x_array,
+        y_array,
+        yref_array,
+        max_abs_error_array,
+        mean_abs_error_array,
+        max_ulp_error_array,
+        mean_ulp_error_array,
+        max_rel_error_array,
+        mean_rel_error_array,
+    ] = [np.zeros([sub_batches], dtype=np.float64) for _ in range(9)]
+
+    # Process each sub-batch
+    for j in range(sub_batches):
+
+        beg_index = j * group_size
+        end_index = (j + 1) * group_size
+
+        sub_abs_error_np = abs_error_np[beg_index:end_index]
+        sub_rel_error_np = rel_error_np[beg_index:end_index]
+        sub_ulp_error_np = ulp_error_np[beg_index:end_index]
+        sub_input_np = np_input[beg_index:end_index]
+        sub_output_np = calculated_np_fp64[beg_index:end_index]
+        sub_ref_np = golden_np_fp64[beg_index:end_index]
+
+
+        finite_mask = np.isfinite(sub_abs_error_np)
+        if np.any(finite_mask):
+            max_abs_error = np.max(sub_abs_error_np[finite_mask])
+            mean_abs_error = np.mean(sub_abs_error_np[finite_mask])
+            max_ulp_error = np.max(sub_ulp_error_np[finite_mask])
+            mean_ulp_error = np.mean(sub_ulp_error_np[finite_mask])
+            max_rel_error = np.max(sub_rel_error_np[finite_mask])
+            mean_rel_error = np.mean(sub_rel_error_np[finite_mask])
+        else:
+            max_abs_error = np.max(sub_abs_error_np)
+            mean_abs_error = np.mean(sub_abs_error_np)
+            max_ulp_error = np.max(sub_ulp_error_np)
+            mean_ulp_error = np.mean(sub_ulp_error_np)
+            max_rel_error = np.max(sub_rel_error_np)
+            mean_rel_error = np.mean(sub_rel_error_np)
+
+        # Store results for current sub-batch
+        x_array[j] = sub_input_np[0].item()
+        y_array[j] = sub_output_np[0].item()
+        yref_array[j] = sub_ref_np[0].item()
+        max_abs_error_array[j] = max_abs_error.item()
+        mean_abs_error_array[j] = mean_abs_error.item()
+        max_ulp_error_array[j] = max_ulp_error.item()
+        mean_ulp_error_array[j] = mean_ulp_error.item()
+        max_rel_error_array[j] = max_rel_error.item()
+        mean_rel_error_array[j] = mean_rel_error.item()
+
+    accuracy_df = pd.DataFrame(
+        {
+            "x": x_array,
+            "y": y_array,
+            "yref": yref_array,
+            "max_abs_error": max_abs_error_array,
+            "mean_abs_error": mean_abs_error_array,
+            "max_ulp_error": max_ulp_error_array,
+            "mean_ulp_error": mean_ulp_error_array,
+            "max_rel_error": max_rel_error_array,
+            "mean_rel_error": mean_rel_error_array,
+        }
+    )
+
+    return accuracy_df
+
+
+def measure_op_accuracy_f32(operation_name, dest_dir, group_size=128):
+
+    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operations_dict[operation_name]
+
+    all_df = []
+    iteration = 0
+    for input_tensor in utils.generate_all_f32_tensors():
+
+        print(f"Iteration {iteration}")
+        iteration += 1
+
+        ttnn_input = ttnn.from_torch(input_tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
+
+        
+        golden_torch_fp64 = torch.zeros_like(input_tensor, dtype=torch.float64)
+        golden_torch_fp64 = torch_unary_op(input_tensor, out=golden_torch_fp64)
+
+        ttnn_output = ttnn.zeros_like(ttnn_input)
+        calculated_ttnn_fp32 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
+
+        accuracy_df = compare_with_golden(input_tensor,golden_torch_fp64, calculated_ttnn_fp32, group_size)
+
+        all_df.append(accuracy_df)
+
+    all_df = pd.concat(all_df)
+    all_df.to_csv(f"{dest_dir}/{operation_name}-f32.csv", na_rep="NaN", index_label="index")
 
 
 def measure_op_accuracy(operation_name, target_dtype, dest_dir, samples=None):
@@ -479,7 +610,18 @@ def measure_op_accuracy_bf16(operation_name, dest_dir, group_size=None):
     print(f"{operation_name} [bfloat16] PCC = {pcc[0]}, Duration = {elapsed_s:.4f}s")
 
 
+def parse_operations_config_file(config_file):
+    with open(config_file, "r") as f:
+        config = json.load(f)
+    return config["operations"]
+
+
 def main(args):
+
+    args = parse_args("unary")
+    group_size = args.group_size
+
+
     dest_dir = "accuracy_results/results/"
     if not os.path.exists(dest_dir):  # TODO: Check if recursive
         os.makedirs(dest_dir)
@@ -496,146 +638,12 @@ def main(args):
     powers_vals = [2, 3, 4, 5, 6, 7, 8, 9, 10]
     powers = [f"pow_{power}" for power in powers_vals]
 
-    # Unused: atan2, logaddexp, logaddexp2
-    all_operations = [
-        "exp",
-        # "exp21f",
-        "exp-approx",
-        # "exp-fast-approx-v2",
-        # "exp_21f_round_nearest",
-        # "exp_hybrid",
-        # "exp_cond",
-        # "exp-fast-approx",
-        # "exp_approx0",
-        # "exp_approx_21f",
-        # "exp_python_alt1",
-        # "pow_2",
-        # "pow_3",
-        # "pow_5",
-        # "pow_10",
-        # "pow21f_tiny",
-        # "pow21f_2",
-        # "pow21f_3",
-        # "pow21f_5",
-        # "pow21f_10",
-        # "pow(x,-10)",
-        # "pow(x,-2)",
-        # "pow(x,-1)",
-        # "pow(x,0)",
-        # "pow(x,2)",
-        # "pow(x,5)",
-        # "pow(x,10)",
-        # "pow(x,0)",
-        # "pow(x,0.5)",
-        # "pow(x,2)",
-        # "pow(x,5)",
-        # "pow(x,10)",
-        # "pow21f(x,0)",
-        # "pow21f(x,0)",
-        # "pow21f(x,0.5)",
-        # "pow21f(x,2)",
-        # "pow21f(x,5)",
-        # "pow21f(x,10)",
-        # "log",
-        # "tanh",
-        # "tanh_accurate",
-        # "cosh",
-        # "sinh",
-        # "log10",
-        # "log2",
-        # "log1p",
-        # "silu",
-        # "gelu",
-        # "gelu_approx",
-        # "logit",
-        # "swish",
-        # "mish",
-        # "elu",
-        # "selu",
-        # "softplus",
-        # "softsign",
-        # "tan",
-        # "atan",
-        # "sin",
-        # "cos",
-        # "sqrt",
-        # "rsqrt",
-        # "rsqrt_approx",
-        # "reciprocal",
-        # "digamma",
-        # "lgamma",
-        # "tanhshrink",
-    ]
 
-    highres_operations = [
-        # "exp_hybrid",
-        "exp",
-        "exp-fast-approx",
-        # "exp-fast-approx-v2",
-        # "exp21f",
-        # "exp_cond",
-        # "exp_approx_21f",
-        # "exp-fast-approx",
-        # "exp_approx0",
-        # "exp_python_alt1",
-        # "pow21f_tiny",
-        # "pow_2",
-        # "pow_3",
-        # "pow_5",
-        # "pow_10",
-        # "pow21f_2",
-        # "pow21f_3",
-        # "pow21f_5",
-        # "pow21f_10",
-        # "pow(x,-10)",
-        # "pow(x,-2)",
-        # "pow(x,-1)",
-        # "pow(x,0)",
-        # "pow(x,2)",
-        # "pow(x,5)",
-        # "pow(x,10)",
-        # "pow(x,0)",
-        "pow(x,0.5)",
-        # "pow(x,2)",
-        # "pow(x,5)",
-        # "pow(x,10)",
-        # "pow21f(x,0)",
-        # "pow21f(x,0.5)",
-        # "pow21f(x,2)",
-        # "pow21f(x,5)",
-        # "pow21f(x,10)",
-        # "log",
-        # "log10",
-        # "log2",
-        # "log1p",
-        # "tanh",
-        # "tanh-approx",
-        # "cosh",
-        # "sinh",
-        # "tan",
-        # "atan",
-        # "cos",
-        # "sin",
-        # "silu",
-        # "gelu",
-        # "gelu_approx",
-        # "logit",
-        # "swish",
-        # "mish",
-        # "elu",
-        # "selu",
-        # "softplus",
-        # "softsign",
-        # "sqrt",
-        # "cbrt",
-        # "cbrt-pow1d3",
-        "cbrt-pow1d3-fp32",
-        # "rsqrt",
-        # "reciprocal",
-        # "digamma",
-        # "lgamma",
-        # "tanhshrink",
-    ]
+    if args.operation is not None:
+        all_operations = [args.operation]
+    else:
+        all_operations = parse_operations_config_file("op_configs/unary_operations.json")
+
 
     # all_operations += powers
     # highres_operations += powers
@@ -645,31 +653,31 @@ def main(args):
     failed_operations = []
 
     cnt = 0
-    total_operation_cnt = len(all_operations) + len(highres_operations)
+    total_operation_cnt = len(all_operations)
+    print(f"Measuring operations")
     for operation in all_operations:
         cnt += 1
-        print(f"Running operation {operation}  #{cnt} / {total_operation_cnt}", end="\r")
+        print(f"Running operation {operation} #{cnt}/{total_operation_cnt}", end="\r")
         try:
-            measure_op_accuracy_bf16(operation, dest_dir, group_size=32)
-            success_count += 1
-            successfull_operations += [operation]
-        except Exception as e:
-            print(f"{TERM_RED}Could not run operation {operation}: {e}{TERM_RESET}")
-            print(f"{TERM_RED}{traceback.format_exc()}{TERM_RESET}")
-            failed_operations += [operation]
 
-    print(f"Now measuring high-resolution operations")
-    for operation in highres_operations:
-        cnt += 1
-        print(f"Running operation {operation} [highres] #{cnt}/{total_operation_cnt}", end="\r")
-        try:
-            measure_op_accuracy_bf16(operation, dest_dir, group_size=1)
+            start_time = time.time()
+            if args.type == "bfloat16":
+                measure_op_accuracy_bf16(operation, dest_dir, group_size=group_size)
+            elif args.type == "float32":
+                measure_op_accuracy_f32(operation, dest_dir, group_size=group_size)
+            else:
+                raise ValueError(f"Invalid data type: {args.type}")
+
+            end_time = time.time()
+            elapsed_s = end_time - start_time
+            print(f"Duration = {elapsed_s}s")
+
             success_count += 1
-            successfull_operations += [f"{operation}[highres]"]
+            successfull_operations += [f"{operation}"]
         except Exception as e:
             print(f"{TERM_RED}Could not run operation {operation}: {e}{TERM_RESET}")
             print(f"{TERM_RED}{traceback.format_exc()}{TERM_RESET}")
-            failed_operations += [f"{operation}[highres]"]
+            failed_operations += [f"{operation}"]
 
     print(f"Sucessfully ran {success_count} / {len(all_operations)} operations")
     print(f"{TERM_GREEN}SUCCESS: {successfull_operations}{TERM_RESET}")

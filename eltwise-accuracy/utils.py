@@ -23,6 +23,34 @@ def all_bf16_tensor():
     return torch_values_bf16
 
 
+def generate_all_f32_tensors():
+
+    # We want to test all possible float32 values. 
+    # Since storing everything in a single tensor is not possible, we return a generator 
+    # that yields tensors of size [2**8, 2**9, 2**7] 
+    # For float32, that amounts to 64 MB per tensor, which is still reasonable
+
+    width = 2**7
+    height = 2**9
+    batch_size = 2**8
+
+    num_elements = batch_size * height * width
+
+    num_tensors = 2**32 // num_elements
+    shape = [batch_size, height, width]
+
+    tensor = torch.arange(0, num_elements, dtype=torch.int64).reshape(shape)
+    increment = num_elements
+
+    print(f"num_batch: {num_tensors}")
+
+    for _ in range(num_tensors):
+        tensor_f32 = tensor.to(torch.int32).view(torch.float32)
+
+        yield tensor_f32
+        tensor += increment
+
+
 def generate_binary_tensors_bf16():
     batch_size = 128
     num_batches = 2**16 // batch_size
