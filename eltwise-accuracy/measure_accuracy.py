@@ -119,89 +119,50 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
     golden_downcast = golden_torch.to(calculated_torch.dtype)
     golden_ulp = ulp(golden_downcast)
 
-    golden_np_fp64 = golden_torch.to(torch.float64).flatten().numpy()
-    calculated_np_fp64 = calculated_torch.to(torch.float64).flatten().numpy()
-
-    EPSILON = 2**-9
-
-    abs_error_np = np.abs(golden_np_fp64 - calculated_np_fp64)
-    rel_error_np = abs_error_np / np.maximum(np.abs(golden_np_fp64), EPSILON)
-    ulp_error_np = abs_error_np / golden_ulp.flatten().numpy()
-
-    np_input = torch_input.flatten().numpy()
 
     torch_input_size = torch_input.nelement()
     sub_batches = torch_input_size // group_size
-    
-    # Initialize arrays for measurements
-    [
-        x_array,
-        y_array,
-        yref_array,
-        max_abs_error_array,
-        mean_abs_error_array,
-        max_ulp_error_array,
-        mean_ulp_error_array,
-        max_rel_error_array,
-        mean_rel_error_array,
-    ] = [np.zeros([sub_batches], dtype=np.float64) for _ in range(9)]
+
+    measurement_shape = [sub_batches, group_size]
+
+    golden_np_fp64 = golden_torch.to(torch.float64).flatten().numpy().reshape(measurement_shape)
+    calculated_np_fp64 = calculated_torch.to(torch.float64).flatten().numpy().reshape(measurement_shape)
+    np_input = torch_input.flatten().numpy().reshape(measurement_shape)
+
+    EPSILON = 2**-9
+
+    # Data type used for compute mean/max (more compact than float64 to speed-up computation)
+    np_compute_dtype = np.float32
+
+    abs_error_np = np.abs(golden_np_fp64 - calculated_np_fp64).astype(np_compute_dtype)
+    rel_error_np = abs_error_np / np.maximum(np.abs(golden_np_fp64), EPSILON).astype(np_compute_dtype)
+    ulp_error_np = abs_error_np / golden_ulp.flatten().numpy().reshape(measurement_shape).astype(np_compute_dtype)
 
 
-    # Process each sub-batch
-    for j in range(sub_batches):
-
-        beg_index = j * group_size
-        end_index = (j + 1) * group_size
-
-        sub_abs_error_np = abs_error_np[beg_index:end_index]
-        sub_rel_error_np = rel_error_np[beg_index:end_index]
-        sub_ulp_error_np = ulp_error_np[beg_index:end_index]
-        sub_input_np = np_input[beg_index:end_index]
-        sub_output_np = calculated_np_fp64[beg_index:end_index]
-        sub_ref_np = golden_np_fp64[beg_index:end_index]
-
-
-        finite_mask = np.isfinite(sub_abs_error_np)
-        if np.any(finite_mask):
-            max_abs_error = np.max(sub_abs_error_np[finite_mask])
-            mean_abs_error = np.mean(sub_abs_error_np[finite_mask])
-            max_ulp_error = np.max(sub_ulp_error_np[finite_mask])
-            mean_ulp_error = np.mean(sub_ulp_error_np[finite_mask])
-            max_rel_error = np.max(sub_rel_error_np[finite_mask])
-            mean_rel_error = np.mean(sub_rel_error_np[finite_mask])
-        else:
-            max_abs_error = np.max(sub_abs_error_np)
-            mean_abs_error = np.mean(sub_abs_error_np)
-            max_ulp_error = np.max(sub_ulp_error_np)
-            mean_ulp_error = np.mean(sub_ulp_error_np)
-            max_rel_error = np.max(sub_rel_error_np)
-            mean_rel_error = np.mean(sub_rel_error_np)
-
-        # Store results for current sub-batch
-        x_array[j] = sub_input_np[0].item()
-        y_array[j] = sub_output_np[0].item()
-        yref_array[j] = sub_ref_np[0].item()
-        max_abs_error_array[j] = max_abs_error.item()
-        mean_abs_error_array[j] = mean_abs_error.item()
-        max_ulp_error_array[j] = max_ulp_error.item()
-        mean_ulp_error_array[j] = mean_ulp_error.item()
-        max_rel_error_array[j] = max_rel_error.item()
-        mean_rel_error_array[j] = mean_rel_error.item()
+    # finite_mask = np.isfinite(abs_error_np)
+    x_array = np_input.take(0, axis=-1).astype(np_compute_dtype)
+    y_array = calculated_np_fp64.take(0, axis=-1).astype(np_compute_dtype)
+    yref_array = golden_np_fp64.take(0, axis=-1).astype(np_compute_dtype)
+    max_abs_error = np.nanmax(abs_error_np, axis=-1)
+    mean_abs_error = np.nanmean(abs_error_np, axis=-1)
+    max_ulp_error = np.nanmax(ulp_error_np, axis=-1)
+    mean_ulp_error = np.nanmean(ulp_error_np, axis=-1)
+    max_rel_error = np.nanmax(rel_error_np, axis=-1)
+    mean_rel_error = np.nanmean(rel_error_np, axis=-1)
 
     accuracy_df = pd.DataFrame(
         {
             "base_x": x_array,
             "base_y": y_array,
             "base_yref": yref_array,
-            "max_abs_error": max_abs_error_array,
-            "mean_abs_error": mean_abs_error_array,
-            "max_ulp_error": max_ulp_error_array,
-            "mean_ulp_error": mean_ulp_error_array,
-            "max_rel_error": max_rel_error_array,
-            "mean_rel_error": mean_rel_error_array,
+            "max_abs_error": max_abs_error,
+            "mean_abs_error": mean_abs_error,
+            "max_ulp_error": max_ulp_error,
+            "mean_ulp_error": mean_ulp_error,
+            "max_rel_error": max_rel_error,
+            "mean_rel_error": mean_rel_error,
         }
     )
-
 
     return accuracy_df
 
