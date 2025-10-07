@@ -10,11 +10,14 @@ This script:
 """
 
 import os
+from stat import FILE_ATTRIBUTE_SYSTEM
 import sys
 import subprocess
 import json
 from pathlib import Path
 from datetime import datetime
+
+from jinja2 import Environment, FileSystemLoader
 
 
 def load_report_params(params_file="eltwise-accuracy/report-params.json"):
@@ -34,105 +37,27 @@ def check_image_exists(image_path):
     """Check if an image file exists."""
     return os.path.exists(image_path)
 
+def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_template):
 
-def create_markdown_report(report_params, output_file="accuracy_report.md"):
-    """Create a markdown report from report parameters."""
-    
-    # Get current timestamp
+    env = Environment(
+        loader=FileSystemLoader("templates"),
+        autoescape=True
+    )
+
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    markdown_content = f"""# TTNN Eltwise Operations Accuracy Report
 
-Generated on: {timestamp}
+    unary_operations = operations["unary"]
+    binary_operations = operations["binary"]
 
-This report contains accuracy analysis plots for various TTNN eltwise operations compared to PyTorch reference implementations.
+    template = env.get_template(jinja_template)
 
-## Overview
-
-The following sections contain accuracy plots for different types of operations:
-
-1. **Unary Operations** - Single-input mathematical functions
-2. **Binary Operations** - Two-input mathematical functions
-
-## Plots
-
-"""
-    
-    # Process each group
-    for group in report_params.get("groups", []):
-        # Process unary operations
-        if "unary" in group:
-            unary_data = group["unary"]
-            default_description = unary_data.get("default_params", {}).get("description", "Unary operation accuracy analysis")
-            
-            markdown_content += f"\n# Unary Operations\n\n"
-            markdown_content += f"{default_description}\n\n"
-            
-            for operation in unary_data.get("operations", []):
-                operation_id = operation.get("id", "unknown")
-                operation_title = operation.get("title", operation_id)
-                image_path = operation.get("image", "")
-                description = operation.get("description", default_description)
-                
-                if image_path and check_image_exists(image_path):
-                    markdown_content += f"## {operation_title}\n\n"
-                    markdown_content += f"{description}\n\n"
-                    markdown_content += f"![{operation_title}]({image_path})\n\n"
-                else:
-                    # Print error message in red (using ANSI color codes)
-                    print(f"\033[91mError: Image not found for {operation_title} at {image_path}\033[0m")
-        
-        # Process binary operations
-        if "binary" in group:
-            binary_data = group["binary"]
-            default_description = binary_data.get("default_params", {}).get("description", "Binary operation accuracy analysis")
-            
-            markdown_content += f"\n# Binary Operations\n\n"
-            markdown_content += f"{default_description}\n\n"
-            
-            for operation in binary_data.get("operations", []):
-                operation_id = operation.get("id", "unknown")
-                operation_title = operation.get("title", operation_id)
-                image_path = operation.get("image", "")
-                description = operation.get("description", default_description)
-                
-                if image_path and check_image_exists(image_path):
-                    markdown_content += f"## {operation_title}\n\n"
-                    markdown_content += f"{description}\n\n"
-                    markdown_content += f"![{operation_title}]({image_path})\n\n"
-                else:
-                    # Print error message in red (using ANSI color codes)
-                    print(f"\033[91mError: Image not found for {operation_title} at {image_path}\033[0m")
-    
-    # Add footer
-    markdown_content += """
-## Notes
-
-- All plots show TTNN implementation accuracy compared to PyTorch reference
-- ULP (Unit in the Last Place) errors measure precision in terms of floating-point representation
-- Relative errors are shown as percentages
-- Binary operation heatmaps show ULP errors across different input value combinations
-
-## Data Sources
-
-- Accuracy data: `accuracy_results/results/`
-- Plot configurations: `eltwise-accuracy/plot-params.json` and `eltwise-accuracy/binary-plot-params.json`
-- Report configuration: `report-params.json`
-- Default `memory_config`
-
-## ULP 
-
-- For accurate operations, ULP error should be < 3 on bfloat16 for useful range
-- For approximiate operations, ULP error should ideally be < 10 on bfloat16 (but can depend on operation and range)
-
-"""
-    
-    # Write markdown file
-    with open(output_file, 'w') as f:
-        f.write(markdown_content)
-    
-    print(f"Markdown report created: {output_file}")
-    return output_file
+    with open(output_file, "w") as f:
+        f.write(template.render(
+            unary_operations=unary_operations, 
+            binary_operations=binary_operations, 
+            timestamp=timestamp, 
+            dtypes=dtypes
+        ))
 
 
 def convert_to_pdf(markdown_file, output_pdf="accuracy_report.pdf"):
@@ -187,23 +112,40 @@ def main():
         print("Failed to load report parameters. Exiting.")
         return 1
     
-    print("Report parameters loaded successfully")
+    all_dtypes = ["bfloat16", "float32"]
     
+    all_unary_operations = [
+        "exp", "exp2", "log", "log10", "log2,", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
+        "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "selu", "softplus", "softsign", "tan", 
+        "atan2", "sin", "cos", "sqrt", "cbrt", "cbrt-pow1d3", "cbrt-pow1d3-fp32", "rsqrt", "rsqrt_approx",
+        "reciprocal", "digamma", "lgamma", "tanhshrink"
+    ]
+    all_binary_operations = [
+        "divide", "div", "div-accurate", "pow"
+    ]
+    all_operations = {
+        "unary": all_unary_operations,
+        "binary": all_binary_operations
+    }
+
+    print("Report parameters loaded successfully")
+
     # Step 2: Create markdown report
-    markdown_file = create_markdown_report(report_params)
+    create_markdown_report_jinja2("accuracy_report.md", all_dtypes, all_operations, "report.md.j2")
+    # markdown_file = create_markdown_report(report_params)
     
     # Step 3: Convert to PDF
-    if convert_to_pdf(markdown_file):
+    if convert_to_pdf("accuracy_report.md"):
         print("\n" + "=" * 50)
         print("SUCCESS: Accuracy report generated successfully!")
-        print(f"Markdown file: {markdown_file}")
+        print(f"Markdown file: accuracy_report.md")
         print("PDF file: accuracy_report.pdf")
         print("=" * 50)
         return 0
     else:
         print("\n" + "=" * 50)
         print("WARNING: Markdown report created but PDF conversion failed.")
-        print(f"Markdown file: {markdown_file}")
+        print(f"Markdown file: accuracy_report.md")
         print("You can manually convert it to PDF using pandoc or view it in a markdown viewer.")
         print("=" * 50)
         return 1

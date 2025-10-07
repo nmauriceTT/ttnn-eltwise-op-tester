@@ -1,0 +1,64 @@
+Generated on: {{ timestamp }}
+
+This report contains accuracy analysis plots for various TTNN eltwise operations compared to PyTorch reference implementations.
+
+## Overview
+
+The following sections contain accuracy plots for different types of operations:
+
+1. **Unary Operations** - Single-input mathematical functions
+2. **Binary Operations** - Two-input mathematical functions
+
+
+# Unary Operations
+
+{% for dtype in dtypes %}
+
+## {{ dtype }}
+
+{% for operation in unary_operations %}
+
+### ttnn.{{ operation }}
+
+![ttnn.{{ operation }}](accuracy_results/plots/ulp/{{ operation }}-{{ dtype }}.png)
+
+{% endfor %}
+
+{% endfor %}
+
+
+# Binary Operations
+
+{% for dtype in dtypes %}
+
+## {{ dtype }}
+
+{% for operation in binary_operations %}
+
+### ttnn.{{ operation }}
+
+![ttnn.{{ operation }}](accuracy_results/plots/binary_heatmaps/{{ operation }}[{{ dtype }}].png)
+
+
+{% endfor %}
+
+{% endfor %}
+
+## Notes
+
+- All plots show TTNN implementation accuracy compared to PyTorch reference
+- ULP (Unit in the Last Place) errors measure precision in terms of floating-point representation
+- Relative errors are shown as percentages
+- Binary operation heatmaps show ULP errors across different input value combinations
+
+## Data Sources
+
+- Accuracy data: `accuracy_results/results/`
+- Plot configurations: `eltwise-accuracy/plot-params.json` and `eltwise-accuracy/binary-plot-params.json`
+- Report configuration: `report-params.json`
+- Default `memory_config`
+
+## ULP 
+
+- For accurate operations, ULP error should be < 3 on bfloat16 for useful range
+- For approximiate operations, ULP error should ideally be < 10 on bfloat16 (but can depend on operation and range)

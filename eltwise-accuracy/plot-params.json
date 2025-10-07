@@ -858,7 +858,8 @@
                     ],
                     "plot_params": {
                         "xlim": [-10, 10],
-                        "ybase": 10
+                        "ylim": [0, 200],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -871,8 +872,8 @@
                     ],
                     "plot_params": {
                         "xlim": [-10, 10],
-                        "ylim": [0, 1.2],
-                        "ybase": 10
+                        "ylim": [0, 200],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -1357,7 +1358,7 @@
                     ],
                     "plot_params": {
                         "xlim": [-10, 10],
-                        "yscale": "asinh",
+                        "yscale": "linear",
                         "ylim": [0, 2000000]
                     }
                 },
