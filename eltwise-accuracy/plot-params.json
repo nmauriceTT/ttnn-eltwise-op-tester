@@ -216,7 +216,7 @@
                 "plot_params": {
                     "xbase": 2,
                     "yscale": "linear",
-                    "ylim": [0, 100],
+                    "ylim": [0, 50],
                     "xlim": [-10, 10],
                     "horizontal_lines": [
                     ]
@@ -296,7 +296,7 @@
                 ],
                 "plot_params": {
                     "xlim": [-0.9, 1e38],
-                    "ylim": [0, 100],
+                    "ylim": [0, 70],
                     "yscale": "linear"
                 }
             },
@@ -502,7 +502,8 @@
                 "plot_params": {
                     "xbase": 2,
                     "xlim": [-0.01, null],
-                    "ylim": [0, 200]
+                    "ylim": [0, 2000],
+                    "yscale": "linear"
                 }
             },
             {
@@ -529,7 +530,7 @@
                 "plot_params": {
                     "yscale": "linear",
                     "ylim": [0, 20],
-                    "xlim": [-0.1, 1e38]
+                    "xlim": [-0.01, 1e38]
                 }
             },
             {
@@ -1165,8 +1166,6 @@
                     ],
                     "plot_params": {
                         "xbase": 2,
-                        "yscale": "linear",
-                        "ylim": [0, 200000],
                         "xlim": [-10, 10],
                         "horizontal_lines": [
                         ]
@@ -1247,7 +1246,9 @@
                     "plot_params": {
                         "xlim": [-0.9, 1e38],
                         "ylim": [0, 200000],
-                        "yscale": "linear"
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                        ]
                     }
                 },
                 {
@@ -1411,9 +1412,7 @@
                         "accuracy_results/results/mish-float32-[65536].csv"
                     ],
                     "plot_params": {
-                        "xlim": [-20, 20],
-                        "ylim": [0, 100000],
-                        "yscale": "linear"
+                        "xlim": [-20, 20]
                     }
                 },
                 {
@@ -1478,7 +1477,7 @@
                     ],
                     "plot_params": {
                         "yscale": "linear",
-                        "ylim": [0, 40000],
+                        "ylim": [0, 2000],
                         "xlim": [-0.1, 1e38]
                     }
                 },
@@ -1491,7 +1490,7 @@
                     ],
                     "plot_params": {
                         "yscale": "linear",
-                        "ylim": [0, 200000]
+                        "ylim": [0, 2000]
                     }
                 },
                 {
@@ -1757,7 +1756,9 @@
                     ],
                     "plot_params": {
                         "xlim": [-10, 10],
-                        "ybase": 10
+                        "ybase": 10,
+                        "yscale": "linear",
+                        "ylim": [0, 200]
                     }
                 },
                 {
