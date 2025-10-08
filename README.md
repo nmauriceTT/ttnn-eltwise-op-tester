@@ -13,12 +13,26 @@ source <path/to/tt-metal>/python_env/bin/activate
 
 # Accuracy Benchmark
 
-For unary operations:
+### For unary operations:
+
+#### bfloat16
 ```
-python eltwise-accuracy/measure_accuracy.py
+python eltwise-accuracy/measure_accuracy.py -t "bfloat16"
 ```
 
-For binary operations:
+A specific operations can be tested using
+```
+python eltwise-accuracy/measure_accuracy.py -t "bfloat16" -o "exp"
+```
+
+#### float32
+Note: not optimized, takes ~2 minutes per operation
+
+```
+python eltwise-accuracy/measure_accuracy.py -t "float32"
+```
+
+### For binary operations:
 ```
 python eltwise-accuracy/measure-binary.py
 ```
@@ -50,7 +64,7 @@ This directory contains scripts to generate comprehensive PDF reports of TTNN el
 
 **Usage:**
 ```bash
-python3 generate_accuracy_report.py
+python generate_accuracy_report.py
 ```
 
 ### 2. `generate_report_from_existing_plots.py`
@@ -61,7 +75,7 @@ python3 generate_accuracy_report.py
 
 **Usage:**
 ```bash
-python3 generate_report_from_existing_plots.py
+python generate_report_from_existing_plots.py
 ```
 
 ## Prerequisites
@@ -92,7 +106,7 @@ python3 generate_report_from_existing_plots.py
 ## How to Use
 
 ```bash
-python3 eltwise-accuracy/generate_report.py
+python eltwise-accuracy/generate_report.py
 ```
 
 ### Output Files
