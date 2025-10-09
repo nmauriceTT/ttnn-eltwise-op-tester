@@ -17,37 +17,37 @@ source <path/to/tt-metal>/python_env/bin/activate
 
 #### bfloat16
 ```
-python eltwise-accuracy/measure_accuracy.py -t "bfloat16"
+python measure_accuracy.py -t "bfloat16"
 ```
 
 A specific operations can be tested using
 ```
-python eltwise-accuracy/measure_accuracy.py -t "bfloat16" -o "exp"
+python measure_accuracy.py -t "bfloat16" -o "exp"
 ```
 
 #### float32
 Note: not optimized, takes ~2 minutes per operation
 
 ```
-python eltwise-accuracy/measure_accuracy.py -t "float32"
+python measure_accuracy.py -t "float32"
 ```
 
 ### For binary operations:
 ```
-python eltwise-accuracy/measure-binary.py
+python measure-binary.py
 ```
 
 # Plot generation
 
 For unary operations:
 ```
-python eltwise-accuracy/plot_accuracy.py
+python plot_accuracy.py
 ```
 
 
 For binary operations:
 ```
-python eltwise-accuracy/plot_binary.py
+python plot_binary.py
 ```
 
 # Accuracy Report Generation
