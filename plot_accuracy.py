@@ -56,11 +56,18 @@ def plot(plot_entry):
 
     # Read parameters
 
+
     plot_params = plot_entry["plot_params"]
 
     id = plot_entry["id"]
+
+
     title = plot_params["title"] if "title" in plot_params else None
     short_name = plot_entry["name"] if "name" in plot_entry else id
+
+    print(f"id = {id}")
+    print(f"plot_entry = {plot_entry}")
+
 
     if title is not None:
         title = title.format(short_name)
@@ -103,6 +110,7 @@ def plot(plot_entry):
     ncolors = len(data[hseries].unique())
     color_palette = sns.color_palette("deep", ncolors + palette_offset)[palette_offset:]
 
+
     for y in ynames:
         d2 = data.copy()
 
@@ -110,10 +118,11 @@ def plot(plot_entry):
         d2["operation"] += " " + ysuffix
 
         # Remove data that exceeds ymin,ymax
-        if ymin is not None:
-            d2 = d2[d2[yname] >= ymin]
-        if ymax is not None:
-            d2 = d2[d2[yname] <= ymax]
+        # if ymin is not None:
+        #     d2 = d2[d2[yname] >= ymin]
+        # if ymax is not None:
+        #     d2 = d2[d2[yname] <= ymax]
+
 
         if plot_type == "lineplot":
             if hseries is not None:

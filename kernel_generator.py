@@ -1,6 +1,7 @@
 import os
 import ttnn
 import torch
+import math
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -60,23 +61,24 @@ def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, p
 
 def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, metal_home_dir):
 
-    dram_memory_config = ttnn.DRAM_MEMORY_CONFIG
 
-    output_tensor = ttnn.allocate_tensor_on_device(
-        ttnn_input_tensor.shape,
-        ttnn.bfloat16,
-        ttnn.TILE_LAYOUT,
-        device,
-        dram_memory_config,
-    )
+    output_tensor = ttnn.zeros_like(ttnn_input_tensor)
+
     io_tensors = [ttnn_input_tensor, output_tensor]
 
     core = ttnn.CoreCoord(0, 0)
     core_grid = ttnn.CoreRangeSet([ttnn.CoreRange(core, core)])
 
     input_cb_data_format = ttnn_input_tensor.dtype  # this will be mapped tt::DataFormat::Float16_b
-    cb_total_size = 2 * 2 * 1024  # tt::DataFormat::Float16_b hard coded to have size 2 * 1024
-    cb_page_size = 2 * 1024
+
+    if input_cb_data_format == ttnn.float32:
+        bytes_per_datum = 4
+    else:
+        bytes_per_datum = 2
+
+
+    cb_total_size = 2 * bytes_per_datum * 1024  # tt::DataFormat::Float16_b hard coded to have size 2 * 1024
+    cb_page_size = bytes_per_datum * 1024
 
     in_cb = 0
     out_cb = 1
@@ -103,7 +105,8 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
 
     tile_shape = ttnn_input_tensor.get_tile().tile_shape
     tile_volume = tile_shape[0] * tile_shape[1]
-    num_tiles = tile_volume // ttnn_input_tensor.shape[0]
+    tensor_volume = math.prod(ttnn_input_tensor.shape)
+    num_tiles = tensor_volume // tile_volume
 
     reader_compile_time_args = ttnn.TensorAccessorArgs(ttnn_input_tensor).get_compile_time_args()
     writer_compile_time_args = [out_cb]
@@ -129,8 +132,28 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
         config=ttnn.WriterConfigDescriptor(),
     )
 
-    sfpu_defines = [("SFPU_OP_EXP_INCLUDE", "1"), ("SFPU_OP_CHAIN_0", "exp_tile_init(); exp_tile(0);")]
+    sfpu_defines = []
+    # struct ComputeConfigDescriptor {
+    # using UnpackToDestModes = std::vector<UnpackToDestMode>;
+
+    # MathFidelity math_fidelity = MathFidelity::HiFi4;
+    # bool fp32_dest_acc_en = false;
+    # bool dst_full_sync_en = false;
+    # UnpackToDestModes unpack_to_dest_mode;
+    # bool bfp8_pack_precise = false;
+    # bool math_approx_mode = false;
+    # };
+
+    compute_kernel_config = ttnn.ComputeConfigDescriptor()
+    # compute_kernel_config.dst_full_sync_en = True
+    compute_kernel_config.fp32_dest_acc_en = ttnn_input_tensor.dtype == ttnn.float32
+    compute_kernel_config.math_approx_mode = False
+    compute_kernel_config.math_fidelity = ttnn.MathFidelity.HiFi4
+    compute_kernel_config.unpack_to_dest_mode = [ttnn._ttnn.program_descriptor.UnpackToDestMode.UnpackToDestFp32] * 32 #  ttnn.UnpackToDestMode.UnpackToDestFp32
+    # math_fidelity=ttnn.MathFidelity.HiFi4,
     
+    
+
     compute_kernel_descriptor = ttnn.KernelDescriptor(
         # kernel_source=f"{metal_home_dir}/tt_metal/kernels/compute/eltwise_sfpu.cpp",
         kernel_source=compute_kernel_source_code,
@@ -140,8 +163,11 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
         compile_time_args=compute_compile_time_args,
         defines=sfpu_defines,
         runtime_args=[[[]]],
-        config=ttnn.ComputeConfigDescriptor(),
+        config=compute_kernel_config,
     )
+
+
+    
 
     program_descriptor = ttnn.ProgramDescriptor(
         kernels=[reader_kernel_descriptor, writer_kernel_descriptor, compute_kernel_descriptor],
@@ -151,21 +177,31 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
 
     output = ttnn.generic_op(io_tensors, program_descriptor)
 
+    print(f"fp32_dest_acc_en = {compute_kernel_config.fp32_dest_acc_en}")
+    print(f"dtype = {ttnn_input_tensor.dtype}")
+    print(f"output.dtype = {output.dtype}")  
+
     return output
 
 
 
-def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients):
+def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients, full_name=None):
 
     TT_METAL_HOME = os.getenv("TT_METAL_HOME")
 
     compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary", sfpi_kernel_name, polynomial_coefficients)
     
     # For debugging purposes
-    with open(f"compute_unary_{sfpi_kernel_name}.cpp", "w") as f:
+    if full_name is None:
+        full_name = sfpi_kernel_name
+
+    with open(f"compute_unary_{full_name}.cpp", "w") as f:
         f.write(compute_kernel_source_code)
+
+    # Doudble lambda to properly copy value of kernel_source_code
+    fun =  lambda tensor, device, kernel_source_code=compute_kernel_source_code: \
+                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME))
     
-    fun =  lambda tensor, device: base_unary_kernel(compute_kernel_source_code, tensor, device, TT_METAL_HOME)
     return fun
 
 
@@ -173,10 +209,11 @@ def test_generated_kernel(function):
 
     device = ttnn.open_device(device_id=0)
 
-    shape = [64, 31]
-    tensor = torch.full(shape, 1.0, dtype=torch.bfloat16)
+    shape = [256, 256]
+    value = 8.03125
+    tensor = torch.full(shape, value, dtype=torch.float32)
 
-    ttnn_tensor = ttnn.from_torch(tensor, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
+    ttnn_tensor = ttnn.from_torch(tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
 
     output_tensor = function(ttnn_tensor, device)
 

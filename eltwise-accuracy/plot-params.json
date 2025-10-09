@@ -48,6 +48,28 @@
                 }
             },
             {
+                "id": "exp-Chebyshev-bfloat16-ulp",
+                "name": "exp",
+                "outputs": [
+                    "accuracy_results/plots/ulp/exp-bfloat16-Chebyshev.png"
+                ],
+                "files": [
+                    "accuracy_results/results/exp-bfloat16-[1].csv",
+                    "accuracy_results/results/exp-approx-bfloat16-[1].csv",
+                    "accuracy_results/results/exp-Chebyshev-v1[2]-bfloat16-[1].csv",
+                    "accuracy_results/results/exp-Chebyshev-v1-c0ef0[4]-bfloat16-[1].csv"
+                ],
+                "plot_params": {
+                    "xlim": [-200, 128],
+                    "ylim": [0, 20],
+                    "yscale": "linear",
+                    "xbase": 2,
+                    "horizontal_lines": [
+                        [1, "1 ULP"]
+                    ]
+                }
+            },
+            {
                 "id": "exp-bfloat16-ulp-pres1",
                 "name": "exp",
                 "outputs": [
@@ -409,7 +431,8 @@
                 "plot_params": {
                     "xlim": [-10, 10],
                     "yscale": "asinh",
-                    "ylim": [0, 1000]
+                    "xscale": "linear",
+                    "ylim": [0, 300]
                 }
             },
             {
@@ -872,7 +895,7 @@
                         "accuracy_results/results/gelu_approx-bfloat16-[32].csv"
                     ],
                     "plot_params": {
-                        "xlim": [-10, 10],
+                        "xlim": [-20, 20],
                         "ylim": [0, 200],
                         "yscale": "linear"
                     }
@@ -1049,6 +1072,28 @@
                       "yscale": "linear",
                       "xbase": 2
                   }
+                },
+                {
+                    "id": "exp-Chebyshev-float32-ulp",
+                    "name": "exp",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/exp-float32-Chebyshev.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/exp-float32-[65536].csv",
+                        "accuracy_results/results/exp-approx-float32-[65536].csv",
+                        "accuracy_results/results/exp-Chebyshev-v1[2]-float32-[65536].csv",
+                        "accuracy_results/results/exp-Chebyshev-v1-c0ef0[4]-float32-[65536].csv",
+                        "accuracy_results/results/exp-21f-float32-[65536].csv",
+                        "accuracy_results/results/exp-61f-float32-[65536].csv",
+                        "accuracy_results/results/exp-Chebyshev-v1[4]-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                      "xlim": [-200, 200],
+                      "xbase": 2,
+                      "ylim": [0, 300],
+                      "yscale": "linear"
+                    }
                 },
                 {
                     "id": "pow-float32-ulp",
@@ -1358,7 +1403,7 @@
                         "accuracy_results/results/gelu_approx-float32-[65536].csv"
                     ],
                     "plot_params": {
-                        "xlim": [-10, 10],
+                        "xlim": [-20, 20],
                         "yscale": "linear",
                         "ylim": [0, 2000000]
                     }
@@ -2306,6 +2351,23 @@
                     "files": [
                         "accuracy_results/results/exp-bfloat16-[1].csv",
                         "accuracy_results/results/exp-fast-approx-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [0, 2],
+                        "ylim": [0, 10],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "exp-Chebyshev-float32-value",
+                    "name": "exp",
+                    "outputs": ["accuracy_results/plots/value/exp-Chebyshev-float32.png"],
+                    "files": [
+                        "accuracy_results/results/exp-float32-[65536].csv",
+                        "accuracy_results/results/exp-fast-approx-float32-[65536].csv",
+                        "accuracy_results/results/exp-Chebyshev-v1[2]-float32-[65536].csv",
+                        "accuracy_results/results/exp-Chebyshev-v2[5]-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [0, 2],

@@ -63,6 +63,13 @@ def create_parser(operation_type="unary"):
         help="Operation data type (default: bfloat16). Must be one of: float32, bfloat16"
     )
 
+    parser.add_argument(
+        "--kernel", "-k",
+        type=str,
+        default=None,
+        help="If provided, then also generate ops from specified unary element-wise kernel."
+    )
+
     if operation_type == "unary":
         parser.add_argument(
             "--group-size", "-g",

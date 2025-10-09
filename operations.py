@@ -177,7 +177,6 @@ UNARY_OPERATIONS = {
     # Trigonometric functions
     "tan": (torch.tan, ttnn.tan, math.tan, "tan"),
     "atan": (torch.atan, ttnn.atan, math.atan, "atan"),
-    "atan2": (torch.atan2, ttnn.atan2, math.atan2, "atan2"),
     "sin": (torch.sin, ttnn.sin, math.sin, "sin"),
     "cos": (torch.cos, ttnn.cos, math.cos, "cos"),
     # Miscellaneous functions

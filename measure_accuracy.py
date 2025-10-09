@@ -13,10 +13,11 @@ import json
 import utils
 from models.common.utility_functions import ulp
 
+
 from arg_parser import parse_args
-
-
 from operations import UNARY_OPERATIONS
+from kernel_generator import generate_unary_kernel_from_polynomial
+
 
 device_id = 0
 device = ttnn.open_device(device_id=device_id)
@@ -60,48 +61,6 @@ TERM_GREEN = "\033[92m"
 TERM_RESET = "\033[0m"
 
 
-# Add powers of [-1, 2, 3, 4, 5, 6, 7, 8, 9, 10] into dictionary
-exponents = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-operations_dict = UNARY_OPERATIONS
-
-# a**x functions
-for exponent in exponents:
-    operations_dict[f"pow_{exponent}"] = (
-        lambda x, out, e=exponent: torch.pow(e, x),
-        lambda x, output_tensor, e=exponent: ttnn.pow(e, x, output_tensor=output_tensor),
-        None,
-        "pow",
-    )
-    operations_dict[f"pow21f_{exponent}"] = (
-        lambda x, out, e=exponent: torch.pow(e, x),
-        lambda x, output_tensor, e=exponent: ttnn.pow(e, x, output_tensor=output_tensor),
-        None,
-        "pow",
-    )
-
-operations_dict["pow21f_tiny"] = (
-    lambda x, out, e=0.000001: torch.pow(e, x),
-    lambda x, output_tensor, e=0.000001: ttnn.pow(e, x, output_tensor=output_tensor),
-    None,
-    "pow",
-)
-
-# x**a functions
-powers = [0, 0.5, 1, 2, 5, 7, 10]
-for power in powers:
-    operations_dict[f"pow(x,{power})"] = (
-        lambda x, out, p=power: torch.pow(x, p),
-        lambda x, output_tensor, p=power: ttnn.pow(x, p, output_tensor=output_tensor),
-        None,
-        "pow",
-    )
-    operations_dict[f"pow21f(x,{power})"] = (
-        lambda x, out, p=power: torch.pow(x, p),
-        lambda x, output_tensor, p=power: ttnn.pow(x, p, output_tensor=output_tensor),
-        None,
-        "pow",
-    )
 
 
 class Measurements:
@@ -167,9 +126,9 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
     return accuracy_df
 
 
-def measure_op_accuracy_f32(operation_name, dest_dir, group_size=128):
+def measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=128):
 
-    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operations_dict[operation_name]
+    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operation
 
     all_df = []
     iteration = 0
@@ -197,7 +156,7 @@ def measure_op_accuracy_f32(operation_name, dest_dir, group_size=128):
     all_df.to_csv(f"{dest_dir}/{operation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
 
 
-def measure_op_accuracy(operation_name, target_dtype, dest_dir, samples=None):
+def measure_op_accuracy(operation, operation_name, target_dtype, dest_dir, samples=None):
     parameters = datatypes_parameters[target_dtype]
 
     # For each tensor, pick several values:
@@ -247,7 +206,7 @@ def measure_op_accuracy(operation_name, target_dtype, dest_dir, samples=None):
 
     # Define operations to run
 
-    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operations_dict[operation_name]
+    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operation
 
     # Measurements
 
@@ -386,7 +345,7 @@ def measure_op_accuracy(operation_name, target_dtype, dest_dir, samples=None):
     print(f"Duration = {elapsed_s}s, {elapsed_ms/repeats} ms/iteration")
 
 
-def measure_op_accuracy_bf16(operation_name, dest_dir, group_size=None):
+def measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=None):
     # Use bfloat16 parameters
     parameters = datatypes_parameters["bfloat16"]
 
@@ -422,7 +381,7 @@ def measure_op_accuracy_bf16(operation_name, dest_dir, group_size=None):
     ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
 
     # Get the operations to test
-    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operations_dict[operation_name]
+    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operation
 
     # Initialize arrays for measurements
     [
@@ -582,6 +541,33 @@ def parse_operations_config_file(config_file):
     return config["operations"]
 
 
+def generate_exponential_alternative():
+
+    polynomial_expressions = {
+        #"exp-Chebyshev-v1[2]": [0.34228965640068054,0.652752697467804,1.0022648572921753],
+        #"exp-Chebyshev-v1-c0ef0[4]": [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0],
+        # "exp-Chebyshev-v1[4]": [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397],
+        # "exp-61f": [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018]
+        "exp-21f": [0.33718944, 0.65763629, 1.0017248],
+        "exp-Chebyshev-v1[6]": [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0]
+    }
+
+    new_operations = {}
+
+    for op_name, polynomial_coefficients in polynomial_expressions.items():
+
+        ttnn_function = generate_unary_kernel_from_polynomial("exp", polynomial_coefficients, full_name=op_name)
+
+        new_operations[op_name] = (
+            torch.exp,
+            lambda x, output_tensor, ttnn_function=ttnn_function: ttnn_function(x, output_tensor),
+            None,
+            "exp",
+        )
+
+    return new_operations
+
+
 def main(args):
 
     args = parse_args("unary")
@@ -605,9 +591,9 @@ def main(args):
 
 
     if args.operation is not None:
-        all_operations = [args.operation]
+        all_operation_names = [args.operation]
     else:
-        all_operations = parse_operations_config_file("op_configs/unary_operations.json")
+        all_operation_names = parse_operations_config_file("op_configs/unary_operations.json")
 
     if args.group_size is None:
         if args.type == "bfloat16":
@@ -621,6 +607,17 @@ def main(args):
 
 
 
+    all_operations = {}
+    for operation_name in all_operation_names:
+        if operation_name not in UNARY_OPERATIONS:
+            print(f"{TERM_RED}Operation {operation_name} not found in UNARY_OPERATIONS{TERM_RESET}")
+        else:
+            all_operations[operation_name] = UNARY_OPERATIONS[operation_name]
+
+    if args.kernel is not None:
+        all_operations |= generate_exponential_alternative()
+        print(f"Added custom new operations")
+
 
     success_count = 0
     successfull_operations = []
@@ -629,16 +626,16 @@ def main(args):
     cnt = 0
     total_operation_cnt = len(all_operations)
     print(f"Measuring operations")
-    for operation in all_operations:
+    for operation_name, operation in all_operations.items():
         cnt += 1
         print(f"Running operation {operation} #{cnt}/{total_operation_cnt}", end="\r")
         try:
 
             start_time = time.time()
             if args.type == "bfloat16":
-                measure_op_accuracy_bf16(operation, dest_dir, group_size=group_size)
+                measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=group_size)
             elif args.type == "float32":
-                measure_op_accuracy_f32(operation, dest_dir, group_size=group_size)
+                measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=group_size)
             else:
                 raise ValueError(f"Invalid data type: {args.type}")
 
@@ -647,7 +644,7 @@ def main(args):
             print(f"Duration = {elapsed_s}s")
 
             success_count += 1
-            successfull_operations += [f"{operation}"]
+            successfull_operations += [f"{operation_name}"]
         except Exception as e:
             print(f"{TERM_RED}Could not run operation {operation}: {e}{TERM_RESET}")
             print(f"{TERM_RED}{traceback.format_exc()}{TERM_RESET}")
