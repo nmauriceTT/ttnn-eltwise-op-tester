@@ -22,36 +22,37 @@ def serialize_polynomial_coeff_to_horner(polynomial_coefficients):
     
     return result
 
-def generate_sfpu_exp_kernel(jinja_env, polynomial_coefficients):
+def generate_sfpi_kernel_source_code_with_polynomial(jinja_env, sfpi_kernel_name, polynomial_coefficients):
 
-    template = jinja_env.get_template("exp.cpp.j2")
+    template = jinja_env.get_template(f"sfpi/{sfpi_kernel_name}.cpp.j2")
 
     polynomial_expression = serialize_polynomial_coeff_to_horner(polynomial_coefficients)
 
     kernel_source_code = template.render(
-        SFPU_EXP_POLY_APPROX=polynomial_expression,
+        SFPI_POLY_APPROX=polynomial_expression,
     )
 
     return kernel_source_code
     
 
-def generate_sfpu_kernel(polynomial_coefficients):
+def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, polynomial_coefficients):
 
+    kernel_name = "unary"
 
     jinja_env = Environment(
         loader=FileSystemLoader("kernel_templates"),
     )
 
-    sfpu_kernel_code = generate_sfpu_exp_kernel(jinja_env, polynomial_coefficients)
+    sfpu_kernel_code = generate_sfpi_kernel_source_code_with_polynomial(jinja_env, sfpi_kernel_name, polynomial_coefficients)
     
-    with open("sfpu_kernel_code.cpp", "w") as f:
+    # For debugging purposes
+    with open(f"sfpu_kernel_{sfpi_kernel_name}.cpp", "w") as f:
         f.write(sfpu_kernel_code)
 
-
-    template = jinja_env.get_template("unary.cpp.j2")
+    template = jinja_env.get_template(f"{kernel_name}.cpp.j2")
 
     kernel_source_code = template.render(
-        SFPU_KERNEL_NAME="calculate_exp_sfpi",
+        SFPU_KERNEL_NAME="calculate_sfpi_kernel",
         SFPU_KERNEL_IMPL=sfpu_kernel_code,
     )
 
@@ -154,13 +155,14 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
 
 
 
-def generate_unary_kernel(polynomial_coefficients):
+def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients):
 
     TT_METAL_HOME = os.getenv("TT_METAL_HOME")
 
-    compute_kernel_source_code = generate_sfpu_kernel(polynomial_coefficients)
+    compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary", sfpi_kernel_name, polynomial_coefficients)
     
-    with open("compute_kernel_source_code.cpp", "w") as f:
+    # For debugging purposes
+    with open(f"compute_unary_{sfpi_kernel_name}.cpp", "w") as f:
         f.write(compute_kernel_source_code)
     
     fun =  lambda tensor, device: base_unary_kernel(compute_kernel_source_code, tensor, device, TT_METAL_HOME)
@@ -187,7 +189,7 @@ def test_generated_kernel(function):
 
 def main():
 
-    function = generate_unary_kernel([0.34228965640068054,0.652752697467804,1.0022648572921753])
+    function = generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753])
 
     test_generated_kernel(function)
 

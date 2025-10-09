@@ -10,7 +10,7 @@ sfpi_inline sfpi::vInt _float_to_int32_exp21f_(sfpi::vFloat val) {
 }
 
 template <bool is_fp32_dest_acc_en = false>
-sfpi_inline sfpi::vFloat calculate_exp_sfpi(sfpi::vFloat val) {
+sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
     sfpi::vFloat y = sfpi::vConst0;
     sfpi::vFloat threshold_high = sfpi::vFloat(89);
     sfpi::vFloat threshold_low = sfpi::vFloat(-88.5);
@@ -25,7 +25,7 @@ sfpi_inline sfpi::vFloat calculate_exp_sfpi(sfpi::vFloat val) {
 
     sfpi::vFloat frac = sfpi::int32_to_float(fractional_part, 0) * sfpi::vFloat(1.1920929e-7f);
     
-    frac = {{ SFPU_EXP_POLY_APPROX }};
+    frac = {{ SFPI_POLY_APPROX }};
     
     exponential_part = sfpi::reinterpret<sfpi::vInt>(
         sfpi::setexp(sfpi::reinterpret<sfpi::vFloat>(frac), exponential_part));  // restore exponent
