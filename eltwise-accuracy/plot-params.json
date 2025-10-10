@@ -238,9 +238,28 @@
                 "plot_params": {
                     "xbase": 2,
                     "yscale": "linear",
-                    "ylim": [0, 50],
+                    "ylim": [0, 40],
+                    "xlim": [-10, 10]
+                }
+            },
+            {
+                "id": "tanh-accurate-bfloat16-ulp",
+                "name": "tanh",
+                "outputs": ["accuracy_results/plots/ulp/tanh-accurate-bfloat16.png"],
+                "files": [
+                    "accuracy_results/results/tanh-bfloat16-[1].csv",
+                    "accuracy_results/results/tanh-v1-bfloat16-[1].csv",
+                    "accuracy_results/results/tanh-pade-5,5-bfloat16-[1].csv",
+                    "accuracy_results/results/tanh-minimax-v1[6]-bfloat16-[1].csv"
+                ],
+                "plot_params": {
+                    "xbase": 2,
+                    "yscale": "linear",
+                    "ylim": [0, 5],
                     "xlim": [-10, 10],
                     "horizontal_lines": [
+                        [1, "1 ULP"],
+                        [3, "3 ULP"]
                     ]
                 }
             },
@@ -1056,6 +1075,75 @@
             },
             "plots": [
                 {
+                    "id": "abs-float32-ulp",
+                    "name": "abs",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/abs-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/abs-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "ylim": [0, 10],
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [1, "1 ULP"]
+                        ]
+                    }
+                },
+                {
+                    "id": "identity-float32-ulp",
+                    "name": "identity",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/identity-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/identity-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "ylim": [0, 10],
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [1, "1 ULP"]
+                        ]
+                    }
+                },
+                {
+                    "id": "fill-float32-ulp",
+                    "name": "fill",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/fill-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/fill-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "ylim": [0, 10],
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [1, "1 ULP"]
+                        ]
+                    }
+                },
+                {
+                    "id": "exp-float32-ulp",
+                    "name": "exp",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/exp-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/exp-float32-[65536].csv",
+                        "accuracy_results/results/exp-approx-float32-[65536].csv",
+                        "accuracy_results/results/exp-fast-approx-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [-200, 200],
+                        "ylim": [0, 40000],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
                   "id": "exp-float32-ulp",
                   "name": "exp",
                   "outputs": [
@@ -1214,6 +1302,24 @@
                         "xlim": [-10, 10],
                         "horizontal_lines": [
                         ]
+                    }
+                },
+                {
+                    "id": "tanh-accurate-float32-ulp",
+                    "name": "tanh",
+                    "outputs": ["accuracy_results/plots/ulp/tanh-accurate-float32.png"],
+                    "files": [
+                        "accuracy_results/results/tanh-float32-[65536].csv",
+                        "accuracy_results/results/tanh-21f-float32-[65536].csv",
+                        "accuracy_results/results/tanh-v1-float32-[65536].csv",
+                        "accuracy_results/results/tanh-pade-5,5-float32-[65536].csv",
+                        "accuracy_results/results/tanh-minimax-v1[6]-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xbase": 2,
+                        "xlim": [-10, 10],
+                        "ylim": [0, 1e5],
+                        "yscale": "linear"
                     }
                 },
                 {

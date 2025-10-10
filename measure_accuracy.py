@@ -16,7 +16,7 @@ from models.common.utility_functions import ulp
 
 from arg_parser import parse_args
 from operations import UNARY_OPERATIONS
-from kernel_generator import generate_unary_kernel_from_polynomial
+from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source
 
 
 device_id = 0
@@ -138,10 +138,10 @@ def measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=128)
         iteration += 1
 
         ttnn_input = ttnn.from_torch(input_tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
-
+        torch_input_fp64 = input_tensor.to(torch.float64)
         
         golden_torch_fp64 = torch.zeros_like(input_tensor, dtype=torch.float64)
-        golden_torch_fp64 = torch_unary_op(input_tensor, out=golden_torch_fp64)
+        golden_torch_fp64 = torch_unary_op(torch_input_fp64, out=golden_torch_fp64)
 
         ttnn_output = ttnn.zeros_like(ttnn_input)
         calculated_ttnn_fp32 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
@@ -541,6 +541,48 @@ def parse_operations_config_file(config_file):
     return config["operations"]
 
 
+def generate_tanh_alternative():
+
+
+
+    tanh_operations = [
+        "tanh",
+        "tanh-v1",
+        "tanh-pade-5,5"
+    ]
+
+
+    new_operations = {}
+    for tanh_op in tanh_operations:
+
+        tanh_op_function = generate_unary_kernel_from_sfpi_source(tanh_op)
+        new_operations[tanh_op] = (
+            torch.tanh,
+            lambda x, output_tensor, ttnn_function=tanh_op_function: ttnn_function(x, output_tensor),
+            None,
+            "tanh",
+        )
+
+    polynomial_expressions = {
+        "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
+        "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
+        "tanh-minimax-v1[5]": [-1.950809545814990997314453125e-2, 0.1467897593975067138671875, -0.325587689876556396484375, -4.27231900393962860107421875e-2, 1.00523841381072998046875, 0.0],
+        "tanh-minimax-v1[6]": [5.876733921468257904052734375e-3, -6.6649019718170166015625e-2, 0.281917631626129150390625, -0.4890659749507904052734375, 3.0897438526153564453125e-2, 0.999004364013671875, 0.0],
+    }
+
+    for op_name, polynomial_coefficients in polynomial_expressions.items():
+
+        new_operations[op_name] = (
+            torch.tanh,
+            lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("tanh-poly", polynomial_coefficients): ttnn_function(x, output_tensor),
+            None,
+            "tanh",
+        )
+
+
+    return new_operations
+
+
 def generate_exponential_alternative():
 
     polynomial_expressions = {
@@ -615,7 +657,14 @@ def main(args):
             all_operations[operation_name] = UNARY_OPERATIONS[operation_name]
 
     if args.kernel is not None:
-        all_operations |= generate_exponential_alternative()
+
+        if args.kernel == "tanh":
+            all_operations |= generate_tanh_alternative()
+        elif args.kernel == "exp":
+            all_operations |= generate_exponential_alternative()
+        else:
+            raise ValueError(f"Invalid kernel: {args.kernel}")
+
         print(f"Added custom new operations")
 
 

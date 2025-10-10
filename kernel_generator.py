@@ -10,6 +10,8 @@ from jinja2 import Environment, FileSystemLoader
 def serialize_polynomial_coeff_to_horner(polynomial_coefficients):
     if not polynomial_coefficients:
         return "0.0"
+
+    x = "x" # Name for input variable
     
     if len(polynomial_coefficients) == 1:
         return str(polynomial_coefficients[0])
@@ -19,7 +21,7 @@ def serialize_polynomial_coeff_to_horner(polynomial_coefficients):
     
     # Work backwards through the coefficients
     for coeff in polynomial_coefficients[1:]:
-        result = f"{coeff} + frac * ({result})"
+        result = f"{coeff} + {x} * ({result})"
     
     return result
 
@@ -35,6 +37,28 @@ def generate_sfpi_kernel_source_code_with_polynomial(jinja_env, sfpi_kernel_name
 
     return kernel_source_code
     
+
+def generate_kernel_from_sfpi_source(kernel_name, sfpi_kernel_name):
+
+    kernel_name = "unary"
+
+    jinja_env = Environment(
+        loader=FileSystemLoader("kernel_templates"),
+    )
+
+    sfpi_kernel_code = ""
+    with open(f"kernels/sfpi/{sfpi_kernel_name}.cpp", "r") as f:
+        sfpi_kernel_code = f.read()
+    
+    template = jinja_env.get_template(f"{kernel_name}.cpp.j2")
+
+    kernel_source_code = template.render(
+        SFPU_KERNEL_NAME=f"calculate_sfpi_kernel",
+        SFPU_KERNEL_IMPL=sfpi_kernel_code,
+    )
+
+    return kernel_source_code
+
 
 def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, polynomial_coefficients):
 
@@ -53,11 +77,19 @@ def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, p
     template = jinja_env.get_template(f"{kernel_name}.cpp.j2")
 
     kernel_source_code = template.render(
-        SFPU_KERNEL_NAME="calculate_sfpi_kernel",
+        SFPU_KERNEL_NAME=f"calculate_sfpi_kernel",
         SFPU_KERNEL_IMPL=sfpu_kernel_code,
     )
 
     return kernel_source_code
+
+def generate_exp_kernel_from_polynomial(polynomial_coefficients):
+    
+    compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary", "exp", polynomial_coefficients)
+    
+    return compute_kernel_source_code
+
+
 
 def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, metal_home_dir):
 
@@ -184,6 +216,24 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
     return output
 
 
+def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name, full_name=None):
+
+    compute_kernel_source_code = generate_kernel_from_sfpi_source("unary", sfpi_kernel_name)
+
+    # For debugging purposes
+    if full_name is None:
+        full_name = sfpi_kernel_name
+
+    TT_METAL_HOME = os.getenv("TT_METAL_HOME")
+    with open(f"compute_unary_{full_name}.cpp", "w") as f:
+        f.write(compute_kernel_source_code)
+    
+
+    fun =  lambda tensor, device, kernel_source_code=compute_kernel_source_code: \
+                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME))
+    
+    return fun
+
 
 def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients, full_name=None):
 
@@ -223,12 +273,35 @@ def test_generated_kernel(function):
 
     ttnn.close_device(device)
     
+def test_tanh_kernel():
+
+    device = ttnn.open_device(device_id=0)
+
+    shape = [32, 32]
+    value = -1
+    tensor = torch.full(shape, value, dtype=torch.float32)
+
+    ttnn_tensor = ttnn.from_torch(tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
+
+    # tanh_op = generate_unary_kernel_from_sfpi_source("tanh-pade-5,5")
+    tanh_op = generate_unary_kernel_from_polynomial("tanh-poly", [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0])
+
+
+    output_tensor = tanh_op(ttnn_tensor, device)
+
+    torch_calculated_output = ttnn.to_torch(output_tensor)
+
+    print(f"torch_calculated_output =\n{torch_calculated_output}")
+
+    ttnn.close_device(device)
+
 
 def main():
 
     function = generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753])
 
-    test_generated_kernel(function)
+    test_tanh_kernel()
+    # test_generated_kernel(function)
 
 if __name__ == "__main__":
     main()

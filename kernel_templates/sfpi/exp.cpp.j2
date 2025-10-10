@@ -1,5 +1,7 @@
+sfpi::inline sfpi::vFloat poly_eval(sfpi::vFloat x) {
 
-
+    return {{ SFPI_POLY_APPROX }};
+}
 
 sfpi_inline sfpi::vInt _float_to_int32_exp21f_(sfpi::vFloat val) {
     sfpi::vInt exp = exexp(val);
@@ -25,7 +27,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
 
     sfpi::vFloat frac = sfpi::int32_to_float(fractional_part, 0) * sfpi::vFloat(1.1920929e-7f);
     
-    frac = {{ SFPI_POLY_APPROX }};
+    frac = poly_eval(frac);
     
     exponential_part = sfpi::reinterpret<sfpi::vInt>(
         sfpi::setexp(sfpi::reinterpret<sfpi::vFloat>(frac), exponential_part));  // restore exponent
@@ -39,5 +41,5 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
     return y;
 }
 
-void exp_init() {
+void calculate_sfpi_kernel_init() {
 }

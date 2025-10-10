@@ -18,9 +18,6 @@
 #include "ckernel_sfpu_conversions.h"
 #include "sfpi.h"
 
-namespace ckernel {
-namespace custom {
-
 
 {{ SFPU_KERNEL_IMPL }}
 
@@ -36,16 +33,13 @@ void sfpu_kernel_generic() {
 }
 
 
-} // namespace custom
-} // namespace ckernel
-
 
 #endif // TRISC_MATH
 
 inline void sfpu_kernel(int dst_reg_index) {
 #ifdef TRISC_MATH
     _llk_math_eltwise_unary_sfpu_params_<false>(
-        ckernel::custom::sfpu_kernel_generic<DST_ACCUM_MODE>,
+        sfpu_kernel_generic<DST_ACCUM_MODE>,
         dst_reg_index,
         VectorMode::RC // Apply on all 4 faces of the tile
     );
@@ -57,7 +51,7 @@ inline void sfpu_kernel(int dst_reg_index) {
 inline void sfpu_kernel_init() {
 #ifdef TRISC_MATH
     llk_math_eltwise_unary_sfpu_init<SfpuType::exponential, false>(
-        ckernel::custom::exp_init);
+        {{ SFPU_KERNEL_NAME }}_init);
 #endif // TRISC_MATH
 }
 

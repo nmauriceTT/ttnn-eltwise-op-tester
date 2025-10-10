@@ -1,0 +1,29 @@
+sfpi_inline sfpi::vFloat poly_eval(sfpi::vFloat x) {
+    return {{ SFPI_POLY_APPROX }};
+}
+
+template <bool is_fp32_acc_to_dest_mode = true>
+sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat x) {
+
+    // Clip input to [-3, 3]
+    sfpi::vFloat threshold_high = sfpi::vFloat(3.f);
+    sfpi::vFloat threshold_low = sfpi::vFloat(-3.f);
+    sfpi::vec_min_max(threshold_low, x);
+    sfpi::vec_min_max(x, threshold_high);
+
+    sfpi::vFloat val = sfpi::setsgn(x, 0); // set positive
+
+    sfpi::vFloat result = poly_eval(val);
+
+    result = sfpi::setsgn(result, x); // restore sign (i.e. tanh(-x) = -tanh(x))
+
+    if constexpr (is_fp32_acc_to_dest_mode) {
+        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
+    }
+
+    return result;
+}
+
+inline void calculate_sfpi_kernel_init()
+{
+}
