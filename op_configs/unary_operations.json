@@ -1,5 +1,8 @@
 {
     "operations": [
+        "abs",
+        "identity",
+        "fill",
         "exp",
         "exp-approx",
         "exp-fast-approx",

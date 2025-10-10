@@ -47,6 +47,14 @@ def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
 
 UNARY_OPERATIONS = {
     # Exponential functions
+    "abs": (torch.abs, ttnn.abs, None, "abs"),
+    "identity": (lambda x, out: torch.nn.Identity()(x), ttnn.identity, None, "identity"),
+    "fill": (
+        lambda x, out: torch.fill(out, 1.99999988079071044921875),
+        lambda x, output_tensor: ttnn.fill(x, 1.99999988079071044921875, output_tensor=output_tensor), 
+        None, 
+        "fill"
+    ),
     "exp": (torch.exp, ttnn.exp, math.exp, "exp"),
     "exp-approx": (
         torch.exp,
@@ -105,6 +113,12 @@ UNARY_OPERATIONS = {
     "tanh-approx": (
         torch.tanh,
         lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+        math.tanh,
+        "tanh",
+    ),
+    "tanh_accurate": (
+        torch.tanh,
+        lambda x, output_tensor: ttnn.tanh_accurate(x, accurate_mode=True, output_tensor=output_tensor),
         math.tanh,
         "tanh",
     ),
