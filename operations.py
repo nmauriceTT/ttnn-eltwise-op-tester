@@ -1,6 +1,7 @@
 import ttnn
 import torch
 import math
+from utils import TERM_RED, TERM_RESET
 
 
 global_device = None
@@ -44,8 +45,241 @@ def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
     result = ttnn.from_torch(result, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device)
     return result
 
-
+# No golden function set => use ttnn.get_golden_function() from first implementation
 UNARY_OPERATIONS = {
+    "abs": {
+        "implementations": {
+            "abs": ttnn.abs 
+        },
+        "golden": torch.abs
+    },
+    "identity": {
+        "implementations": {
+            "identity": ttnn.identity 
+        },
+    },
+    "fill": {
+        "implementations": {
+            "fill": lambda x, output_tensor: ttnn.fill(x, 1.99999988079071044921875, output_tensor=output_tensor)
+        },
+        "golden": lambda x, out: torch.fill(out, 1.99999988079071044921875)
+    },
+    "exp": {
+        "implementations": {
+            "exp": ttnn.exp,
+            "exp-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "exp-fast-approx-v2": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "exp_cond": ttnn.exp,
+            "exp_approx0": ttnn.exp,
+            "exp21f": ttnn.exp,
+            "exp_21f_round_nearest": ttnn.exp,
+            "exp_hybrid": ttnn.exp
+        },
+    },
+    "tanh": {
+        "implementations": {
+            "tanh": ttnn.tanh,
+            "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "tanh_accurate": lambda x, output_tensor: ttnn.tanh_accurate(x, accurate_mode=True, output_tensor=output_tensor)
+        },
+    },
+    "cosh": {
+        "implementations": {
+            "cosh": lambda x, output_tensor: ttnn.cosh(x)
+        },
+    },
+    "sinh": {
+        "implementations": {
+            "sinh": lambda x, output_tensor: ttnn.sinh(x)
+        },
+    },
+    "log": {
+        "implementations": {
+            "log": ttnn.log
+        },
+    },
+    "log10": {
+        "implementations": {
+            "log10": ttnn.log10
+        },
+    },
+    "log2": {
+        "implementations": {
+            "log2": ttnn.log2
+        },
+    },
+    "log1p": {
+        "implementations": {
+            "log1p": ttnn.log1p
+        },
+    },
+    "logaddexp": {
+        "implementations": {
+            "logaddexp": ttnn.logaddexp
+        },
+    },
+    "logaddexp2": {
+        "implementations": {
+            "logaddexp2": ttnn.logaddexp2
+        },
+    },
+    "silu": {
+        "implementations": {
+            "silu": ttnn.silu,
+            "swish": lambda x, output_tensor: ttnn.swish(x)  # swish is same as silu
+        },
+    },
+    "gelu": {
+        "implementations": {
+            "gelu": ttnn.gelu,
+            "gelu_approx": lambda x, output_tensor: ttnn.gelu(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
+        },
+    },
+    "logit": {
+        "implementations": {
+            "logit": lambda x, output_tensor: ttnn.logit(x)
+        },
+    },
+    "mish": {
+        "implementations": {
+            "mish": ttnn.mish
+        },
+    },
+    "elu": {
+        "implementations": {
+            "elu": lambda x, output_tensor: ttnn.elu(x, output_tensor=output_tensor, alpha=1.0)
+        },
+    },
+    "celu": {
+        "implementations": {
+            "celu": lambda x, output_tensor: ttnn.celu(x, output_tensor=output_tensor, alpha=1.0)
+        },
+    },
+    "selu": {
+        "implementations": {
+            "selu": lambda x, output_tensor: ttnn.selu(x)
+        },
+    },
+    "softplus": {
+        "implementations": {
+            "softplus": ttnn.softplus
+        },
+    },
+    "softsign": {
+        "implementations": {
+            "softsign": lambda x, output_tensor: ttnn.softsign(x)
+        },
+    },
+    "tan": {
+        "implementations": {
+            "tan": ttnn.tan
+        },
+    },
+    "atan": {
+        "implementations": {
+            "atan": ttnn.atan
+        },
+    },
+    "sin": {
+        "implementations": {
+            "sin": ttnn.sin
+        },
+    },
+    "cos": {
+        "implementations": {
+            "cos": ttnn.cos
+        },
+    },
+    "sqrt": {
+        "implementations": {
+            "sqrt": ttnn.sqrt
+        },
+    },
+    "cbrt": {
+        "implementations": {
+            "cbrt": lambda x, output_tensor: ttnn.cbrt(x),
+            "cbrt-pow1d3": lambda x, output_tensor: cbrt_pow1d3(x, output_tensor),
+            "cbrt-pow1d3-fp32": lambda x, output_tensor: run_ttnn_fp32_and_round_bf16(ttnn.cbrt, [x])
+        },
+    },
+    "rsqrt": {
+        "implementations": {
+            "rsqrt": lambda x, output_tensor: ttnn.rsqrt(x, output_tensor=output_tensor),
+            "rsqrt_approx": lambda x, output_tensor: ttnn.rsqrt(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
+        },
+    },
+    "reciprocal": {
+        "implementations": {
+            "reciprocal": ttnn.reciprocal
+        },
+    },
+    "digamma": {
+        "implementations": {
+            "digamma": lambda x, output_tensor: ttnn.digamma(x)
+        },
+    },
+    "lgamma": {
+        "implementations": {
+            "lgamma": lambda x, output_tensor: ttnn.lgamma(x)
+        },
+    },
+    "tanhshrink": {
+        "implementations": {
+            "tanhshrink": lambda x, output_tensor: ttnn.tanhshrink(x)
+        },
+    }
+}
+
+def iterate_all_operations(operation_dict):
+    for category, operations in operation_dict.items():
+
+        if "golden" in operations:
+            golden_operation = operations["golden"]
+        else:
+            for impl_name, implementation in operations["implementations"].items():
+                try:
+                    golden_function = ttnn.get_golden_function(impl_name)
+                except:
+                    continue
+                
+                golden_operation = implementation.golden_function
+                break
+
+        if golden_operation is None:
+            print(f"{TERM_RED}No golden operation found for category {category}{TERM_RESET}")
+            continue
+
+        for impl_name, implementation in operations["implementations"].items():
+            yield (impl_name, implementation, golden_operation)
+
+def get_operation_by_name(operation_dict, impl_name):
+
+    for category, operations in operation_dict.items():
+        if impl_name in operations["implementations"].keys():
+
+            impl = operations["implementations"][impl_name]
+
+            if "golden" in operations:
+                golden_operation = operations["golden"]
+            else:
+                ttnn_impl = getattr(ttnn, category)
+                golden_operation = ttnn.get_golden_function(ttnn_impl)
+
+            return impl, golden_operation
+
+    return None
+
+def get_operations_by_category(operation_dict, category):
+
+    if not category in operation_dict:
+        raise ValueError(f"Category {category} not found in operation_dict")
+
+    return operation_dict[category]
+
+
+
+UNARY_OPERATIONS_LEGACY = {
     # Exponential functions
     "abs": (torch.abs, ttnn.abs, None, "abs"),
     "identity": (lambda x, out: torch.nn.Identity()(x), ttnn.identity, None, "identity"),

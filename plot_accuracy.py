@@ -65,9 +65,6 @@ def plot(plot_entry):
     title = plot_params["title"] if "title" in plot_params else None
     short_name = plot_entry["name"] if "name" in plot_entry else id
 
-    print(f"id = {id}")
-    print(f"plot_entry = {plot_entry}")
-
 
     if title is not None:
         title = title.format(short_name)

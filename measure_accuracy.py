@@ -15,7 +15,7 @@ from models.common.utility_functions import ulp
 
 
 from arg_parser import parse_args
-from operations import UNARY_OPERATIONS
+from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_by_name
 from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source
 
 
@@ -126,9 +126,7 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
     return accuracy_df
 
 
-def measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=128):
-
-    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operation
+def measure_op_accuracy_f32(ttnn_unary_op, golden_unary_op, operation_name, dest_dir, group_size=128):
 
     all_df = []
     iteration = 0
@@ -141,7 +139,7 @@ def measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=128)
         torch_input_fp64 = input_tensor.to(torch.float64)
         
         golden_torch_fp64 = torch.zeros_like(input_tensor, dtype=torch.float64)
-        golden_torch_fp64 = torch_unary_op(torch_input_fp64, out=golden_torch_fp64)
+        golden_torch_fp64 = golden_unary_op(torch_input_fp64, out=golden_torch_fp64)
 
         ttnn_output = ttnn.zeros_like(ttnn_input)
         calculated_ttnn_fp32 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
@@ -153,199 +151,12 @@ def measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=128)
         all_df.append(accuracy_df)
 
     all_df = pd.concat(all_df)
-    all_df.to_csv(f"{dest_dir}/{operation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
+    os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
+    all_df.to_csv(f"{dest_dir}/{operation_name}/{operation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
 
 
-def measure_op_accuracy(operation, operation_name, target_dtype, dest_dir, samples=None):
-    parameters = datatypes_parameters[target_dtype]
 
-    # For each tensor, pick several values:
-    # e.g. for sub_batch=4, pick, for each i (2**i, 2**i + 2**i/4, 2**i + 2**i/2, 2**i + 3*2**i/4)
-    # Within the tensor (2**11, 2**13), these would be indices [(0, 0), (2**9, 0), (2**10), (2**10 + 2**10, 0)]
-    # Or, with a general formula: [(0, 0), (TENSOR_HEIGHT//4, 0), (TENSOR_HEIGHT//2, 0), (3*TENSOR_HEIGHT//4, 0)]
-    sub_batches = 4
-    if samples is not None:
-        sub_batches = samples  # TODO: Compute sub_batches from samples instead of just copying data
-
-    TENSOR_WIDTH = parameters["tensor_width"]
-    TENSOR_HEIGHT = parameters["tensor_height"]
-
-    SIGN_BITS = parameters["sign_bits"]  # should be 1
-    EXPONENT_BITS = parameters["exponent_bits"]
-    MANTISSA_BITS = parameters["mantissa_bits"]
-
-    NUMPY_TYPE = parameters["numpy_type"]
-    NUMPY_INT_TYPE = parameters["numpy_int_type"]
-    TORCH_TYPE = parameters["torch_type"]
-    TORCH_INT_TYPE = parameters["torch_int_type"]
-    TTNN_TYPE = parameters["ttnn_type"]
-
-    # Tile layout seem to be the main ttnn data layout
-    # We could keep data 1D, but with Tile layout, tiles would mostly contain padding data
-    # By having 2D tensors, we maximize the filling of each tile
-    size = [TENSOR_HEIGHT, TENSOR_WIDTH]
-
-    repeats = 2**EXPONENT_BITS * 2**SIGN_BITS  # sign + exp
-
-    # Use integer => we build floating point numbers exhaustively using their bianry representation
-    input_np = np.arange(0, 2**MANTISSA_BITS, dtype=NUMPY_INT_TYPE)
-
-    (host_dtype, dev_dtype) = (TORCH_TYPE, TTNN_TYPE)
-
-    # Create input tensors
-    torch_mantissa = torch.from_numpy(input_np).reshape(size)
-
-    torch_exponent = torch.zeros(size, dtype=TORCH_INT_TYPE)
-    torch_value = torch.zeros(size, dtype=TORCH_INT_TYPE)
-    torch_output_ref = torch.zeros(size, dtype=TORCH_TYPE)
-    ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
-
-    mse_loss = torch.nn.MSELoss()
-
-    start_time = time.time()
-
-    # Define operations to run
-
-    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operation
-
-    # Measurements
-
-    [
-        x_array,
-        y_array,
-        yref_array,
-        mse_array,
-        max_abs_error_array,
-        mean_abs_error_array,
-        max_rel_error_array,
-        mean_rel_error_array,
-    ] = [np.zeros([repeats * sub_batches], dtype=NUMPY_TYPE) for _ in range(8)]
-
-    for i in range(0, repeats):
-        print(f"{operation_name} [{target_dtype}] iteration #{i} / {repeats}", end="\r")
-
-        # Compute exponent / bit using integer operations
-        # Here, we build the binary representation of a set of floating point numbers
-        # With this pattern, we have a tensor that contains a set of contiguous floating point numbers
-        # All floating point numbers (`torch_input_f32`) will share the same exponent & sign but will have unique mantissa
-
-        torch.full(size, i, dtype=TORCH_INT_TYPE, out=torch_exponent)  # exp bits = i
-        torch.bitwise_left_shift(torch_exponent, MANTISSA_BITS, out=torch_exponent)
-        torch.bitwise_or(torch_exponent, torch_mantissa, out=torch_value)  # combine sign/exponent with mantissa
-
-        torch_input_f32 = torch_value.view(TORCH_TYPE)  # reinterpret data as float32
-
-        # print(f"Torch Value =\n{torch_value}, size = {torch_value.size()}")
-        # print(f"Torch Value f32 =\n{torch_value_f32}, size = {torch_value_f32.size()}")
-
-        # Launch a TTNN operation from a torch tensor and returns output in torch tensor
-        def launch_ttnn_op(torch_tensor, ttnn_unary, ttnn_output):
-            ttnn_value = ttnn.from_torch(torch_tensor, device=device, dtype=TTNN_TYPE, layout=ttnn.TILE_LAYOUT)
-
-            ttnn_output = ttnn_unary(ttnn_value, output_tensor=ttnn_output)
-
-            # Convert back to torch
-            torch_output = ttnn.to_torch(ttnn_output)
-
-            return torch_output
-
-        def launch_scalar_op(torch_tensor, python_unary):
-            np_input = torch_tensor.to(torch.float32).flatten().numpy()
-
-            def run_unary_op(x):
-                try:
-                    return python_unary(x)
-                except:
-                    return math.nan
-
-            np_output = np.vectorize(run_unary_op)(np_input)
-
-            torch_output = torch.from_numpy(np_output).to(TORCH_TYPE).reshape(size)
-            return torch_output
-
-        # Run operation
-        torch_output_ref = torch_unary_op(torch_input_f32, out=torch_output_ref)
-
-        if True:
-            actual_torch_output = launch_ttnn_op(torch_input_f32, ttnn_unary_op, ttnn_output)
-        else:  # Launch scalar op (used to evaluate accuracy of torch)
-            actual_torch_output = launch_scalar_op(torch_input_f32, python_unary_op)
-
-        # Flatten tensors for data analysis (we only used 2D for ttnn and TILE_LAYOUT)
-        np_flat_input = torch_input_f32.to(torch.float32).flatten().numpy()
-        np_flat_output = actual_torch_output.to(torch.float32).flatten().numpy()
-        np_flat_ref = torch_output_ref.to(torch.float32).flatten().numpy()
-        # np_flat_exponent = torch_exponent.flatten().view(TORCH_TYPE).numpy()
-
-        # TODO: Just switch to pandas and do groupby() & cie
-        for j in range(0, sub_batches):
-            chunk_size = TENSOR_WIDTH * TENSOR_HEIGHT // sub_batches
-            (beg_index, end_index) = (j * chunk_size, (j + 1) * chunk_size)
-            res_i = i * sub_batches + j
-
-            # TODO: Handle NaN/inf
-
-            # Get sub-range
-            np_sub_input = np_flat_input[beg_index:end_index]
-            np_sub_output = np_flat_output[beg_index:end_index]
-            np_sub_ref = np_flat_ref[beg_index:end_index]
-
-            # Measure abs error
-            np_diff = np.abs(np_sub_ref - np_sub_output)
-
-            # Compare actual and expected output
-            # mse_value      = mse_loss(actual_sub_output, torch_sub_ref)
-            np_diff_curated = np_diff[~np.isfinite(np_diff)]
-            np_sub_ref_abs = np.abs(np_sub_ref[~np.isfinite(np_sub_ref)])
-
-            if len(np_diff) > 0 and len(np_sub_ref_abs) > 0:
-                # Reduces edge cases
-                max_abs_error = np_diff_curated.max()
-                mean_abs_error = np_diff_curated.mean()
-                rel_error = np_diff_curated / max(np_sub_ref_abs.max(), EPSILON)
-                max_rel_error = np.max(rel_error)  # Ignore NaN
-                mean_rel_error = np.mean(rel_error)
-
-            else:  # Batch only contains infinite value
-                max_abs_error = np_diff.max()
-                mean_abs_error = np_diff.mean()
-                max_rel_error = np.max(np_diff / np.abs(np_sub_ref))  # Ignore NaN
-                mean_rel_error = np.mean(np_diff / np.abs(np_sub_ref))
-
-            # Write output data at given sub-batches / sub-samples
-            x_array[res_i] = np_sub_input[0].item()
-            y_array[res_i] = np_sub_output[0].item()
-            yref_array[res_i] = np_sub_ref[0].item()
-            # mse_array           [res_i] = mse_value.item()
-            max_abs_error_array[res_i] = max_abs_error.item()
-            mean_abs_error_array[res_i] = mean_abs_error.item()
-            max_rel_error_array[res_i] = max_rel_error.item()
-            mean_rel_error_array[res_i] = mean_rel_error.item()
-
-    accuracy_df = pd.DataFrame(
-        {
-            "base_x": x_array,
-            "base_y": y_array,
-            "base_yref": yref_array,
-            "mse": mse_array,
-            "max_abs_error": max_abs_error_array,
-            "mean_abs_error": mean_abs_error_array,
-            "max_rel_error": max_rel_error_array,
-            "mean_rel_error": mean_rel_error_array,
-        }
-    )
-    accuracy_df["operation"] = operation_name
-    accuracy_df["dtype"] = target_dtype
-
-    accuracy_df.to_csv(f"{dest_dir}/{operation_name}-{target_dtype}-[{samples}].csv", na_rep="NaN", index_label="index")
-
-    end_time = time.time()
-    elapsed_s = end_time - start_time
-    elapsed_ms = (elapsed_s) * 1000
-    print(f"Duration = {elapsed_s}s, {elapsed_ms/repeats} ms/iteration")
-
-
-def measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=None):
+def measure_op_accuracy_bf16(ttnn_unary_op, golden_unary_op, operation_name, dest_dir, group_size=None):
     # Use bfloat16 parameters
     parameters = datatypes_parameters["bfloat16"]
 
@@ -380,8 +191,6 @@ def measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=Non
     torch_output_ref = torch.zeros(size, dtype=torch.float64)
     ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
 
-    # Get the operations to test
-    (torch_unary_op, ttnn_unary_op, python_unary_op, parent_op) = operation
 
     # Initialize arrays for measurements
     [
@@ -405,7 +214,7 @@ def measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=Non
         return ttnn.to_torch(ttnn_output)
 
     # Run reference and actual operations
-    torch_golden_f64 = torch_unary_op(torch_input_f64, out=torch_output_ref)
+    torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
     torch_ttnn_output_bf16 = launch_ttnn_op(torch_input_bf16, ttnn_unary_op, ttnn_output)
 
     torch_golden_bf16 = torch_golden_f64.to(torch.bfloat16)
@@ -498,7 +307,6 @@ def measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=Non
     )
     accuracy_df["operation"] = operation_name
     accuracy_df["dtype"] = "bfloat16"
-    accuracy_df["parent_op"] = parent_op
 
     # Compute PCC on [-1e5; 1e5]
     np_finite_mask = np.isfinite(np_flat_output) & np.isfinite(np_flat_golden)
@@ -520,15 +328,11 @@ def measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=Non
         np.greater(np_flat_input, -(2**6)) & np.less(np_flat_input, 2**6)
     )
     mean_ulp_error = np.mean(np_ulp_error[np_finite_ulp_mask])
-    print(f"Finite ulp error = {np_ulp_error[np_finite_ulp_mask]}")
-
-    print(f"Mean ulp error = {mean_ulp_error}")
-
+    
     covar = np.cov(np_flat_golden, np_flat_output)
-    print(f"Golden std = {golden_std}, TTNN std = {ttnn_std}")
-    print(f"Covar = {covar}")
-
-    accuracy_df.to_csv(f"{dest_dir}/{operation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
+    
+    os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
+    accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{operation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
 
     end_time = time.time()
     elapsed_s = end_time - start_time
@@ -543,14 +347,11 @@ def parse_operations_config_file(config_file):
 
 def generate_tanh_alternative():
 
-
-
     tanh_operations = [
         "tanh",
         "tanh-v1",
         "tanh-pade-5,5"
     ]
-
 
     new_operations = {}
     for tanh_op in tanh_operations:
@@ -651,10 +452,15 @@ def main(args):
 
     all_operations = {}
     for operation_name in all_operation_names:
-        if operation_name not in UNARY_OPERATIONS:
+
+        operation = get_operation_by_name(UNARY_OPERATIONS, operation_name)
+
+        if operation is None:
             print(f"{TERM_RED}Operation {operation_name} not found in UNARY_OPERATIONS{TERM_RESET}")
         else:
-            all_operations[operation_name] = UNARY_OPERATIONS[operation_name]
+            all_operations[operation_name] = operation
+
+
 
     if args.kernel is not None:
 
@@ -675,16 +481,17 @@ def main(args):
     cnt = 0
     total_operation_cnt = len(all_operations)
     print(f"Measuring operations")
-    for operation_name, operation in all_operations.items():
-        cnt += 1
-        print(f"Running operation {operation} #{cnt}/{total_operation_cnt}", end="\r")
-        try:
+    for operation_name, (ttnn_op, golden_op) in all_operations.items():
 
+
+        cnt += 1
+        print(f"Running operation {operation_name} #{cnt}/{total_operation_cnt}", end="\r")
+        try:
             start_time = time.time()
             if args.type == "bfloat16":
-                measure_op_accuracy_bf16(operation, operation_name, dest_dir, group_size=group_size)
+                measure_op_accuracy_bf16(ttnn_op, golden_op, operation_name, dest_dir, group_size=group_size)
             elif args.type == "float32":
-                measure_op_accuracy_f32(operation, operation_name, dest_dir, group_size=group_size)
+                measure_op_accuracy_f32(ttnn_op, golden_op, operation_name, dest_dir, group_size=group_size)
             else:
                 raise ValueError(f"Invalid data type: {args.type}")
 
@@ -695,9 +502,9 @@ def main(args):
             success_count += 1
             successfull_operations += [f"{operation_name}"]
         except Exception as e:
-            print(f"{TERM_RED}Could not run operation {operation}: {e}{TERM_RESET}")
+            print(f"{TERM_RED}Could not run operation {operation_name}: {e}{TERM_RESET}")
             print(f"{TERM_RED}{traceback.format_exc()}{TERM_RESET}")
-            failed_operations += [f"{operation}"]
+            failed_operations += [f"{operation_name}"]
 
     print(f"Sucessfully ran {success_count} / {len(all_operations)} operations")
     print(f"{TERM_GREEN}SUCCESS: {successfull_operations}{TERM_RESET}")
