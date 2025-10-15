@@ -121,7 +121,7 @@ def main():
         "reciprocal", "digamma", "lgamma", "tanhshrink"
     ]
     all_binary_operations = [
-        "divide", "div", "div-accurate", "pow"
+        "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2"
     ]
     all_operations = {
         "unary": all_unary_operations,

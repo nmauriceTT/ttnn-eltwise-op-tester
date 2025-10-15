@@ -50,7 +50,7 @@
                 },
                 {
                     "id": "multiply-bfloat16-ulp",
-                    "name": "pow",
+                    "name": "multiply",
                     "outputs": [
                         "accuracy_results/plots/binary_heatmaps/multiply/multiply[bfloat16].png"
                     ],

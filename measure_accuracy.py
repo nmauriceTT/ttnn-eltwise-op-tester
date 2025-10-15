@@ -413,12 +413,13 @@ def generate_exponential_alternative():
 
 def main(args):
 
+    
+
     args = parse_args("unary")
 
 
-    dest_dir = "accuracy_results/results/"
-    if not os.path.exists(dest_dir):  # TODO: Check if recursive
-        os.makedirs(dest_dir)
+    dest_dir = "accuracy_results/results/unary/"
+    os.makedirs(dest_dir, exist_ok=True)
 
     # Set numpy floating point warning to reduce stdout clutter
     # Since we test *all* possible floating point values, invalid values
