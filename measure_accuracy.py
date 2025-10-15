@@ -15,7 +15,7 @@ from models.common.utility_functions import ulp
 
 
 from arg_parser import parse_args
-from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_by_name
+from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_by_name, get_golden_function
 from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source
 
 
@@ -357,12 +357,7 @@ def generate_tanh_alternative():
     for tanh_op in tanh_operations:
 
         tanh_op_function = generate_unary_kernel_from_sfpi_source(tanh_op)
-        new_operations[tanh_op] = (
-            torch.tanh,
-            lambda x, output_tensor, ttnn_function=tanh_op_function: ttnn_function(x, output_tensor),
-            None,
-            "tanh",
-        )
+        new_operations[tanh_op] = lambda x, output_tensor, ttnn_function=tanh_op_function: ttnn_function(x, output_tensor)
 
     polynomial_expressions = {
         "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
@@ -373,12 +368,7 @@ def generate_tanh_alternative():
 
     for op_name, polynomial_coefficients in polynomial_expressions.items():
 
-        new_operations[op_name] = (
-            torch.tanh,
-            lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("tanh-poly", polynomial_coefficients): ttnn_function(x, output_tensor),
-            None,
-            "tanh",
-        )
+        new_operations[op_name] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("tanh-poly", polynomial_coefficients): ttnn_function(x, output_tensor)
 
 
     return new_operations
@@ -401,12 +391,8 @@ def generate_exponential_alternative():
 
         ttnn_function = generate_unary_kernel_from_polynomial("exp", polynomial_coefficients, full_name=op_name)
 
-        new_operations[op_name] = (
-            torch.exp,
-            lambda x, output_tensor, ttnn_function=ttnn_function: ttnn_function(x, output_tensor),
-            None,
-            "exp",
-        )
+        new_operations[op_name] = lambda x, output_tensor, ttnn_function=ttnn_function: ttnn_function(x, output_tensor)
+        
 
     return new_operations
 
@@ -459,12 +445,23 @@ def main(args):
 
     if args.kernel is not None:
 
-        if args.kernel == "tanh":
-            all_operations |= generate_tanh_alternative()
-        elif args.kernel == "exp":
-            all_operations |= generate_exponential_alternative()
+        operation_name = args.kernel
+
+        extra_operations = {}
+        if operation_name == "tanh":
+            extra_operations |= generate_tanh_alternative()
+        elif operation_name == "exp":
+            extra_operations |= generate_exponential_alternative()
         else:
-            raise ValueError(f"Invalid kernel: {args.kernel}")
+            raise ValueError(f"Invalid kernel: {operation_name}")
+
+        golden_function = get_golden_function(UNARY_OPERATIONS, operation_name)
+
+        if operation_name in all_operations:
+
+            for extra_operation_name, extra_operation in extra_operations.items():
+                all_operations[extra_operation_name] = (extra_operation, golden_function)
+                
 
         print(f"Added custom new operations")
 

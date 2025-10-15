@@ -311,6 +311,35 @@ BINARY_OPERATIONS = {
 }
 
 
+def get_operations_by_category(operation_dict, category):
+
+    if not category in operation_dict:
+        raise ValueError(f"Category {category} not found in operation_dict")
+
+    return operation_dict[category]
+
+def get_golden_function(operation_dict, operation_name: str):
+    golden_function = None
+    operation = get_operations_by_category(operation_dict, operation_name)
+    if "golden" in operation:
+        golden_function = operation["golden"]
+    else:
+        for impl_name, implementation in operation["implementations"].items():
+            try:
+                golden_function = ttnn.get_golden_function(implementation)
+            except:
+                print(f"{TERM_RED}No golden function found for implementation {impl_name}{TERM_RESET}")
+                continue
+            
+            golden_function = implementation.golden_function
+            break
+
+    if golden_function is None:
+        raise ValueError(f"No golden operation found for operation {operation_name}")
+
+    return golden_function
+    
+
 def iterate_all_operations(operation_dict):
     """ Iterate over all operations in the operation dictionary 
     and yield the implementation name, the implementation function, and the golden function
@@ -355,12 +384,7 @@ def get_operation_by_name(operation_dict, impl_name):
 
     return None
 
-def get_operations_by_category(operation_dict, category):
 
-    if not category in operation_dict:
-        raise ValueError(f"Category {category} not found in operation_dict")
-
-    return operation_dict[category]
 
 
 
