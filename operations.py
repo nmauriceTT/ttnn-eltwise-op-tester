@@ -231,257 +231,6 @@ UNARY_OPERATIONS = {
     }
 }
 
-def iterate_all_operations(operation_dict):
-    for category, operations in operation_dict.items():
-
-        if "golden" in operations:
-            golden_operation = operations["golden"]
-        else:
-            for impl_name, implementation in operations["implementations"].items():
-                try:
-                    golden_function = ttnn.get_golden_function(impl_name)
-                except:
-                    continue
-                
-                golden_operation = implementation.golden_function
-                break
-
-        if golden_operation is None:
-            print(f"{TERM_RED}No golden operation found for category {category}{TERM_RESET}")
-            continue
-
-        for impl_name, implementation in operations["implementations"].items():
-            yield (impl_name, implementation, golden_operation)
-
-def get_operation_by_name(operation_dict, impl_name):
-
-    for category, operations in operation_dict.items():
-        if impl_name in operations["implementations"].keys():
-
-            impl = operations["implementations"][impl_name]
-
-            if "golden" in operations:
-                golden_operation = operations["golden"]
-            else:
-                ttnn_impl = getattr(ttnn, category)
-                golden_operation = ttnn.get_golden_function(ttnn_impl)
-
-            return impl, golden_operation
-
-    return None
-
-def get_operations_by_category(operation_dict, category):
-
-    if not category in operation_dict:
-        raise ValueError(f"Category {category} not found in operation_dict")
-
-    return operation_dict[category]
-
-
-
-UNARY_OPERATIONS_LEGACY = {
-    # Exponential functions
-    "abs": (torch.abs, ttnn.abs, None, "abs"),
-    "identity": (lambda x, out: torch.nn.Identity()(x), ttnn.identity, None, "identity"),
-    "fill": (
-        lambda x, out: torch.fill(out, 1.99999988079071044921875),
-        lambda x, output_tensor: ttnn.fill(x, 1.99999988079071044921875, output_tensor=output_tensor), 
-        None, 
-        "fill"
-    ),
-    "exp": (torch.exp, ttnn.exp, math.exp, "exp"),
-    "exp-approx": (
-        torch.exp,
-        lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-        None,
-        "exp",
-    ),
-    "exp-fast-approx": (
-        torch.exp,
-        lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-        None,
-        "exp",
-    ),
-    "exp-fast-approx-v2": (
-        torch.exp,
-        lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-        None,
-        "exp",
-    ),
-    "exp_cond": (
-        torch.exp,
-        ttnn.exp,
-        None,
-        "exp",
-    ),
-    "exp_approx0": (
-        torch.exp,
-        ttnn.exp,
-        None,
-        "exp",
-    ),
-    "exp21f": (
-        torch.exp,
-        ttnn.exp,
-        None,
-        "exp",
-    ),
-    "exp_21f_round_nearest": (
-        torch.exp,
-        ttnn.exp,
-        None,
-        "exp",
-    ),
-    "exp_hybrid": (
-        torch.exp,
-        ttnn.exp,
-        None,
-        "exp",
-    ),
-    "tanh": (
-        torch.tanh,
-        ttnn.tanh,
-        math.tanh,
-        "tanh",
-    ),  # ttnn.tanh() does not support output_tensor ?
-    "tanh-approx": (
-        torch.tanh,
-        lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-        math.tanh,
-        "tanh",
-    ),
-    "tanh_accurate": (
-        torch.tanh,
-        lambda x, output_tensor: ttnn.tanh_accurate(x, accurate_mode=True, output_tensor=output_tensor),
-        math.tanh,
-        "tanh",
-    ),
-    "cosh": (
-        torch.cosh,
-        lambda x, output_tensor: ttnn.cosh(x),
-        math.cosh,
-        "cosh",
-    ),  # ttnn.cosh() does not support output_tensor ?
-    "sinh": (
-        torch.sinh,
-        lambda x, output_tensor: ttnn.sinh(x),
-        math.sinh,
-        "sinh",
-    ),  # ttnn.sinh() does not support output_tensor ?
-    # Logarithmic functions
-    "log": (torch.log, ttnn.log, math.log, "log"),
-    "log10": (torch.log10, ttnn.log10, math.log10, "log10"),
-    "log2": (torch.log2, ttnn.log2, math.log2, "log2"),
-    "log1p": (torch.log1p, ttnn.log1p, math.log1p, "log1p"),
-    "logaddexp": (torch.logaddexp, ttnn.logaddexp, None, "logaddexp"),
-    "logaddexp2": (torch.logaddexp2, ttnn.logaddexp2, None, "logaddexp2"),
-    # Activation functions
-    "silu": (lambda x, out: torch.nn.SiLU()(x), ttnn.silu, None, "silu"),
-    "gelu": (lambda x, out: torch.nn.GELU()(x), ttnn.gelu, None, "gelu"),
-    "gelu_approx": (
-        lambda x, out: torch.nn.GELU()(x),
-        lambda x, output_tensor: ttnn.gelu(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-        None,
-        "gelu",
-    ),
-    "logit": (
-        torch.logit,
-        lambda x, output_tensor: ttnn.logit(x),
-        None,
-        "logit",
-    ),  # ttnn.logit does not support output_tensor ?
-    "swish": (
-        lambda x, out: torch.nn.SiLU()(x),
-        lambda x, output_tensor: ttnn.swish(x),
-        None,
-        "swish",
-    ),  # ttnn.swish does not support output_tensor ?
-    "mish": (lambda x, out: torch.nn.Mish()(x), ttnn.mish, None, "mish"),
-    "elu": (
-        lambda x, out: torch.nn.ELU()(x),
-        lambda x, output_tensor: ttnn.elu(x, output_tensor=output_tensor, alpha=1.0),
-        None,
-        "elu",
-    ),  # Unlike torch, ttnn.elu does not use alpha=1 by default
-    "celu": (
-        lambda x, out: torch.nn.CELU()(x),
-        lambda x, output_tensor: ttnn.celu(x, output_tensor=output_tensor, alpha=1.0),
-        None,
-        "celu",
-    ),
-    "selu": (
-        lambda x, out: torch.nn.SELU()(x),
-        lambda x, output_tensor: ttnn.selu(x),
-        None,
-        "selu",
-    ),  # ttnn.selu does not support output_tensor ?
-    "softplus": (lambda x, out: torch.nn.Softplus()(x), ttnn.softplus, None, "softplus"),
-    "softsign": (
-        lambda x, out: torch.nn.Softsign()(x),
-        lambda x, output_tensor: ttnn.softsign(x),
-        None,
-        "softsign",
-    ),  # ttnn.softsign does not support output_tensor ?
-    # Trigonometric functions
-    "tan": (torch.tan, ttnn.tan, math.tan, "tan"),
-    "atan": (torch.atan, ttnn.atan, math.atan, "atan"),
-    "sin": (torch.sin, ttnn.sin, math.sin, "sin"),
-    "cos": (torch.cos, ttnn.cos, math.cos, "cos"),
-    # Miscellaneous functions
-    "sqrt": (torch.sqrt, ttnn.sqrt, math.sqrt, "sqrt"),
-    "cbrt": (
-        lambda x, out: torch.pow(x, 1/3), 
-        lambda x, output_tensor: ttnn.cbrt(x), 
-        None, 
-        "cbrt"),
-    "cbrt-pow1d3": (
-        lambda x, out: torch.pow(x, 1/3), 
-        lambda x, output_tensor: cbrt_pow1d3(x, output_tensor), 
-        None, 
-        "cbrt"),
-    "cbrt-pow1d3-fp32": (
-        lambda x, out: torch.pow(x, 1/3), 
-        lambda x, output_tensor: run_ttnn_fp32_and_round_bf16(ttnn.cbrt, [x]), 
-        None, 
-        "cbrt"),
-    "rsqrt": (
-        torch.rsqrt,
-        lambda x, output_tensor: ttnn.rsqrt(x, output_tensor=output_tensor),
-        None,
-        "rsqrt",
-    ),
-    "rsqrt_approx": (
-        torch.rsqrt,
-        lambda x, output_tensor: ttnn.rsqrt(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-        None,
-        "rsqrt",
-    ),
-    "reciprocal": (
-        torch.reciprocal,
-        ttnn.reciprocal,
-        None,
-        "reciprocal",
-    ),
-    "digamma": (
-        torch.digamma,
-        lambda x, output_tensor: ttnn.digamma(x),
-        None,
-        "digamma",
-    ),  # ttnn.digamma does not support output_tensor ?
-    "lgamma": (
-        torch.lgamma,
-        lambda x, output_tensor: ttnn.lgamma(x),
-        math.lgamma,
-        "lgamma",
-    ),  # ttnn.lgamma does not support output_tensor ?
-    "tanhshrink": (
-        lambda x, out: torch.nn.Tanhshrink()(x),
-        lambda x, output_tensor: ttnn.tanhshrink(x),
-        None,
-        "tanhshrink",
-    ),  # ttnn.tan
-}
-
 
 def divide_sfpu(x, y):
     assert isinstance(x, ttnn.Tensor)
@@ -514,31 +263,107 @@ def divide_sfpu(x, y):
 
 
 BINARY_OPERATIONS = {
+    "add": {
+        "implementations": {
+            "add": ttnn.add
+        },
+        "golden": torch.add
+    },
+    "multiply": {
+        "implementations": {
+            "multiply": ttnn.multiply
+        },
+        "golden": torch.multiply
+    },
+    "hypot": {
+        "implementations": {
+            "hypot": ttnn.hypot
+        },
+        "golden": torch.hypot
+    },
     "pow": {
-        "ttnn": ttnn.pow,
-        "torch": torch.pow,
+        "implementations": {
+            "pow": ttnn.pow
+        },
+        "golden": torch.pow
     },
     "pow21f": {
-        "ttnn": ttnn.pow,
-        "torch": torch.pow,
+        "implementations": {
+            "pow21f": ttnn.pow
+        },
+        "golden": torch.pow
     },
     "divide": {
-        "ttnn": ttnn.divide,
-        "torch": torch.div,
+        "implementations": {
+            "divide": ttnn.divide,
+            "div": ttnn.div,
+            "divide-sfpu": lambda x, y: run_ttnn_fp32_and_round_bf16(ttnn.divide, [x, y]),
+            "div-accurate": lambda x, y: ttnn.div(x, y, accurate_mode=True)
+        },
+        "golden": torch.div
     },
-    "divide-sfpu": {
-        "ttnn": lambda x, y: run_ttnn_fp32_and_round_bf16(ttnn.divide, [x, y]),
-        "torch": torch.div,
-    },
-    "div": {
-        "ttnn": ttnn.div,
-        "torch": torch.div,
-    },
-    "div-accurate": {
-        "ttnn": lambda x, y: ttnn.div(x, y, accurate_mode=True),
-        "torch": torch.div,
-    },
+    "atan2": {
+        "implementations": {
+            "atan2": ttnn.atan2
+        },
+        "golden": torch.atan2
+    }
 }
+
+
+def iterate_all_operations(operation_dict):
+    """ Iterate over all operations in the operation dictionary 
+    and yield the implementation name, the implementation function, and the golden function
+    """
+    for category, operations in operation_dict.items():
+
+        golden_function = None
+        if "golden" in operations:
+            golden_function = operations["golden"]
+        else:
+            for impl_name, implementation in operations["implementations"].items():
+                try:
+                    golden_function = ttnn.get_golden_function(impl_name)
+                except:
+                    print(f"{TERM_RED}No golden function found for implementation {impl_name}{TERM_RESET}")
+                    continue
+                
+                golden_function = implementation.golden_function
+                break
+
+        if golden_function is None:
+            print(f"{TERM_RED}No golden operation found for category {category}{TERM_RESET}")
+            continue
+
+        for impl_name, implementation in operations["implementations"].items():
+            yield (impl_name, implementation, golden_function)
+
+def get_operation_by_name(operation_dict, impl_name):
+
+    for category, operations in operation_dict.items():
+        if impl_name in operations["implementations"].keys():
+
+            impl = operations["implementations"][impl_name]
+
+            if "golden" in operations:
+                golden_operation = operations["golden"]
+            else:
+                ttnn_impl = getattr(ttnn, category)
+                golden_operation = ttnn.get_golden_function(ttnn_impl)
+
+            return impl, golden_operation
+
+    return None
+
+def get_operations_by_category(operation_dict, category):
+
+    if not category in operation_dict:
+        raise ValueError(f"Category {category} not found in operation_dict")
+
+    return operation_dict[category]
+
+
+
 
 
 

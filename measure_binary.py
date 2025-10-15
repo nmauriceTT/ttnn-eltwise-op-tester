@@ -7,9 +7,9 @@ import os
 import utils
 from utils import TERM_RED, TERM_GREEN, TERM_RESET
 
-from models.utility_functions import ulp
+from models.common.utility_functions import ulp
 import operations
-from operations import run_ttnn_op
+from operations import run_ttnn_op, iterate_all_operations, get_operation_by_name, BINARY_OPERATIONS
 
 device = ttnn.open_device(device_id=0)
 
@@ -39,16 +39,14 @@ def reduce_on_batch_and_cols(tensor):
     return {"min": tensor_min, "max": tensor_max, "mean": tensor_mean}
 
 
-def bench_binary_op(operation_name, dest_dir):
+def bench_binary_op(operation, dest_dir):
     assert device is not None
     print(f"device =\n{device}")
 
     df_all_results = pd.DataFrame()
     batch_size = 128
 
-    operation = operations.BINARY_OPERATIONS[operation_name]
-    ttnn_op = operation["ttnn"]
-    torch_op = operation["torch"]
+    operation_name, ttnn_op, torch_op = operation
 
     i = 0
     for tensor_a, tensor_b in utils.generate_binary_tensors_bf16():
@@ -94,7 +92,9 @@ def bench_binary_op(operation_name, dest_dir):
         i += 1
 
     # Write results to CSV
-    df_all_results.to_csv(f"{dest_dir}/{operation_name}[bfloat16].csv", na_rep="NaN", index_label="index")
+    os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
+
+    df_all_results.to_csv(f"{dest_dir}/{operation_name}/{operation_name}[bfloat16].csv", na_rep="NaN", index_label="index")
 
 
 def main(args):
@@ -106,12 +106,11 @@ def main(args):
     # np.seterr(invalid="ignore")
     # np.seterr(over="ignore")
 
-    operation_names = ["divide-sfpu", "pow", "divide", "div", "div-accurate"]
-    all_operations = {name: operations.BINARY_OPERATIONS[name] for name in operation_names}
+    all_operations = iterate_all_operations(BINARY_OPERATIONS)
 
     (successes, failed) = utils.execute_benchmarks(bench_binary_op, all_operations, dest_dir)
 
-    print(f"Sucessfully ran {len(successes)} / {len(all_operations)} operations")
+    print(f"Sucessfully ran {len(successes)} operations")
     print(f"{TERM_GREEN}SUCCESS: {successes}{TERM_RESET}")
     print(f"{TERM_RED}FAILED: {failed}{TERM_RESET}")
 

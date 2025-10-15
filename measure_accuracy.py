@@ -428,10 +428,6 @@ def main(args):
     np.seterr(invalid="ignore")
     np.seterr(over="ignore")
 
-    # Add powers into operations
-    powers_vals = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-    powers = [f"pow_{power}" for power in powers_vals]
-
 
     if args.operation is not None:
         all_operation_names = [args.operation]
@@ -449,7 +445,6 @@ def main(args):
         group_size = args.group_size
 
 
-
     all_operations = {}
     for operation_name in all_operation_names:
 
@@ -459,7 +454,6 @@ def main(args):
             print(f"{TERM_RED}Operation {operation_name} not found in UNARY_OPERATIONS{TERM_RESET}")
         else:
             all_operations[operation_name] = operation
-
 
 
     if args.kernel is not None:

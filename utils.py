@@ -97,7 +97,7 @@ def execute_benchmarks(benchmark_fun, operations, dest_dir):
     failed_operations = []
 
     cnt = 0
-    total_operation_cnt = len(operations)
+    total_operation_cnt = 0 # Set to 0 for now because operations is a generator (can't get len without iterating on it)
     for operation in operations:
         cnt += 1
         print(f"Running operation {operation}  #{cnt} / {total_operation_cnt}", end="\r")
