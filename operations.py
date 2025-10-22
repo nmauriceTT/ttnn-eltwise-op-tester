@@ -76,13 +76,14 @@ UNARY_OPERATIONS = {
             "exp_21f_round_nearest": ttnn.exp,
             "exp_hybrid": ttnn.exp
         },
+        "golden": torch.exp,
     },
     "tanh": {
         "implementations": {
             "tanh": ttnn.tanh,
-            "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "tanh_accurate": lambda x, output_tensor: ttnn.tanh_accurate(x, accurate_mode=True, output_tensor=output_tensor)
+            "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
         },
+        "golden": torch.tanh
     },
     "cosh": {
         "implementations": {
@@ -154,6 +155,14 @@ UNARY_OPERATIONS = {
     "celu": {
         "implementations": {
             "celu": lambda x, output_tensor: ttnn.celu(x, output_tensor=output_tensor, alpha=1.0)
+        },
+    },
+    "sigmoid": {
+        "implementations": {
+            "sigmoid": ttnn.sigmoid,
+            "sigmoid-approx": lambda x, output_tensor: ttnn.sigmoid(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "sigmoid-accurate": ttnn.sigmoid_accurate,
+            "sigmoid-accurate-approx": lambda x, output_tensor: ttnn.sigmoid_accurate(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
         },
     },
     "selu": {

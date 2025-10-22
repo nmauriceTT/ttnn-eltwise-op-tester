@@ -600,6 +600,30 @@
                     }
                 },
                 {
+                    "id": "sigmoid-bfloat16-ulp",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/sigmoid/sigmoid-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            50
+                        ]
+                    }
+                },
+                {
                     "id": "selu-bfloat16-ulp",
                     "name": "selu",
                     "outputs": [
@@ -1842,7 +1866,16 @@
                             0,
                             300
                         ],
-                        "yscale": "linear"
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [
+                                100,
+                                "100 ULP - \"great\""
+                            ],
+                            [
+                                300, "300 ULP - \"accurate\""
+                            ]
+                        ]
                     }
                 },
                 {
@@ -2025,7 +2058,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-21f/tanh-21f-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh-sfpi/tanh-sfpi-float32-[65536].csv",
                         "accuracy_results/results/unary/tanh-v1/tanh-v1-float32-[65536].csv",
                         "accuracy_results/results/unary/tanh-pade-5,5/tanh-pade-5,5-float32-[65536].csv",
                         "accuracy_results/results/unary/tanh-minimax-v1[6]/tanh-minimax-v1[6]-float32-[65536].csv"
@@ -2039,6 +2072,30 @@
                         "ylim": [
                             0,
                             100000.0
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "tanh-accurate-bis-float32-ulp",
+                    "name": "tanh",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/tanh/tanh-accurate-bis-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh-v1/tanh-v1-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh-pade-5,5/tanh-pade-5,5-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xbase": 2,
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "ylim": [
+                            0,
+                            4000.0
                         ],
                         "yscale": "linear"
                     }
@@ -2258,6 +2315,24 @@
                             0,
                             400000
                         ]
+                    }
+                },
+                {
+                    "id": "sigmoid-float32-ulp",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/sigmoid/sigmoid-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear"
                     }
                 },
                 {
