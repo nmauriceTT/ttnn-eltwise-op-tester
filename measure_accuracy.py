@@ -347,28 +347,27 @@ def parse_operations_config_file(config_file):
 
 def generate_tanh_alternative():
 
-    tanh_operations = [
-        "tanh",
-        "tanh-v1",
-        "tanh-pade-5,5"
-    ]
+    # tanh_operations = [
+    #     "tanh",
+    #     "tanh-v1",
+    #     "tanh-pade-5,5"
+    # ]
 
     new_operations = {}
-    for tanh_op in tanh_operations:
-
-        tanh_op_function = generate_unary_kernel_from_sfpi_source(tanh_op)
-        new_operations[tanh_op] = lambda x, output_tensor, ttnn_function=tanh_op_function: ttnn_function(x, output_tensor)
-
     polynomial_expressions = {
-        "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
-        "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
-        "tanh-minimax-v1[5]": [-1.950809545814990997314453125e-2, 0.1467897593975067138671875, -0.325587689876556396484375, -4.27231900393962860107421875e-2, 1.00523841381072998046875, 0.0],
-        "tanh-minimax-v1[6]": [5.876733921468257904052734375e-3, -6.6649019718170166015625e-2, 0.281917631626129150390625, -0.4890659749507904052734375, 3.0897438526153564453125e-2, 0.999004364013671875, 0.0],
+        # "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
+        # "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
+        # "tanh-minimax-v1[5]": [-1.950809545814990997314453125e-2, 0.1467897593975067138671875, -0.325587689876556396484375, -4.27231900393962860107421875e-2, 1.00523841381072998046875, 0.0],
     }
 
     for op_name, polynomial_coefficients in polynomial_expressions.items():
 
         new_operations[op_name] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("tanh-poly", polynomial_coefficients): ttnn_function(x, output_tensor)
+
+    new_operations["tanh-sfpi"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh"): ttnn_function(x, output_tensor)
+    new_operations["tanh-v1"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-v1"): ttnn_function(x, output_tensor)
+    new_operations["tanh-pade-5,5"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"): ttnn_function(x, output_tensor)
+    new_operations["tanh-minimax-v1[6]"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"): ttnn_function(x, output_tensor)
 
 
     return new_operations
@@ -378,9 +377,9 @@ def generate_exponential_alternative():
 
     polynomial_expressions = {
         #"exp-Chebyshev-v1[2]": [0.34228965640068054,0.652752697467804,1.0022648572921753],
-        #"exp-Chebyshev-v1-c0ef0[4]": [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0],
+        "exp-Chebyshev-v1-c0ef0[4]": [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0],
         # "exp-Chebyshev-v1[4]": [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397],
-        # "exp-61f": [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018]
+        "exp-61f": [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018],
         "exp-21f": [0.33718944, 0.65763629, 1.0017248],
         "exp-Chebyshev-v1[6]": [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0]
     }
@@ -457,6 +456,10 @@ def main(args):
 
         golden_function = get_golden_function(UNARY_OPERATIONS, operation_name)
 
+        print(f"extra operations = {extra_operations}")
+        if operation_name == "tanh":
+            assert golden_function == torch.tanh
+
         if operation_name in all_operations:
 
             for extra_operation_name, extra_operation in extra_operations.items():
@@ -475,6 +478,14 @@ def main(args):
     print(f"Measuring operations")
     for operation_name, (ttnn_op, golden_op) in all_operations.items():
 
+        if operation_name in ["tanh", "tanh-v1", "tanh-pade-5,5", "tanh-minimax-v1[6]"]:
+            assert golden_op == torch.tanh
+
+        if ttnn_op == ttnn.tanh:
+            assert golden_op == torch.tanh
+
+        print(f"operation_name = {operation_name}, ttnn_op = {ttnn_op}, golden_op = {golden_op}, is_torch = {golden_op == torch.tanh}")
+        # continue
 
         cnt += 1
         print(f"Running operation {operation_name} #{cnt}/{total_operation_cnt}", end="\r")

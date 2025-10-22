@@ -209,10 +209,6 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
 
     output = ttnn.generic_op(io_tensors, program_descriptor)
 
-    print(f"fp32_dest_acc_en = {compute_kernel_config.fp32_dest_acc_en}")
-    print(f"dtype = {ttnn_input_tensor.dtype}")
-    print(f"output.dtype = {output.dtype}")  
-
     return output
 
 

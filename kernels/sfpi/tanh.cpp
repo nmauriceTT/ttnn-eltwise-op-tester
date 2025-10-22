@@ -11,7 +11,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat input) {
     sfpi::vFloat result = ckernel::sfpu::_sfpu_reciprocal_<2>(denominator);
     result = result * numerator;
 
-    if constexpr (is_fp32_acc_to_dest_mode) {
+    if constexpr (!is_fp32_acc_to_dest_mode) {
         result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
     }
 
