@@ -220,8 +220,10 @@ def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name, full_name=None):
     if full_name is None:
         full_name = sfpi_kernel_name
 
+    os.makedirs("generated", exist_ok=True)
+
     TT_METAL_HOME = os.getenv("TT_METAL_HOME")
-    with open(f"compute_unary_{full_name}.cpp", "w") as f:
+    with open(f"generated/compute_unary_{full_name}.cpp", "w") as f:
         f.write(compute_kernel_source_code)
     
 
@@ -241,7 +243,9 @@ def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficie
     if full_name is None:
         full_name = sfpi_kernel_name
 
-    with open(f"compute_unary_{full_name}.cpp", "w") as f:
+    os.makedirs("generated", exist_ok=True)
+
+    with open(f"generated/compute_unary_{full_name}.cpp", "w") as f:
         f.write(compute_kernel_source_code)
 
     # Doudble lambda to properly copy value of kernel_source_code
