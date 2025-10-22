@@ -340,7 +340,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            40
+                            10
                         ],
                         "xlim": [
                             -10,
@@ -356,8 +356,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh-v1/tanh-v1-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh-pade-5,5/tanh-pade-5,5-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/tanh-approx/tanh-approx-bfloat16-[1].csv",
                         "accuracy_results/results/unary/tanh-minimax-v1[6]/tanh-minimax-v1[6]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
@@ -365,21 +364,11 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            5
+                            10
                         ],
                         "xlim": [
                             -10,
                             10
-                        ],
-                        "horizontal_lines": [
-                            [
-                                1,
-                                "1 ULP"
-                            ],
-                            [
-                                3,
-                                "3 ULP"
-                            ]
                         ]
                     }
                 },
@@ -609,7 +598,79 @@
                         "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
                         "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
                         "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            50
+                        ]
+                    }
+                },
+                {
+                    "id": "sigmoid-default-bfloat16-ulp",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/sigmoid/sigmoid-default-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            50
+                        ]
+                    }
+                },
+                {
+                    "id": "sigmoid-all-bfloat16-ulp",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/sigmoid/sigmoid-all-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
                         "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            50
+                        ]
+                    }
+                },
+                {
+                    "id": "sigmoid-accurate-bfloat16-ulp",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/sigmoid/sigmoid-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2058,10 +2119,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-sfpi/tanh-sfpi-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-v1/tanh-v1-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-pade-5,5/tanh-pade-5,5-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-minimax-v1[6]/tanh-minimax-v1[6]-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh-approx/tanh-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh-minimax-v1[6]/tanh-minimax-v1[6]-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh-v1/tanh-v1-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -2071,9 +2131,23 @@
                         ],
                         "ylim": [
                             0,
-                            100000.0
+                            50000.0
                         ],
-                        "yscale": "linear"
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [
+                                32000,
+                                "32000 ULP ~ 0.5 bfloat16 ULP"
+                            ],
+                            [
+                                2000,
+                                "2000 ULP - \"approx\""
+                            ],
+                            [
+                                1000,
+                                "1000 ULP - \"accurate\""
+                            ]
+                        ]
                     }
                 },
                 {
@@ -3912,6 +3986,27 @@
                         ],
                         "xscale": "linear",
                         "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "sigmoid-bfloat16-value",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/value/sigmoid/sigmoid-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "xscale": "linear"
                     }
                 },
                 {

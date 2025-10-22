@@ -396,6 +396,15 @@ def generate_exponential_alternative():
     return new_operations
 
 
+def generate_sigmoid_alternative():
+
+    new_operations = {}
+
+    new_operations["sigmoid-21f"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("sigmoid"): ttnn_function(x, output_tensor)
+
+    return new_operations
+
+
 def main(args):
 
     
@@ -451,6 +460,8 @@ def main(args):
             extra_operations |= generate_tanh_alternative()
         elif operation_name == "exp":
             extra_operations |= generate_exponential_alternative()
+        elif operation_name == "sigmoid":
+            extra_operations |= generate_sigmoid_alternative()
         else:
             raise ValueError(f"Invalid kernel: {operation_name}")
 
