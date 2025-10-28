@@ -17,15 +17,12 @@ from models.common.utility_functions import ulp
 
 from arg_parser import parse_args
 from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_by_name, get_golden_function
-from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source
 
 
 device_id = 0
 device = ttnn.open_device(device_id=device_id)
 
 EPSILON = 2**-9
-
-
 
 TERM_RED = "\033[91m"
 TERM_GREEN = "\033[92m"
@@ -186,10 +183,6 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     # Create TTNN input (reused for all implementations)
     ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
 
-    # Precompute data for PCC calculation (used by all implementations)
-    np_flat_input = torch_input_f64.flatten().numpy()
-    np_flat_golden = torch_golden_f64.flatten().numpy()
-
     # Ensure output directory exists
     os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
 
@@ -206,31 +199,12 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         accuracy_df["operation"] = implementation_name
         accuracy_df["dtype"] = "bfloat16"
 
-        # Compute additional statistics (PCC, etc.) for reporting
-        torch_ttnn_output_bf16 = ttnn.to_torch(calculated_ttnn_bf16)
-        torch_ttnn_output_f64 = torch_ttnn_output_bf16.to(torch.float64)
-
-        np_flat_output = torch_ttnn_output_f64.flatten().numpy()
-
-        # Compute PCC on [-1e5; 1e5]
-        np_finite_mask = np.isfinite(np_flat_output) & np.isfinite(np_flat_golden)
-        df = pd.DataFrame(
-            {
-                "x": np_flat_input[np_finite_mask],
-                "y": np_flat_output[np_finite_mask],
-                "yref": np_flat_golden[np_finite_mask],
-            }
-        )
-
-        df = df[df["x"].between(-1e5, 1e5)]
-        pcc = scipy.stats.pearsonr(df["y"], df["yref"])
-
         # Save results with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
         accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
 
         impl_end_time = time.time()
         impl_elapsed_s = impl_end_time - impl_start_time
-        print(f"{implementation_name} [bfloat16] PCC = {pcc[0]}, Duration = {impl_elapsed_s:.4f}s")
+        print(f"{implementation_name} [bfloat16] Duration = {impl_elapsed_s:.4f}s")
 
     end_time = time.time()
     elapsed_s = end_time - start_time
@@ -254,7 +228,6 @@ def main(args):
     # Set numpy floating point warning to reduce stdout clutter
     # Since we test *all* possible floating point values, invalid values
     # are expected.
-    # TODO: Log warnings into file
     np.seterr(divide="ignore")
     np.seterr(invalid="ignore")
     np.seterr(over="ignore")
