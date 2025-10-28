@@ -9,6 +9,7 @@ import os
 import traceback
 import scipy
 import json
+from loguru import logger
 
 import utils
 from models.common.utility_functions import ulp
@@ -71,43 +72,51 @@ class Measurements:
     
 def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, calculated_ttnn: ttnn.Tensor, group_size: int):
 
-    # Move ttnn to torch
-    calculated_torch = ttnn.to_torch(calculated_ttnn)
 
-    # Convert torch output to ttnn dtype for ulp computation
-    golden_downcast = golden_torch.to(calculated_torch.dtype)
-    golden_ulp = ulp(golden_downcast)
+    with np.testing.suppress_warnings() as sup:
+        # Avoid warnings such as "Mean of empty slice"
+        # slice full of NaNs, etc..
+        # These situations can happen when testing exhaustively, and should be ignored
+        sup.filter(RuntimeWarning, "")
 
+        # Data type used for compute mean/max (more compact than float64 to speed-up computation)
+        np_compute_dtype = np.float32
 
-    torch_input_size = torch_input.nelement()
-    sub_batches = torch_input_size // group_size
+        # Move ttnn to torch
+        calculated_torch = ttnn.to_torch(calculated_ttnn)
 
-    measurement_shape = [sub_batches, group_size]
-
-    golden_np_fp64 = golden_torch.to(torch.float64).flatten().numpy().reshape(measurement_shape)
-    calculated_np_fp64 = calculated_torch.to(torch.float64).flatten().numpy().reshape(measurement_shape)
-    np_input = torch_input.flatten().numpy().reshape(measurement_shape)
-
-    EPSILON = 2**-9
-
-    # Data type used for compute mean/max (more compact than float64 to speed-up computation)
-    np_compute_dtype = np.float32
-
-    abs_error_np = np.abs(golden_np_fp64 - calculated_np_fp64).astype(np_compute_dtype)
-    rel_error_np = abs_error_np / np.maximum(np.abs(golden_np_fp64), EPSILON).astype(np_compute_dtype)
-    ulp_error_np = abs_error_np / golden_ulp.flatten().numpy().reshape(measurement_shape).astype(np_compute_dtype)
+        # Convert torch output to ttnn dtype for ulp computation
+        golden_downcast = golden_torch.to(calculated_torch.dtype)
+        golden_ulp = ulp(golden_downcast).to(golden_torch.dtype)
 
 
-    # finite_mask = np.isfinite(abs_error_np)
-    x_array = np_input.take(0, axis=-1).astype(np_compute_dtype)
-    y_array = calculated_np_fp64.take(0, axis=-1).astype(np_compute_dtype)
-    yref_array = golden_np_fp64.take(0, axis=-1).astype(np_compute_dtype)
-    max_abs_error = np.nanmax(abs_error_np, axis=-1)
-    mean_abs_error = np.nanmean(abs_error_np, axis=-1)
-    max_ulp_error = np.nanmax(ulp_error_np, axis=-1)
-    mean_ulp_error = np.nanmean(ulp_error_np, axis=-1)
-    max_rel_error = np.nanmax(rel_error_np, axis=-1)
-    mean_rel_error = np.nanmean(rel_error_np, axis=-1)
+        torch_input_size = torch_input.nelement()
+        sub_batches = torch_input_size // group_size
+
+        measurement_shape = [sub_batches, group_size]
+
+        golden_np_fp64 = golden_torch.to(torch.float64).flatten().numpy().reshape(measurement_shape)
+        calculated_np_fp64 = calculated_torch.to(torch.float64).flatten().numpy().reshape(measurement_shape)
+        np_input = torch_input.flatten().numpy().reshape(measurement_shape)
+
+        EPSILON = 2**-9
+
+
+        abs_error_np = np.abs(golden_np_fp64 - calculated_np_fp64).astype(np_compute_dtype)
+        rel_error_np = abs_error_np / np.maximum(np.abs(golden_np_fp64), EPSILON).astype(np_compute_dtype)
+        ulp_error_np = abs_error_np / golden_ulp.flatten().numpy().reshape(measurement_shape).astype(np_compute_dtype)
+
+        assert len(abs_error_np) > 0
+        # finite_mask = np.isfinite(abs_error_np)
+        x_array = np_input.take(0, axis=-1).astype(np_compute_dtype).flatten()
+        y_array = calculated_np_fp64.take(0, axis=-1).astype(np_compute_dtype).flatten()
+        yref_array = golden_np_fp64.take(0, axis=-1).astype(np_compute_dtype).flatten()
+        max_abs_error = np.nanmax(abs_error_np, axis=-1).flatten()
+        mean_abs_error = np.nanmean(abs_error_np, axis=-1).flatten()
+        max_ulp_error = np.nanmax(ulp_error_np, axis=-1).flatten()
+        mean_ulp_error = np.nanmean(ulp_error_np, axis=-1).flatten()
+        max_rel_error = np.nanmax(rel_error_np, axis=-1).flatten()
+        mean_rel_error = np.nanmean(rel_error_np, axis=-1).flatten()
 
     accuracy_df = pd.DataFrame(
         {
@@ -169,18 +178,15 @@ def measure_op_accuracy_bf16(ttnn_unary_op, golden_unary_op, operation_name, des
     TENSOR_HEIGHT = 2**9
     size = [TENSOR_HEIGHT, TENSOR_WIDTH]
 
-    SIGN_BITS = parameters["sign_bits"]  # should be 1
-    EXPONENT_BITS = parameters["exponent_bits"]
-    MANTISSA_BITS = parameters["mantissa_bits"]
-
-    NUMPY_TYPE = parameters["numpy_type"]
     NUMPY_INT_TYPE = parameters["numpy_int_type"]
     TORCH_TYPE = parameters["torch_type"]
-    TORCH_INT_TYPE = parameters["torch_int_type"]
     TTNN_TYPE = parameters["ttnn_type"]
 
-    # Group by exponent if group_size is not specified
-    sub_batches = 2**9 if group_size is None else 2**16 // group_size
+    # Group by exponent if group_size is not specified (default: 512 = 2^9)
+    if group_size is None:
+        group_size = 2**9
+
+    start_time = time.time()
 
     # Create input tensors
     input_np = np.arange(0, 2**16, dtype=NUMPY_INT_TYPE)  # All possible bfloat16 values
@@ -188,125 +194,27 @@ def measure_op_accuracy_bf16(ttnn_unary_op, golden_unary_op, operation_name, des
     torch_input_bf16 = torch_value.view(TORCH_TYPE)  # reinterpret data as bfloat16
     torch_input_f64 = torch_input_bf16.to(torch.float64)  # Convert to float64 for torch golden function
 
+    # Run golden operation
     torch_output_ref = torch.zeros(size, dtype=torch.float64)
-    ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
-
-
-    # Initialize arrays for measurements
-    [
-        x_array,
-        y_array,
-        yref_array,
-        max_abs_error_array,
-        mean_abs_error_array,
-        max_ulp_error_array,
-        mean_ulp_error_array,
-        max_rel_error_array,
-        mean_rel_error_array,
-    ] = [np.zeros([sub_batches], dtype=np.float64) for _ in range(9)]
-
-    start_time = time.time()
-
-    # Launch TTNN operation
-    def launch_ttnn_op(torch_tensor, ttnn_unary, ttnn_output):
-        ttnn_value = ttnn.from_torch(torch_tensor, device=device, dtype=TTNN_TYPE, layout=ttnn.TILE_LAYOUT)
-        ttnn_output = ttnn_unary(ttnn_value, output_tensor=ttnn_output)
-        return ttnn.to_torch(ttnn_output)
-
-    # Run reference and actual operations
     torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
-    torch_ttnn_output_bf16 = launch_ttnn_op(torch_input_bf16, ttnn_unary_op, ttnn_output)
 
-    torch_golden_bf16 = torch_golden_f64.to(torch.bfloat16)
+    # Run TTNN operation
+    ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=TTNN_TYPE, layout=ttnn.TILE_LAYOUT)
+    ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
+    calculated_ttnn_bf16 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
+
+    # Use compare_with_golden to compute error metrics
+    accuracy_df = compare_with_golden(torch_input_f64, torch_golden_f64, calculated_ttnn_bf16, group_size)
+    accuracy_df["operation"] = operation_name
+    accuracy_df["dtype"] = "bfloat16"
+
+    # Compute additional statistics (PCC, etc.) for reporting
+    torch_ttnn_output_bf16 = ttnn.to_torch(calculated_ttnn_bf16)
     torch_ttnn_output_f64 = torch_ttnn_output_bf16.to(torch.float64)
 
-    # Compute errors
-    np_golden_f64 = torch_golden_f64.flatten().numpy()
-    np_ttnn_output_f64 = torch_ttnn_output_f64.flatten().numpy()
-    np_diff = np.abs(np_golden_f64 - np_ttnn_output_f64)
-
-    golden_ulp = ulp(torch_golden_bf16).to(torch.float64)
-    ulp_delta = np_diff / golden_ulp.flatten().numpy()
-
-    torch_ulp_value = utils.ulp_bf16(torch_golden_bf16).to(torch.float64)
-    torch_eps = torch.full(torch_input_bf16.size(), EPSILON, dtype=torch.float64)
-    np_eps = np.full(2**16, EPSILON)
-
-    np_rel_error = np_diff / np.maximum(np.abs(np_golden_f64), np_eps)
-    np_ulp_error = np_diff / torch_ulp_value.flatten().numpy()
-    np_ulp_error = ulp_delta
-
-    finite_mask = np.isfinite(np_golden_f64) & np.isfinite(np_ttnn_output_f64)  # Don't compute PCC on NaN and infinity
-    pcc = scipy.stats.pearsonr(np_golden_f64[finite_mask], np_ttnn_output_f64[finite_mask])
-
-    # Flatten tensors and convert to ndarray for analysis
     np_flat_input = torch_input_f64.flatten().numpy()
     np_flat_output = torch_ttnn_output_f64.flatten().numpy()
     np_flat_golden = torch_golden_f64.flatten().numpy()
-
-    # Process each sub-batch
-    for j in range(0, sub_batches):
-        chunk_size = TENSOR_WIDTH * TENSOR_HEIGHT // sub_batches
-        (beg_index, end_index) = (j * chunk_size, (j + 1) * chunk_size)
-
-        # Get sub-range
-        np_sub_input = np_flat_input[beg_index:end_index]
-        np_sub_output = np_flat_output[beg_index:end_index]
-        np_sub_ref = np_flat_golden[beg_index:end_index]
-        np_sub_diff = np_diff[beg_index:end_index]
-        np_sub_rel_error = np_rel_error[beg_index:end_index]
-        np_sub_ulp_error = np_ulp_error[beg_index:end_index]
-
-        # Calculate errors
-
-        finite_mask = np.isfinite(np_sub_diff)
-        if np.any(finite_mask):
-            max_abs_error = np.max(np_sub_diff[finite_mask])
-            mean_abs_error = np.mean(np_sub_diff[finite_mask])
-
-            max_ulp_error = np.max(np_sub_ulp_error[finite_mask])
-            mean_ulp_error = np.mean(np_sub_ulp_error[finite_mask])
-
-            max_rel_error = np.max(np_sub_rel_error[finite_mask])
-            mean_rel_error = np.mean(np_sub_rel_error[finite_mask])
-
-        else:
-            max_abs_error = np.max(np_sub_diff)
-            mean_abs_error = np.mean(np_sub_diff)
-
-            max_ulp_error = np.max(np_sub_ulp_error)
-            mean_ulp_error = np.mean(np_sub_ulp_error)
-
-            max_rel_error = np.max(np_sub_rel_error)
-            mean_rel_error = np.mean(np_sub_rel_error)
-
-        # Store results
-        x_array[j] = np_sub_input[0].item()
-        y_array[j] = np_sub_output[0].item()
-        yref_array[j] = np_sub_ref[0].item()
-        max_abs_error_array[j] = max_abs_error.item()
-        mean_abs_error_array[j] = mean_abs_error.item()
-        max_ulp_error_array[j] = max_ulp_error.item()
-        mean_ulp_error_array[j] = mean_ulp_error.item()
-        max_rel_error_array[j] = max_rel_error.item()
-        mean_rel_error_array[j] = mean_rel_error.item()
-
-    # Create and save DataFrame
-    accuracy_df = pd.DataFrame(
-        {
-            "base_x": x_array,
-            "base_y": y_array,
-            "base_yref": yref_array,
-            "max_abs_error": max_abs_error_array,
-            "mean_abs_error": mean_abs_error_array,
-            "max_ulp_error": max_ulp_error_array,
-            "mean_ulp_error": mean_ulp_error_array,
-            "max_rel_error": max_rel_error_array,
-            "mean_rel_error": mean_rel_error_array,
-        }
-    )
-    accuracy_df["operation"] = operation_name
-    accuracy_df["dtype"] = "bfloat16"
 
     # Compute PCC on [-1e5; 1e5]
     np_finite_mask = np.isfinite(np_flat_output) & np.isfinite(np_flat_golden)
@@ -321,16 +229,7 @@ def measure_op_accuracy_bf16(ttnn_unary_op, golden_unary_op, operation_name, des
     df = df[df["x"].between(-1e5, 1e5)]
     pcc = scipy.stats.pearsonr(df["y"], df["yref"])
 
-    golden_std = np.std(np_flat_golden)
-    ttnn_std = np.std(np_flat_output)
-
-    np_finite_ulp_mask = np.isfinite(np_ulp_error) & (
-        np.greater(np_flat_input, -(2**6)) & np.less(np_flat_input, 2**6)
-    )
-    mean_ulp_error = np.mean(np_ulp_error[np_finite_ulp_mask])
-    
-    covar = np.cov(np_flat_golden, np_flat_output)
-    
+    # Save results
     os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
     accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{operation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
 
@@ -464,7 +363,7 @@ def main(args):
         operation = get_operation_by_name(UNARY_OPERATIONS, operation_name)
 
         if operation is None:
-            print(f"{TERM_RED}Operation {operation_name} not found in UNARY_OPERATIONS{TERM_RESET}")
+            logger.warning(f"Operation {operation_name} not found in UNARY_OPERATIONS")
         else:
             all_operations[operation_name] = operation
 
@@ -519,13 +418,13 @@ def main(args):
             success_count += 1
             successfull_operations += [f"{operation_name}"]
         except Exception as e:
-            print(f"{TERM_RED}Could not run operation {operation_name}: {e}{TERM_RESET}")
-            print(f"{TERM_RED}{traceback.format_exc()}{TERM_RESET}")
+            logger.warning(f"Could not run operation {operation_name}: {e}")
+            logger.warning(f"{traceback.format_exc()}")
             failed_operations += [f"{operation_name}"]
 
     print(f"Sucessfully ran {success_count} / {len(all_operations)} operations")
     print(f"{TERM_GREEN}SUCCESS: {successfull_operations}{TERM_RESET}")
-    print(f"{TERM_RED}FAILED: {failed_operations}{TERM_RESET}")
+    logger.warning(f"FAILED: {failed_operations}")
 
 
 args = sys.argv
