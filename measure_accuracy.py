@@ -26,9 +26,6 @@ device = ttnn.open_device(device_id=device_id)
 EPSILON = 2**-9
 
 
-# ttnn.enable_program_cache(device)  # Useful: we are going to call the same kernel several times
-
-
 datatypes_parameters = {
     "float32": {
         "numpy_type": np.float32,
@@ -176,7 +173,7 @@ def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, de
     # Save results for each implementation with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
     for _, implementation_name in implementations:
         all_df = pd.concat(impl_results[implementation_name])
-        all_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[{group_size}]-float32.csv", na_rep="NaN", index_label="index")
+        all_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
         print(f"Saved results for {implementation_name} [float32]")
 
 
@@ -267,7 +264,7 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         pcc = scipy.stats.pearsonr(df["y"], df["yref"])
 
         # Save results with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
-        accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[{group_size}]-bfloat16.csv", na_rep="NaN", index_label="index")
+        accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
 
         impl_end_time = time.time()
         impl_elapsed_s = impl_end_time - impl_start_time
@@ -282,86 +279,6 @@ def parse_operations_config_file(config_file):
     with open(config_file, "r") as f:
         config = json.load(f)
     return config["operations"]
-
-
-def generate_tanh_alternative():
-
-    # tanh_operations = [
-    #     "tanh",
-    #     "tanh-v1",
-    #     "tanh-pade-5,5"
-    # ]
-
-    new_operations = {}
-    polynomial_expressions = {
-        # "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
-        # "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
-        # "tanh-minimax-v1[5]": [-1.950809545814990997314453125e-2, 0.1467897593975067138671875, -0.325587689876556396484375, -4.27231900393962860107421875e-2, 1.00523841381072998046875, 0.0],
-    }
-
-    for op_name, polynomial_coefficients in polynomial_expressions.items():
-
-        new_operations[op_name] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("tanh-poly", polynomial_coefficients): ttnn_function(x, output_tensor)
-
-    new_operations["tanh-sfpi"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh"): ttnn_function(x, output_tensor)
-    new_operations["tanh-v1"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-v1"): ttnn_function(x, output_tensor)
-    new_operations["tanh-pade-5,5"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"): ttnn_function(x, output_tensor)
-    new_operations["tanh-minimax-v1[6]"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"): ttnn_function(x, output_tensor)
-
-
-    return new_operations
-
-
-def generate_exponential_alternative():
-
-    polynomial_expressions = {
-        #"exp-Chebyshev-v1[2]": [0.34228965640068054,0.652752697467804,1.0022648572921753],
-        "exp-Chebyshev-v1-c0ef0[4]": [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0],
-        # "exp-Chebyshev-v1[4]": [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397],
-        "exp-61f": [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018],
-        "exp-21f": [0.33718944, 0.65763629, 1.0017248],
-        "exp-Chebyshev-v1[6]": [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0]
-    }
-
-    new_operations = {}
-
-    for op_name, polynomial_coefficients in polynomial_expressions.items():
-
-        ttnn_function = generate_unary_kernel_from_polynomial("exp", polynomial_coefficients, full_name=op_name)
-
-        new_operations[op_name] = lambda x, output_tensor, ttnn_function=ttnn_function: ttnn_function(x, output_tensor)
-        
-
-    return new_operations
-
-
-def generate_sigmoid_alternative():
-
-    new_operations = {}
-
-    new_operations["sigmoid-21f"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("sigmoid"): ttnn_function(x, output_tensor)
-
-    return new_operations
-
-
-def generate_log2_alternative():
-    new_operations = {}
-
-    # x * (1.43861830234527587890625 + x * (-0.6402385234832763671875 + x * 0.2044459879398345947265625))
-    # `x * (1.44261324405670166015625 + x * (-0.7169878482818603515625 + x * (0.441900312900543212890625 + x * (-0.22712136805057525634765625 + x * 5.96523843705654144287109375e-2))))`
-
-    polynomial_expressions = {
-        "log2-minimax-v1[3]": [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0],
-        "log2-minimax-v1[5]": [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0]
-    }
-
-    for op_name, polynomial_coefficients in polynomial_expressions.items():
-        ttnn_function = generate_unary_kernel_from_polynomial("log2-poly", polynomial_coefficients, full_name=op_name)
-        new_operations[op_name] = lambda x, output_tensor, ttnn_function=ttnn_function: ttnn_function(x, output_tensor)
-
-    # new_operations["log2-v0"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("log2"): ttnn_function(x, output_tensor)
-
-    return new_operations
 
 
 def main(args):
@@ -381,11 +298,6 @@ def main(args):
     np.seterr(over="ignore")
 
 
-    if args.operation is not None:
-        all_operation_names = [args.operation]
-    else:
-        all_operation_names = parse_operations_config_file("op_configs/unary_operations.json")
-
     if args.group_size is None:
         if args.type == "bfloat16":
             group_size = 1
@@ -396,89 +308,44 @@ def main(args):
     else:
         group_size = args.group_size
 
-
-    all_operations = {}
-    for operation_name in all_operation_names:
-
-        operation = get_operation_by_name(UNARY_OPERATIONS, operation_name)
-
-        if operation is None:
-            logger.warning(f"Operation {operation_name} not found in UNARY_OPERATIONS")
-        else:
-            all_operations[operation_name] = operation
-
-    if args.kernel is not None:
-
-        operation_name = args.kernel
-
-        extra_operations = {}
-        if operation_name == "tanh":
-            extra_operations |= generate_tanh_alternative()
-        elif operation_name == "exp":
-            extra_operations |= generate_exponential_alternative()
-        elif operation_name == "sigmoid":
-            extra_operations |= generate_sigmoid_alternative()
-        elif operation_name == "log2":
-            extra_operations |= generate_log2_alternative()
-        else:
-            raise ValueError(f"Invalid kernel: {operation_name}")
-
-        golden_function = get_golden_function(UNARY_OPERATIONS, operation_name)
-
-        if operation_name in all_operations:
-
-            for extra_operation_name, extra_operation in extra_operations.items():
-                all_operations[extra_operation_name] = (extra_operation, golden_function)
-
-
-    # Group operations by their base operation name and golden function
-    # This allows us to compute the golden function once per base operation
-    operation_groups = {}  # base_name -> (golden_op, [(ttnn_op, impl_name), ...])
-    
-    for operation_name, (ttnn_op, golden_op) in all_operations.items():
-        # Determine base operation name (e.g., "tanh" from "tanh-v1")
-        # Look for the base operation in the original operation list
-        base_name = operation_name
-        for orig_name in all_operation_names:
-            if operation_name == orig_name or operation_name.startswith(f"{orig_name}-"):
-                base_name = orig_name
-                break
-        
-        if base_name not in operation_groups:
-            operation_groups[base_name] = (golden_op, [])
-        
-        operation_groups[base_name][1].append((ttnn_op, operation_name))
-
     success_count = 0
     successfull_operations = []
     failed_operations = []
 
     group_cnt = 0
-    total_group_cnt = len(operation_groups)
-    print(f"Measuring {len(all_operations)} operations in {total_group_cnt} groups")
+    total_group_cnt = 0
     
-    for base_name, (golden_op, implementations) in operation_groups.items():
+
+    all_operations = UNARY_OPERATIONS
+    for operation_name, op_data in all_operations.items():
+
+        if args.operation is not None and operation_name != args.operation:
+            continue
+
+        golden_op = get_golden_function(UNARY_OPERATIONS, operation_name)
+        implementations = [(ttnn_op_impl, impl_name) for impl_name, ttnn_op_impl in op_data["implementations"].items()]
+
         group_cnt += 1
         impl_count = len(implementations)
-        print(f"\nProcessing group {group_cnt}/{total_group_cnt}: {base_name} ({impl_count} implementation(s))")
+        print(f"\nProcessing group {group_cnt}/{total_group_cnt}: {operation_name} ({impl_count} implementation(s))")
         
         try:
             start_time = time.time()
             if args.type == "bfloat16":
-                measure_op_accuracy_bf16(implementations, golden_op, base_name, dest_dir, group_size=group_size)
+                measure_op_accuracy_bf16(implementations, golden_op, operation_name, dest_dir, group_size=group_size)
             elif args.type == "float32":
-                measure_op_accuracy_f32(implementations, golden_op, base_name, dest_dir, group_size=group_size)
+                measure_op_accuracy_f32(implementations, golden_op, operation_name, dest_dir, group_size=group_size)
             else:
                 raise ValueError(f"Invalid data type: {args.type}")
 
             end_time = time.time()
             elapsed_s = end_time - start_time
-            print(f"Group {base_name} completed in {elapsed_s:.4f}s")
+            print(f"Group {operation_name} completed in {elapsed_s:.4f}s")
 
             success_count += impl_count
             successfull_operations.extend([impl_name for _, impl_name in implementations])
         except Exception as e:
-            logger.warning(f"Could not run operation group {base_name}: {e}")
+            logger.warning(f"Could not run operation group {operation_name}: {e}")
             logger.warning(f"{traceback.format_exc()}")
             failed_operations.extend([impl_name for _, impl_name in implementations])
 

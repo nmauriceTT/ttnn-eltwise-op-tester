@@ -3,18 +3,14 @@ import torch
 import math
 from utils import TERM_RED, TERM_RESET
 
+from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source
+
 
 global_device = None
 
 def run_op_fp32(ttnn_op, args, device=None):
     ttnn_args = [convert_to_ttn(arg, device) for arg in args]
     return ttnn_op(*ttnn_args)
-
-
-def cbrt_pow1d3(x, out):
-
-    ttnn_1d3 = ttnn.full_like(x, 1/3)
-    return ttnn.pow(x, ttnn_1d3)
 
 
 def convert_to_ttn(tensor, device):
@@ -70,18 +66,37 @@ UNARY_OPERATIONS = {
             "exp-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "exp-fast-approx-v2": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "exp_cond": ttnn.exp,
-            "exp_approx0": ttnn.exp,
-            "exp21f": ttnn.exp,
-            "exp_21f_round_nearest": ttnn.exp,
-            "exp_hybrid": ttnn.exp
+            "exp-21f": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.33718944, 0.65763629, 1.0017248], "exp-21f"): ttnn_function(x, output_tensor),
+            "exp-61f": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018], "exp-61f"): ttnn_function(x, output_tensor),
+            "exp-Chebyshev-v1[2]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753], "exp-Chebyshev-v1[2]"): ttnn_function(x, output_tensor),
+            "exp-Chebyshev-v1[4]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397], "exp-Chebyshev-v1[4]"): ttnn_function(x, output_tensor),
+            "exp-Chebyshev-v1[6]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0], "exp-Chebyshev-v1[6]"): ttnn_function(x, output_tensor),
+            "exp-Chebyshev-v1-c0ef0[4]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0], "exp-Chebyshev-v1-c0ef0[4]"): ttnn_function(x, output_tensor),
+
         },
         "golden": torch.exp,
+    },
+    "exp2": {
+        "implementations": {
+            "exp2": ttnn.exp2
+        },
+    },
+    "expm1": {
+        "implementations": {
+            "expm1": ttnn.expm1
+        },
     },
     "tanh": {
         "implementations": {
             "tanh": ttnn.tanh,
-            "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
+            "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "tanh-cf": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-v1"): ttnn_function(x, output_tensor),
+            "tanh-pade-5,5":  lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"): ttnn_function(x, output_tensor),
+            "tanh-minimax-v1[6]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"): ttnn_function(x, output_tensor),
+            # Other approximations:
+            # "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
+            # "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
+            # "tanh-minimax-v1[5]": [-1.950809545814990997314453125e-2, 0.1467897593975067138671875, -0.325587689876556396484375, -4.27231900393962860107421875e-2, 1.00523841381072998046875, 0.0],
         },
         "golden": torch.tanh
     },
@@ -89,11 +104,13 @@ UNARY_OPERATIONS = {
         "implementations": {
             "cosh": lambda x, output_tensor: ttnn.cosh(x)
         },
+        "golden": torch.cosh
     },
     "sinh": {
         "implementations": {
             "sinh": lambda x, output_tensor: ttnn.sinh(x)
         },
+        "golden": torch.sinh
     },
     "log": {
         "implementations": {
@@ -107,22 +124,14 @@ UNARY_OPERATIONS = {
     },
     "log2": {
         "implementations": {
-            "log2": ttnn.log2
+            "log2": ttnn.log2,
+            "log2-minimax-v1[3]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("log2-poly", [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0], "log2-minimax-v1[3]"): ttnn_function(x, output_tensor),
+            "log2-minimax-v1[5]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("log2-poly", [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0], "log2-minimax-v1[5]"): ttnn_function(x, output_tensor),
         },
     },
     "log1p": {
         "implementations": {
             "log1p": ttnn.log1p
-        },
-    },
-    "logaddexp": {
-        "implementations": {
-            "logaddexp": ttnn.logaddexp
-        },
-    },
-    "logaddexp2": {
-        "implementations": {
-            "logaddexp2": ttnn.logaddexp2
         },
     },
     "silu": {
@@ -141,6 +150,7 @@ UNARY_OPERATIONS = {
         "implementations": {
             "logit": lambda x, output_tensor: ttnn.logit(x)
         },
+        "golden": torch.logit
     },
     "mish": {
         "implementations": {
@@ -151,24 +161,28 @@ UNARY_OPERATIONS = {
         "implementations": {
             "elu": lambda x, output_tensor: ttnn.elu(x, output_tensor=output_tensor, alpha=1.0)
         },
+        "golden": lambda x, out: torch.nn.functional.elu(x)
     },
     "celu": {
         "implementations": {
             "celu": lambda x, output_tensor: ttnn.celu(x, output_tensor=output_tensor, alpha=1.0)
         },
+        "golden": lambda x, out: torch.nn.functional.celu(x)
     },
     "sigmoid": {
         "implementations": {
             "sigmoid": ttnn.sigmoid,
             "sigmoid-approx": lambda x, output_tensor: ttnn.sigmoid(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "sigmoid-accurate": ttnn.sigmoid_accurate,
-            "sigmoid-accurate-approx": lambda x, output_tensor: ttnn.sigmoid_accurate(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
+            "sigmoid-accurate-approx": lambda x, output_tensor: ttnn.sigmoid_accurate(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "sigmoid-21f": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("sigmoid"): ttnn_function(x, output_tensor),
         },
     },
     "selu": {
         "implementations": {
             "selu": lambda x, output_tensor: ttnn.selu(x)
         },
+        "golden": lambda x, out: torch.nn.functional.selu(x)
     },
     "softplus": {
         "implementations": {
@@ -179,6 +193,7 @@ UNARY_OPERATIONS = {
         "implementations": {
             "softsign": lambda x, output_tensor: ttnn.softsign(x)
         },
+        "golden": lambda x, out: torch.nn.functional.softsign(x)
     },
     "tan": {
         "implementations": {
@@ -208,14 +223,12 @@ UNARY_OPERATIONS = {
     "cbrt": {
         "implementations": {
             "cbrt": lambda x, output_tensor: ttnn.cbrt(x),
-            "cbrt-pow1d3": lambda x, output_tensor: cbrt_pow1d3(x, output_tensor),
-            "cbrt-pow1d3-fp32": lambda x, output_tensor: run_ttnn_fp32_and_round_bf16(ttnn.cbrt, [x])
         },
+        "golden": lambda x, out: torch.pow(x, 1/3)
     },
     "rsqrt": {
         "implementations": {
-            "rsqrt": lambda x, output_tensor: ttnn.rsqrt(x, output_tensor=output_tensor),
-            "rsqrt_approx": lambda x, output_tensor: ttnn.rsqrt(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
+            "rsqrt": ttnn.rsqrt
         },
     },
     "reciprocal": {
@@ -227,16 +240,19 @@ UNARY_OPERATIONS = {
         "implementations": {
             "digamma": lambda x, output_tensor: ttnn.digamma(x)
         },
+        "golden": torch.digamma
     },
     "lgamma": {
         "implementations": {
             "lgamma": lambda x, output_tensor: ttnn.lgamma(x)
         },
+        "golden": torch.lgamma
     },
     "tanhshrink": {
         "implementations": {
             "tanhshrink": lambda x, output_tensor: ttnn.tanhshrink(x)
         },
+        "golden": lambda x, out: torch.nn.functional.tanhshrink(x)
     }
 }
 
@@ -320,7 +336,7 @@ BINARY_OPERATIONS = {
 }
 
 
-def get_operations_by_category(operation_dict, category):
+def get_op_implementations(operation_dict, category):
 
     if not category in operation_dict:
         raise ValueError(f"Category {category} not found in operation_dict")
@@ -329,7 +345,7 @@ def get_operations_by_category(operation_dict, category):
 
 def get_golden_function(operation_dict, operation_name: str):
     golden_function = None
-    operation = get_operations_by_category(operation_dict, operation_name)
+    operation = get_op_implementations(operation_dict, operation_name)
     if "golden" in operation:
         golden_function = operation["golden"]
     else:
