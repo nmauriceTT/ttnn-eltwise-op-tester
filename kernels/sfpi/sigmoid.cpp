@@ -8,7 +8,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat x) {
     value = sfpi::vConst1 + value;
 
     sfpi::vFloat result;
-    if constexpr(!is_fp32_acc_to_dest_mode) {
+    if constexpr(is_fp32_acc_to_dest_mode) {
         result = ckernel::sfpu::_sfpu_reciprocal_<2>(value);
     } else {
         result = ckernel::sfpu::_sfpu_reciprocal_<1>(value);
