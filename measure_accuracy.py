@@ -405,9 +405,27 @@ def generate_sigmoid_alternative():
     return new_operations
 
 
-def main(args):
+def generate_log2_alternative():
+    new_operations = {}
 
-    
+    # x * (1.43861830234527587890625 + x * (-0.6402385234832763671875 + x * 0.2044459879398345947265625))
+    # `x * (1.44261324405670166015625 + x * (-0.7169878482818603515625 + x * (0.441900312900543212890625 + x * (-0.22712136805057525634765625 + x * 5.96523843705654144287109375e-2))))`
+
+    polynomial_expressions = {
+        "log2-minimax-v1[3]": [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0],
+        "log2-minimax-v1[5]": [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0]
+    }
+
+    for op_name, polynomial_coefficients in polynomial_expressions.items():
+        ttnn_function = generate_unary_kernel_from_polynomial("log2-poly", polynomial_coefficients, full_name=op_name)
+        new_operations[op_name] = lambda x, output_tensor, ttnn_function=ttnn_function: ttnn_function(x, output_tensor)
+
+    # new_operations["log2-v0"] = lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("log2"): ttnn_function(x, output_tensor)
+
+    return new_operations
+
+
+def main(args):
 
     args = parse_args("unary")
 
@@ -450,7 +468,6 @@ def main(args):
         else:
             all_operations[operation_name] = operation
 
-
     if args.kernel is not None:
 
         operation_name = args.kernel
@@ -462,6 +479,8 @@ def main(args):
             extra_operations |= generate_exponential_alternative()
         elif operation_name == "sigmoid":
             extra_operations |= generate_sigmoid_alternative()
+        elif operation_name == "log2":
+            extra_operations |= generate_log2_alternative()
         else:
             raise ValueError(f"Invalid kernel: {operation_name}")
 

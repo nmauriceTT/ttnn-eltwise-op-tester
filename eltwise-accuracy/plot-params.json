@@ -457,16 +457,19 @@
                         "accuracy_results/plots/ulp/log2/log2-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2-v0/log2-v0-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2-minimax-v1[3]/log2-minimax-v1[3]-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2-minimax-v1[5]/log2-minimax-v1[5]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
                             0,
-                            1e+38
+                            100
                         ],
                         "ylim": [
                             0,
-                            100
+                            40
                         ],
                         "yscale": "linear"
                     }
@@ -1925,7 +1928,7 @@
                         "xbase": 2,
                         "ylim": [
                             0,
-                            300
+                            1000
                         ],
                         "yscale": "linear",
                         "horizontal_lines": [
@@ -2259,18 +2262,17 @@
                         "accuracy_results/plots/ulp/log2/log2-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/log2/log2-float32-[65536].csv"
+                        "accuracy_results/results/unary/log2/log2-float32-[65536].csv",
+                        "accuracy_results/results/unary/log2-v0/log2-v0-float32-[65536].csv",
+                        "accuracy_results/results/unary/log2-minimax-v1[3]/log2-minimax-v1[3]-float32-[65536].csv",
+                        "accuracy_results/results/unary/log2-minimax-v1[5]/log2-minimax-v1[5]-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
                             0,
-                            1e+38
+                            100
                         ],
-                        "ylim": [
-                            0,
-                            200000
-                        ],
-                        "yscale": "linear"
+                        "yscale": "log"
                     }
                 },
                 {
@@ -2399,7 +2401,10 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3918,6 +3923,30 @@
                         "ylim": [
                             0,
                             10
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "log2-bfloat16-value",
+                    "name": "log2",
+                    "outputs": [
+                        "accuracy_results/plots/value/log2/log2-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2-minimax-v1[3]/log2-minimax-v1[3]-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2-minimax-v1[5]/log2-minimax-v1[5]-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -1,
+                            3
+                        ],
+                        "ylim": [
+                            -10,
+                            3
                         ],
                         "xscale": "linear",
                         "yscale": "linear"

@@ -12,7 +12,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat x) {
         result = ckernel::sfpu::_sfpu_reciprocal_<2>(value);
     } else {
         result = ckernel::sfpu::_sfpu_reciprocal_<1>(value);
-        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(value, 0));
+        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
     }
 
     return result;
