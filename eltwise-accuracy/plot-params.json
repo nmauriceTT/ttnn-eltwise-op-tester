@@ -42,6 +42,34 @@
             },
             "plots": [
                 {
+                    "id": "abs-bfloat16-ulp",
+                    "name": "abs",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/abs/abs-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/abs/abs-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -200,
+                            128
+                        ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2,
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ]
+                    }
+                },
+                {
                     "id": "exp-bfloat16-ulp",
                     "name": "exp",
                     "outputs": [
@@ -606,8 +634,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -20,
-                            20
+                            -150,
+                            150
                         ],
                         "yscale": "linear",
                         "ylim": [
@@ -1756,7 +1784,13 @@
                         ],
                         "ylim": [
                             0,
-                            100000
+                            200000
+                        ],
+                        "horizontal_lines": [
+                            [
+                                32000,
+                                "~ 0.5 bfloat16 ULP"
+                            ]
                         ],
                         "yscale": "linear"
                     }
