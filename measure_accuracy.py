@@ -63,12 +63,6 @@ TERM_RESET = "\033[0m"
 
 
 
-
-class Measurements:
-
-    def __init__(self):
-        pass
-
     
 def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, calculated_ttnn: ttnn.Tensor, group_size: int):
 
@@ -135,37 +129,69 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
     return accuracy_df
 
 
-def measure_op_accuracy_f32(ttnn_unary_op, golden_unary_op, operation_name, dest_dir, group_size=128):
-
-    all_df = []
+def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, dest_dir, group_size=128):
+    """
+    Measure accuracy of multiple TTNN implementations against a golden reference.
+    
+    Args:
+        implementations: List of (ttnn_op, implementation_name) tuples
+        golden_unary_op: Golden reference function
+        operation_name: Base operation name (e.g., "tanh", "exp")
+        dest_dir: Destination directory for results
+        group_size: Number of samples per group for statistics
+    """
+    
+    # Ensure output directory exists
+    os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
+    
+    # Initialize result storage for each implementation
+    impl_results = {impl_name: [] for _, impl_name in implementations}
+    
     iteration = 0
     for input_tensor in utils.generate_all_f32_tensors():
-
         print(f"Iteration {iteration}")
         iteration += 1
 
-        ttnn_input = ttnn.from_torch(input_tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
+        # Convert to FP64 for golden function (computed ONCE per iteration)
         torch_input_fp64 = input_tensor.to(torch.float64)
         
+        # Run golden operation (computed ONCE per iteration for all implementations)
         golden_torch_fp64 = torch.zeros_like(input_tensor, dtype=torch.float64)
         golden_torch_fp64 = golden_unary_op(torch_input_fp64, out=golden_torch_fp64)
 
-        ttnn_output = ttnn.zeros_like(ttnn_input)
-        calculated_ttnn_fp32 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
+        # Create TTNN input (reused for all implementations)
+        ttnn_input = ttnn.from_torch(input_tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
 
-        accuracy_df = compare_with_golden(input_tensor,golden_torch_fp64, calculated_ttnn_fp32, group_size)
-        accuracy_df["operation"] = operation_name
-        accuracy_df["dtype"] = "float32"
+        # Process each implementation
+        for ttnn_unary_op, implementation_name in implementations:
+            ttnn_output = ttnn.zeros_like(ttnn_input)
+            calculated_ttnn_fp32 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
 
-        all_df.append(accuracy_df)
+            accuracy_df = compare_with_golden(input_tensor, golden_torch_fp64, calculated_ttnn_fp32, group_size)
+            accuracy_df["operation"] = implementation_name
+            accuracy_df["dtype"] = "float32"
 
-    all_df = pd.concat(all_df)
-    os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
-    all_df.to_csv(f"{dest_dir}/{operation_name}/{operation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
+            impl_results[implementation_name].append(accuracy_df)
+
+    # Save results for each implementation with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
+    for _, implementation_name in implementations:
+        all_df = pd.concat(impl_results[implementation_name])
+        all_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[{group_size}]-float32.csv", na_rep="NaN", index_label="index")
+        print(f"Saved results for {implementation_name} [float32]")
 
 
 
-def measure_op_accuracy_bf16(ttnn_unary_op, golden_unary_op, operation_name, dest_dir, group_size=None):
+def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, dest_dir, group_size=None):
+    """
+    Measure accuracy of multiple TTNN implementations against a golden reference.
+    
+    Args:
+        implementations: List of (ttnn_op, implementation_name) tuples
+        golden_unary_op: Golden reference function
+        operation_name: Base operation name (e.g., "tanh", "exp")
+        dest_dir: Destination directory for results
+        group_size: Number of samples per group for statistics
+    """
     # Use bfloat16 parameters
     parameters = datatypes_parameters["bfloat16"]
 
@@ -188,54 +214,68 @@ def measure_op_accuracy_bf16(ttnn_unary_op, golden_unary_op, operation_name, des
 
     start_time = time.time()
 
-    # Create input tensors
+    # Create input tensors (computed ONCE)
     input_np = np.arange(0, 2**16, dtype=NUMPY_INT_TYPE)  # All possible bfloat16 values
     torch_value = torch.from_numpy(input_np).reshape(size)
     torch_input_bf16 = torch_value.view(TORCH_TYPE)  # reinterpret data as bfloat16
     torch_input_f64 = torch_input_bf16.to(torch.float64)  # Convert to float64 for torch golden function
 
-    # Run golden operation
+    # Run golden operation (computed ONCE for all implementations)
     torch_output_ref = torch.zeros(size, dtype=torch.float64)
     torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
 
-    # Run TTNN operation
+    # Create TTNN input (reused for all implementations)
     ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=TTNN_TYPE, layout=ttnn.TILE_LAYOUT)
-    ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
-    calculated_ttnn_bf16 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
 
-    # Use compare_with_golden to compute error metrics
-    accuracy_df = compare_with_golden(torch_input_f64, torch_golden_f64, calculated_ttnn_bf16, group_size)
-    accuracy_df["operation"] = operation_name
-    accuracy_df["dtype"] = "bfloat16"
-
-    # Compute additional statistics (PCC, etc.) for reporting
-    torch_ttnn_output_bf16 = ttnn.to_torch(calculated_ttnn_bf16)
-    torch_ttnn_output_f64 = torch_ttnn_output_bf16.to(torch.float64)
-
+    # Precompute data for PCC calculation (used by all implementations)
     np_flat_input = torch_input_f64.flatten().numpy()
-    np_flat_output = torch_ttnn_output_f64.flatten().numpy()
     np_flat_golden = torch_golden_f64.flatten().numpy()
 
-    # Compute PCC on [-1e5; 1e5]
-    np_finite_mask = np.isfinite(np_flat_output) & np.isfinite(np_flat_golden)
-    df = pd.DataFrame(
-        {
-            "x": np_flat_input[np_finite_mask],
-            "y": np_flat_output[np_finite_mask],
-            "yref": np_flat_golden[np_finite_mask],
-        }
-    )
-
-    df = df[df["x"].between(-1e5, 1e5)]
-    pcc = scipy.stats.pearsonr(df["y"], df["yref"])
-
-    # Save results
+    # Ensure output directory exists
     os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
-    accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{operation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
+
+    # Process each implementation
+    for ttnn_unary_op, implementation_name in implementations:
+        impl_start_time = time.time()
+        
+        # Run TTNN operation
+        ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
+        calculated_ttnn_bf16 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
+
+        # Use compare_with_golden to compute error metrics
+        accuracy_df = compare_with_golden(torch_input_f64, torch_golden_f64, calculated_ttnn_bf16, group_size)
+        accuracy_df["operation"] = implementation_name
+        accuracy_df["dtype"] = "bfloat16"
+
+        # Compute additional statistics (PCC, etc.) for reporting
+        torch_ttnn_output_bf16 = ttnn.to_torch(calculated_ttnn_bf16)
+        torch_ttnn_output_f64 = torch_ttnn_output_bf16.to(torch.float64)
+
+        np_flat_output = torch_ttnn_output_f64.flatten().numpy()
+
+        # Compute PCC on [-1e5; 1e5]
+        np_finite_mask = np.isfinite(np_flat_output) & np.isfinite(np_flat_golden)
+        df = pd.DataFrame(
+            {
+                "x": np_flat_input[np_finite_mask],
+                "y": np_flat_output[np_finite_mask],
+                "yref": np_flat_golden[np_finite_mask],
+            }
+        )
+
+        df = df[df["x"].between(-1e5, 1e5)]
+        pcc = scipy.stats.pearsonr(df["y"], df["yref"])
+
+        # Save results with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
+        accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[{group_size}]-bfloat16.csv", na_rep="NaN", index_label="index")
+
+        impl_end_time = time.time()
+        impl_elapsed_s = impl_end_time - impl_start_time
+        print(f"{implementation_name} [bfloat16] PCC = {pcc[0]}, Duration = {impl_elapsed_s:.4f}s")
 
     end_time = time.time()
     elapsed_s = end_time - start_time
-    print(f"{operation_name} [bfloat16] PCC = {pcc[0]}, Duration = {elapsed_s:.4f}s")
+    print(f"Total time for {operation_name} ({len(implementations)} implementations): {elapsed_s:.4f}s")
 
 
 def parse_operations_config_file(config_file):
@@ -391,38 +431,58 @@ def main(args):
                 all_operations[extra_operation_name] = (extra_operation, golden_function)
 
 
+    # Group operations by their base operation name and golden function
+    # This allows us to compute the golden function once per base operation
+    operation_groups = {}  # base_name -> (golden_op, [(ttnn_op, impl_name), ...])
+    
+    for operation_name, (ttnn_op, golden_op) in all_operations.items():
+        # Determine base operation name (e.g., "tanh" from "tanh-v1")
+        # Look for the base operation in the original operation list
+        base_name = operation_name
+        for orig_name in all_operation_names:
+            if operation_name == orig_name or operation_name.startswith(f"{orig_name}-"):
+                base_name = orig_name
+                break
+        
+        if base_name not in operation_groups:
+            operation_groups[base_name] = (golden_op, [])
+        
+        operation_groups[base_name][1].append((ttnn_op, operation_name))
+
     success_count = 0
     successfull_operations = []
     failed_operations = []
 
-    cnt = 0
-    total_operation_cnt = len(all_operations)
-    print(f"Measuring operations")
-    for operation_name, (ttnn_op, golden_op) in all_operations.items():
-
-        cnt += 1
-        print(f"Running operation {operation_name} #{cnt}/{total_operation_cnt}", end="\r")
+    group_cnt = 0
+    total_group_cnt = len(operation_groups)
+    print(f"Measuring {len(all_operations)} operations in {total_group_cnt} groups")
+    
+    for base_name, (golden_op, implementations) in operation_groups.items():
+        group_cnt += 1
+        impl_count = len(implementations)
+        print(f"\nProcessing group {group_cnt}/{total_group_cnt}: {base_name} ({impl_count} implementation(s))")
+        
         try:
             start_time = time.time()
             if args.type == "bfloat16":
-                measure_op_accuracy_bf16(ttnn_op, golden_op, operation_name, dest_dir, group_size=group_size)
+                measure_op_accuracy_bf16(implementations, golden_op, base_name, dest_dir, group_size=group_size)
             elif args.type == "float32":
-                measure_op_accuracy_f32(ttnn_op, golden_op, operation_name, dest_dir, group_size=group_size)
+                measure_op_accuracy_f32(implementations, golden_op, base_name, dest_dir, group_size=group_size)
             else:
                 raise ValueError(f"Invalid data type: {args.type}")
 
             end_time = time.time()
             elapsed_s = end_time - start_time
-            print(f"Duration = {elapsed_s}s")
+            print(f"Group {base_name} completed in {elapsed_s:.4f}s")
 
-            success_count += 1
-            successfull_operations += [f"{operation_name}"]
+            success_count += impl_count
+            successfull_operations.extend([impl_name for _, impl_name in implementations])
         except Exception as e:
-            logger.warning(f"Could not run operation {operation_name}: {e}")
+            logger.warning(f"Could not run operation group {base_name}: {e}")
             logger.warning(f"{traceback.format_exc()}")
-            failed_operations += [f"{operation_name}"]
+            failed_operations.extend([impl_name for _, impl_name in implementations])
 
-    print(f"Sucessfully ran {success_count} / {len(all_operations)} operations")
+    print(f"\nSucessfully ran {success_count} / {len(all_operations)} operations")
     print(f"{TERM_GREEN}SUCCESS: {successfull_operations}{TERM_RESET}")
     logger.warning(f"FAILED: {failed_operations}")
 
