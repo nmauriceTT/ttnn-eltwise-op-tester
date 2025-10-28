@@ -49,8 +49,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -79,9 +79,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v1[2]/exp-Chebyshev-v1[2]-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v1-c0ef0[4]/exp-Chebyshev-v1-c0ef0[4]-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v1[2]-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v1-c0ef0[4]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -111,7 +111,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp21f/exp21f-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp21f-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -134,8 +134,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp21f/exp21f-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-21f-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -179,12 +179,12 @@
                         "accuracy_results/plots/ulp/pow/pow-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow_3/pow_3-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow_10/pow_10-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f_2/pow21f_2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f_3/pow21f_3-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f_10/pow21f_10-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow_2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow_3-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow_10-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f_2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f_3-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f_10-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -206,8 +206,8 @@
                         "accuracy_results/plots/ulp/pow/pow2-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f_2/pow21f_2-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow_2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f_2-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -229,8 +229,8 @@
                         "accuracy_results/plots/ulp/pow/pow3-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_3/pow_3-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f_3/pow21f_3-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow_3-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f_3-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -252,8 +252,8 @@
                         "accuracy_results/plots/ulp/pow/pow10-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_10/pow_10-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f_10/pow21f_10-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow_10-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f_10-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -275,8 +275,8 @@
                         "accuracy_results/plots/ulp/pow/pow(x,0.5)-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow(x,0.5)/pow(x,0.5)-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f(x,0.5)/pow21f(x,0.5)-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow(x,0.5)-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f(x,0.5)-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -294,8 +294,8 @@
                         "accuracy_results/plots/ulp/pow/pow(x,2)-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow(x,2)/pow(x,2)-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f(x,2)/pow21f(x,2)-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow(x,2)-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f(x,2)-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -313,8 +313,8 @@
                         "accuracy_results/plots/ulp/pow/pow(x,10)-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow(x,10)/pow(x,10)-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow21f(x,10)/pow21f(x,10)-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow(x,10)-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow21f(x,10)-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -333,7 +333,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/tanh/tanh-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -356,8 +356,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh-minimax-v1[6]/tanh-minimax-v1[6]-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/tanh/tanh-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -458,9 +458,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2-v0/log2-v0-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2-minimax-v1[3]/log2-minimax-v1[3]-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2-minimax-v1[5]/log2-minimax-v1[5]-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/log2/log2-v0-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2/log2-minimax-v1[3]-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2/log2-minimax-v1[5]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -599,10 +599,10 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-21f-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -612,7 +612,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            50
+                            20
                         ]
                     }
                 },
@@ -624,7 +624,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -646,9 +646,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -670,10 +670,10 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-21f-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -749,7 +749,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/gelu_approx/gelu_approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -922,8 +922,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/cbrt/cbrt-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/cbrt-pow1d3/cbrt-pow1d3-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/cbrt-pow1d3-fp32/cbrt-pow1d3-fp32-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/cbrt/cbrt-pow1d3-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/cbrt/cbrt-pow1d3-fp32-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -1074,552 +1074,6 @@
             },
             "plots": [
                 {
-                    "id": "exp-bfloat16",
-                    "name": "exp",
-                    "outputs": [
-                        "accuracy_results/plots/exp/exp-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/exp/exp-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -128,
-                            128
-                        ],
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "exp-bfloat16",
-                    "name": "exp",
-                    "outputs": [
-                        "accuracy_results/plots/exp/exp-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/exp/exp-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/exp_cond/exp_cond-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/exp21f/exp21f-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ],
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "pow-bfloat16",
-                    "name": "pow",
-                    "outputs": [
-                        "accuracy_results/plots/pow/pow-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/pow_3/pow_3-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/pow_10/pow_10-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ],
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "tanh-bfloat16",
-                    "name": "tanh",
-                    "outputs": [
-                        "accuracy_results/plots/tanh/tanh-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/tanh/tanh-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ],
-                        "ylim": [
-                            0,
-                            10
-                        ],
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "cosh-bfloat16",
-                    "name": "cosh",
-                    "outputs": [
-                        "accuracy_results/plots/cosh/cosh-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/cosh/cosh-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "sinh-bfloat16",
-                    "name": "sinh",
-                    "outputs": [
-                        "accuracy_results/plots/sinh/sinh-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/sinh/sinh-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xbase": 2,
-                        "ylim": [
-                            0,
-                            1.2
-                        ]
-                    }
-                },
-                {
-                    "id": "log-bfloat16",
-                    "name": "log",
-                    "outputs": [
-                        "accuracy_results/plots/log/log-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log/log-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xscale": "log",
-                        "ylim": [
-                            0,
-                            10
-                        ],
-                        "ybase": 10,
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.05,
-                            0.1,
-                            0.5,
-                            1,
-                            5
-                        ],
-                        "vertical_lines": [
-                            [
-                                6.235149080811617e+27,
-                                "$x=e^{64}$"
-                            ],
-                            [
-                                1.603810890548638e-28,
-                                "$x=e^{-64}$"
-                            ],
-                            [
-                                1.2664165549094176e-14,
-                                "$x=e^{-32}$"
-                            ],
-                            [
-                                78962960182680.69,
-                                "$x=e^{32}$"
-                            ],
-                            [
-                                8886110.520507872,
-                                "$x=e^{16}$"
-                            ],
-                            [
-                                1.1253517471925912e-07,
-                                "$x=e^{-16}$"
-                            ]
-                        ]
-                    }
-                },
-                {
-                    "id": "log10-bfloat16",
-                    "name": "log10",
-                    "outputs": [
-                        "accuracy_results/plots/log10/log10-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log10/log10-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ],
-                        "xscale": "log",
-                        "ybase": 10,
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.05,
-                            0.1,
-                            0.5,
-                            1,
-                            5
-                        ],
-                        "vertical_lines": [
-                            [
-                                1e+16,
-                                "$x=10^{16}$"
-                            ],
-                            [
-                                1e-16,
-                                "$x=10^{-16}$"
-                            ],
-                            [
-                                1e-32,
-                                "$x=10^{-32}$"
-                            ],
-                            [
-                                1e+32,
-                                "$x=10^{32}$"
-                            ]
-                        ]
-                    }
-                },
-                {
-                    "id": "log2-bfloat16",
-                    "name": "log2",
-                    "outputs": [
-                        "accuracy_results/plots/log2/log2-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log2/log2-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ],
-                        "ybase": 10,
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.05,
-                            0.1,
-                            0.5,
-                            1,
-                            5
-                        ],
-                        "xscale": "log",
-                        "xbase": 2,
-                        "vertical_lines": [
-                            [
-                                18446744073709551616,
-                                "$x=2^{64}$"
-                            ],
-                            [
-                                4294967296,
-                                "$x=2^{32}$"
-                            ],
-                            [
-                                65536,
-                                "$x=2^{16}$"
-                            ],
-                            [
-                                1.52587890625e-05,
-                                "$x=2^{-16}$"
-                            ],
-                            [
-                                2.3283064365386963e-10,
-                                "$x=2^{-32}$"
-                            ],
-                            [
-                                5.421010862427522e-20,
-                                "$x=2^{64}$"
-                            ]
-                        ]
-                    }
-                },
-                {
-                    "id": "log1p-bfloat16",
-                    "name": "log1p",
-                    "outputs": [
-                        "accuracy_results/plots/log1p/log1p-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log1p/log1p-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ],
-                        "xscale": "log",
-                        "ybase": 10,
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.05,
-                            0.1,
-                            0.5,
-                            1,
-                            5
-                        ],
-                        "vertical_lines": []
-                    }
-                },
-                {
-                    "id": "tan-bfloat16",
-                    "name": "tan",
-                    "outputs": [
-                        "accuracy_results/plots/tan/tan-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/tan/tan-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ybase": 10
-                    }
-                },
-                {
-                    "id": "atan-bfloat16",
-                    "name": "atan",
-                    "outputs": [
-                        "accuracy_results/plots/atan/atan-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/atan/atan-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ybase": 10
-                    }
-                },
-                {
-                    "id": "cos-bfloat16",
-                    "name": "cos",
-                    "outputs": [
-                        "accuracy_results/plots/cos/cos-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/cos/cos-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ybase": 2
-                    }
-                },
-                {
-                    "id": "sin-bfloat16",
-                    "name": "sin",
-                    "outputs": [
-                        "accuracy_results/plots/sin/sin-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/sin/sin-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ybase": 2
-                    }
-                },
-                {
-                    "id": "silu-bfloat16",
-                    "name": "silu",
-                    "outputs": [
-                        "accuracy_results/plots/silu/silu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/silu/silu-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -40,
-                            40
-                        ],
-                        "ybase": 10,
-                        "ylim": [
-                            0,
-                            1.2
-                        ]
-                    }
-                },
-                {
-                    "id": "selu-bfloat16",
-                    "name": "selu",
-                    "outputs": [
-                        "accuracy_results/plots/selu/selu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/selu/selu-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ybase": 10,
-                        "ylim": [
-                            0,
-                            10
-                        ],
-                        "yscale": "linear"
-                    }
-                },
-                {
-                    "id": "softplus-bfloat16",
-                    "name": "softplus",
-                    "outputs": [
-                        "accuracy_results/plots/softplus/softplus-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/softplus/softplus-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ],
-                        "ybase": 10
-                    }
-                },
-                {
-                    "id": "softsign-bfloat16",
-                    "name": "softsign",
-                    "outputs": [
-                        "accuracy_results/plots/softsign/softsign-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/softsign/softsign-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ],
-                        "ylim": [
-                            0,
-                            200
-                        ],
-                        "yscale": "linear"
-                    }
-                },
-                {
-                    "id": "gelu-bfloat16",
-                    "name": "gelu",
-                    "outputs": [
-                        "accuracy_results/plots/gelu/gelu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/gelu/gelu-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/gelu_approx/gelu_approx-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -20,
-                            20
-                        ],
-                        "ylim": [
-                            0,
-                            200
-                        ],
-                        "yscale": "linear"
-                    }
-                },
-                {
-                    "id": "logit-bfloat16",
-                    "name": "logit",
-                    "outputs": [
-                        "accuracy_results/plots/logit/logit-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/logit/logit-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -0.01,
-                            1
-                        ],
-                        "ylim": [
-                            0,
-                            5
-                        ],
-                        "xscale": "linear",
-                        "yscale": "linear",
-                        "ybase": 10,
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.05,
-                            0.1,
-                            0.5,
-                            1,
-                            2
-                        ]
-                    }
-                },
-                {
-                    "id": "swish-bfloat16",
-                    "name": "swish",
-                    "outputs": [
-                        "accuracy_results/plots/swish/swish-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/swish/swish-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ],
-                        "ylim": [
-                            0,
-                            1.2
-                        ],
-                        "ybase": 10
-                    }
-                },
-                {
-                    "id": "mish-bfloat16",
-                    "name": "mish",
-                    "outputs": [
-                        "accuracy_results/plots/mish/mish-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/mish/mish-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -1000.0,
-                            100.0
-                        ],
-                        "ylim": [
-                            0,
-                            1000
-                        ],
-                        "ybase": 10,
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.05,
-                            0.1,
-                            0.5,
-                            1,
-                            5,
-                            10,
-                            50,
-                            100,
-                            500,
-                            1000
-                        ]
-                    }
-                },
-                {
-                    "id": "elu-bfloat16",
-                    "name": "elu",
-                    "outputs": [
-                        "accuracy_results/plots/elu/elu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/elu/elu-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ],
-                        "ybase": 10
-                    }
-                },
-                {
                     "id": "sqrt-bfloat16",
                     "name": "sqrt",
                     "outputs": [
@@ -1634,115 +1088,6 @@
                             null
                         ],
                         "xscale": "log"
-                    }
-                },
-                {
-                    "id": "rsqrt-bfloat16",
-                    "name": "rsqrt",
-                    "outputs": [
-                        "accuracy_results/plots/rsqrt/rsqrt-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/rsqrt/rsqrt-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ybase": 10,
-                        "xlim": [
-                            null,
-                            1e+16
-                        ]
-                    }
-                },
-                {
-                    "id": "reciprocal-bfloat16",
-                    "name": "reciprocal",
-                    "outputs": [
-                        "accuracy_results/plots/reciprocal/reciprocal-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/reciprocal/reciprocal-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10000000.0,
-                            10000000.0
-                        ]
-                    }
-                },
-                {
-                    "id": "digamma-bfloat16",
-                    "name": "digamma",
-                    "outputs": [
-                        "accuracy_results/plots/digamma/digamma-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/digamma/digamma-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0.1,
-                            null
-                        ],
-                        "ylim": [
-                            0,
-                            50
-                        ],
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.1,
-                            1,
-                            5,
-                            10,
-                            50
-                        ],
-                        "xscale": "log"
-                    }
-                },
-                {
-                    "id": "lgamma-bfloat16",
-                    "name": "lgamma",
-                    "outputs": [
-                        "accuracy_results/plots/lgamma/lgamma-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/lgamma/lgamma-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "ylim": [
-                            1e-08,
-                            10000.0
-                        ],
-                        "yticks": [
-                            0,
-                            0.01,
-                            0.1,
-                            1,
-                            5,
-                            10,
-                            100,
-                            5000
-                        ]
-                    }
-                },
-                {
-                    "id": "tanhshrink-bfloat16",
-                    "name": "tanhshrink",
-                    "outputs": [
-                        "accuracy_results/plots/tanhshrink/tanhshrink-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/tanhshrink/tanhshrink-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10000.0,
-                            10000.0
-                        ],
-                        "ylim": [
-                            0.001,
-                            50
-                        ]
                     }
                 }
             ]
@@ -1865,8 +1210,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-fast-approx-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1889,8 +1234,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-fast-approx-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1913,12 +1258,12 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v1[2]/exp-Chebyshev-v1[2]-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v1-c0ef0[4]/exp-Chebyshev-v1-c0ef0[4]-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-21f/exp-21f-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-61f/exp-61f-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v1[4]/exp-Chebyshev-v1[4]-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v1[2]-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v1-c0ef0[4]-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-21f-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-61f-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v1[4]-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1949,12 +1294,12 @@
                         "accuracy_results/plots/ulp/pow/pow-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow_3/pow_3-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow_10/pow_10-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f_2/pow21f_2-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f_3/pow21f_3-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f_10/pow21f_10-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow_2-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow_3-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow_10-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f_2-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f_3-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f_10-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1976,8 +1321,8 @@
                         "accuracy_results/plots/ulp/pow/pow2-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f_2/pow21f_2-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow_2-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f_2-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1999,8 +1344,8 @@
                         "accuracy_results/plots/ulp/pow/pow3-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_3/pow_3-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f_3/pow21f_3-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow_3-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f_3-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2022,8 +1367,8 @@
                         "accuracy_results/plots/ulp/pow/pow10-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_10/pow_10-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f_10/pow21f_10-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow_10-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f_10-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2045,8 +1390,8 @@
                         "accuracy_results/plots/ulp/pow/pow(x,0.5)-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow(x,0.5)/pow(x,0.5)-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f(x,0.5)/pow21f(x,0.5)-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow(x,0.5)-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f(x,0.5)-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -2064,8 +1409,8 @@
                         "accuracy_results/plots/ulp/pow/pow(x,2)-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow(x,2)/pow(x,2)-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f(x,2)/pow21f(x,2)-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow(x,2)-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f(x,2)-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -2083,8 +1428,8 @@
                         "accuracy_results/plots/ulp/pow/pow(x,10)-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow(x,10)/pow(x,10)-float32-[65536].csv",
-                        "accuracy_results/results/unary/pow21f(x,10)/pow21f(x,10)-float32-[65536].csv"
+                        "accuracy_results/results/unary/pow/pow(x,10)-float32-[65536].csv",
+                        "accuracy_results/results/unary/pow/pow21f(x,10)-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -2103,7 +1448,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh/tanh-approx-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -2122,9 +1467,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-minimax-v1[6]/tanh-minimax-v1[6]-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-v1/tanh-v1-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh/tanh-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh/tanh-v1-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -2161,8 +1506,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-v1/tanh-v1-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh-pade-5,5/tanh-pade-5,5-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh/tanh-v1-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh/tanh-pade-5,5-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -2263,9 +1608,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/log2/log2-float32-[65536].csv",
-                        "accuracy_results/results/unary/log2-v0/log2-v0-float32-[65536].csv",
-                        "accuracy_results/results/unary/log2-minimax-v1[3]/log2-minimax-v1[3]-float32-[65536].csv",
-                        "accuracy_results/results/unary/log2-minimax-v1[5]/log2-minimax-v1[5]-float32-[65536].csv"
+                        "accuracy_results/results/unary/log2/log2-v0-float32-[65536].csv",
+                        "accuracy_results/results/unary/log2/log2-minimax-v1[3]-float32-[65536].csv",
+                        "accuracy_results/results/unary/log2/log2-minimax-v1[5]-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2401,15 +1746,17 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-float32-[65536].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-21f-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
-                            -10,
-                            10
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            100000
                         ],
                         "yscale": "linear"
                     }
@@ -2476,7 +1823,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-float32-[65536].csv",
-                        "accuracy_results/results/unary/gelu_approx/gelu_approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/gelu/gelu_approx-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2642,8 +1989,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/cbrt/cbrt-float32-[65536].csv",
-                        "accuracy_results/results/unary/cbrt-pow1d3/cbrt-pow1d3-float32-[65536].csv",
-                        "accuracy_results/results/unary/cbrt-pow1d3-fp32/cbrt-pow1d3-fp32-float32-[65536].csv"
+                        "accuracy_results/results/unary/cbrt/cbrt-pow1d3-float32-[65536].csv",
+                        "accuracy_results/results/unary/cbrt/cbrt-pow1d3-fp32-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "ylim": [
@@ -2796,8 +2143,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-approx/exp-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2832,7 +2179,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp21f/exp21f-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp21f-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2849,9 +2196,9 @@
                         "accuracy_results/plots/pow/pow-bfloat16-zoom.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow_3/pow_3-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/pow_10/pow_10-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/pow/pow_2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow_3-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/pow/pow_10-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2869,7 +2216,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/tanh/tanh-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3105,7 +2452,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/gelu_approx/gelu_approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3411,323 +2758,6 @@
             },
             "plots": [
                 {
-                    "id": "exp-bfloat16-abs",
-                    "name": "exp",
-                    "outputs": [
-                        "accuracy_results/plots/abs/exp/exp-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/exp/exp-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ],
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "pow-bfloat16-abs",
-                    "name": "pow",
-                    "outputs": [
-                        "accuracy_results/plots/abs/pow/pow-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/pow_2/pow_2-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/pow_3/pow_3-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/pow_10/pow_10-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ],
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "log1p-bfloat16-abs",
-                    "name": "log1p",
-                    "outputs": [
-                        "accuracy_results/plots/abs/log1p/log1p-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log1p/log1p-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ]
-                    }
-                },
-                {
-                    "id": "tanh-bfloat16-abs",
-                    "name": "tanh",
-                    "outputs": [
-                        "accuracy_results/plots/abs/tanh/tanh-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/tanh/tanh-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/tanh-approx/tanh-approx-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "cosh-bfloat16-abs",
-                    "name": "cosh",
-                    "outputs": [
-                        "accuracy_results/plots/abs/cosh/cosh-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/cosh/cosh-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "sinh-bfloat16-abs",
-                    "name": "sinh",
-                    "outputs": [
-                        "accuracy_results/plots/abs/sinh/sinh-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/sinh/sinh-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "log-bfloat16-abs",
-                    "name": "log",
-                    "outputs": [
-                        "accuracy_results/plots/abs/log/log-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log/log-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ]
-                    }
-                },
-                {
-                    "id": "log10-bfloat16-abs",
-                    "name": "log10",
-                    "outputs": [
-                        "accuracy_results/plots/abs/log10/log10-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log10/log10-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ]
-                    }
-                },
-                {
-                    "id": "log2-bfloat16-abs",
-                    "name": "log2",
-                    "outputs": [
-                        "accuracy_results/plots/abs/log2/log2-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log2/log2-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ],
-                        "xbase": 10
-                    }
-                },
-                {
-                    "id": "log1p-bfloat16-abs",
-                    "name": "log1p",
-                    "outputs": [
-                        "accuracy_results/plots/abs/log1p/log1p-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/log1p/log1p-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            null
-                        ]
-                    }
-                },
-                {
-                    "id": "tan-bfloat16-abs",
-                    "name": "tan",
-                    "outputs": [
-                        "accuracy_results/plots/abs/tan/tan-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/tan/tan-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {}
-                },
-                {
-                    "id": "atan-bfloat16-abs",
-                    "name": "atan",
-                    "outputs": [
-                        "accuracy_results/plots/abs/atan/atan-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/atan/atan-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {}
-                },
-                {
-                    "id": "cos-bfloat16-abs",
-                    "name": "cos",
-                    "outputs": [
-                        "accuracy_results/plots/abs/cos/cos-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/cos/cos-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {}
-                },
-                {
-                    "id": "sin-bfloat16-abs",
-                    "name": "sin",
-                    "outputs": [
-                        "accuracy_results/plots/abs/sin/sin-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/sin/sin-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xbase": 2
-                    }
-                },
-                {
-                    "id": "silu-bfloat16-abs",
-                    "name": "silu",
-                    "outputs": [
-                        "accuracy_results/plots/abs/silu/silu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/silu/silu-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
-                    "id": "selu-bfloat16-abs",
-                    "name": "selu",
-                    "outputs": [
-                        "accuracy_results/plots/abs/selu/selu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/selu/selu-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
-                    "id": "softplus-bfloat16-abs",
-                    "name": "softplus",
-                    "outputs": [
-                        "accuracy_results/plots/abs/softplus/softplus-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/softplus/softplus-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
-                    "id": "softsign-bfloat16-abs",
-                    "name": "softsign",
-                    "outputs": [
-                        "accuracy_results/plots/abs/softsign/softsign-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/softsign/softsign-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
-                    "id": "gelu-bfloat16-abs",
-                    "name": "gelu",
-                    "outputs": [
-                        "accuracy_results/plots/abs/gelu/gelu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/gelu/gelu-bfloat16-[32].csv",
-                        "accuracy_results/results/unary/gelu_approx/gelu_approx-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
-                    "id": "logit-bfloat16-abs",
-                    "name": "logit",
-                    "outputs": [
-                        "accuracy_results/plots/abs/logit/logit-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/logit/logit-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            1
-                        ]
-                    }
-                },
-                {
-                    "id": "swish-bfloat16-abs",
-                    "name": "swish",
-                    "outputs": [
-                        "accuracy_results/plots/abs/swish/swish-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/swish/swish-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
                     "id": "mish-bfloat16-abs",
                     "name": "mish",
                     "outputs": [
@@ -3742,113 +2772,6 @@
                             10.0
                         ],
                         "yscale": "linear"
-                    }
-                },
-                {
-                    "id": "elu-bfloat16-abs",
-                    "name": "elu",
-                    "outputs": [
-                        "accuracy_results/plots/abs/elu/elu-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/elu/elu-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ]
-                    }
-                },
-                {
-                    "id": "sqrt-bfloat16-abs",
-                    "name": "sqrt",
-                    "outputs": [
-                        "accuracy_results/plots/abs/sqrt/sqrt-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/sqrt/sqrt-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            100
-                        ]
-                    }
-                },
-                {
-                    "id": "rsqrt-bfloat16-abs",
-                    "name": "rsqrt",
-                    "outputs": [
-                        "accuracy_results/plots/abs/rsqrt/rsqrt-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/rsqrt/rsqrt-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            0,
-                            100
-                        ]
-                    }
-                },
-                {
-                    "id": "reciprocal-bfloat16-abs",
-                    "name": "reciprocal",
-                    "outputs": [
-                        "accuracy_results/plots/abs/reciprocal/reciprocal-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/reciprocal/reciprocal-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -100,
-                            100
-                        ]
-                    }
-                },
-                {
-                    "id": "digamma-bfloat16-abs",
-                    "name": "digamma",
-                    "outputs": [
-                        "accuracy_results/plots/abs/digamma/digamma-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/digamma/digamma-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            1e-12,
-                            null
-                        ]
-                    }
-                },
-                {
-                    "id": "lgamma-bfloat16-abs",
-                    "name": "lgamma",
-                    "outputs": [
-                        "accuracy_results/plots/abs/lgamma/lgamma-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/lgamma/lgamma-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {}
-                },
-                {
-                    "id": "tanhshrink-bfloat16-abs",
-                    "name": "tanhshrink",
-                    "outputs": [
-                        "accuracy_results/plots/abs/tanhshrink/tanhshrink-bfloat16.png"
-                    ],
-                    "files": [
-                        "accuracy_results/results/unary/tanhshrink/tanhshrink-bfloat16-[32].csv"
-                    ],
-                    "plot_params": {
-                        "xlim": [
-                            -10000.0,
-                            10000.0
-                        ]
                     }
                 }
             ]
@@ -3888,7 +2811,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3911,9 +2834,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-fast-approx/exp-fast-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v1[2]/exp-Chebyshev-v1[2]-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp-Chebyshev-v2[5]/exp-Chebyshev-v2[5]-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-fast-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v1[2]-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-Chebyshev-v2[5]-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3936,8 +2859,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2-minimax-v1[3]/log2-minimax-v1[3]-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2-minimax-v1[5]/log2-minimax-v1[5]-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/log2/log2-minimax-v1[3]-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log2/log2-minimax-v1[5]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -4025,15 +2948,19 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-approx/sigmoid-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate-approx/sigmoid-accurate-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-accurate/sigmoid-accurate-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/sigmoid-21f/sigmoid-21f-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-21f-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
-                            -10,
-                            10
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            20
                         ],
                         "xscale": "linear"
                     }
