@@ -115,10 +115,10 @@ def main():
     all_dtypes = ["bfloat16", "float32"]
     
     all_unary_operations = [
-        "exp", "exp2", "log", "log10", "log2,", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
-        "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "selu", "softplus", "softsign", "tan", 
-        "atan2", "sin", "cos", "sqrt", "cbrt", "cbrt-pow1d3", "cbrt-pow1d3-fp32", "rsqrt", "rsqrt_approx",
-        "reciprocal", "digamma", "lgamma", "tanhshrink"
+        "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2,", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
+        "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "celu", "sigmoid", "selu", "softplus", "softsign", "tan", 
+        "atan", "sin", "cos", "sqrt", "cbrt", "rsqrt", "reciprocal",
+        "digamma", "lgamma", "tanhshrink"
     ]
     all_binary_operations = [
         "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2"
