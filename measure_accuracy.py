@@ -26,39 +26,10 @@ device = ttnn.open_device(device_id=device_id)
 EPSILON = 2**-9
 
 
-datatypes_parameters = {
-    "float32": {
-        "numpy_type": np.float32,
-        "torch_type": torch.float32,
-        "ttnn_type": ttnn.float32,
-        "numpy_int_type": np.int32,
-        "torch_int_type": torch.int32,
-        "sign_bits": 1,
-        "exponent_bits": 8,
-        "mantissa_bits": 23,
-        "tensor_width": 2**12,
-        "tensor_height": 2**11,
-    },
-    "bfloat16": {
-        "numpy_type": np.float32,  # Note: a conversion will be needed
-        "torch_type": torch.bfloat16,
-        "ttnn_type": ttnn.bfloat16,
-        "numpy_int_type": np.int16,
-        "torch_int_type": torch.int16,
-        "sign_bits": 1,
-        "exponent_bits": 8,
-        "mantissa_bits": 7,
-        "tensor_width": 2**4,  # Not great (< 32) => tiles will have padding
-        "tensor_height": 2**3,
-    },
-}
-
 
 TERM_RED = "\033[91m"
 TERM_GREEN = "\033[92m"
 TERM_RESET = "\033[0m"
-
-
 
     
 def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, calculated_ttnn: ttnn.Tensor, group_size: int):
@@ -92,13 +63,10 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
 
         EPSILON = 2**-9
 
-
         abs_error_np = np.abs(golden_np_fp64 - calculated_np_fp64).astype(np_compute_dtype)
         rel_error_np = abs_error_np / np.maximum(np.abs(golden_np_fp64), EPSILON).astype(np_compute_dtype)
         ulp_error_np = abs_error_np / golden_ulp.flatten().numpy().reshape(measurement_shape).astype(np_compute_dtype)
 
-        assert len(abs_error_np) > 0
-        # finite_mask = np.isfinite(abs_error_np)
         x_array = np_input.take(0, axis=-1).astype(np_compute_dtype).flatten()
         y_array = calculated_np_fp64.take(0, axis=-1).astype(np_compute_dtype).flatten()
         yref_array = golden_np_fp64.take(0, axis=-1).astype(np_compute_dtype).flatten()
@@ -122,7 +90,6 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
             "mean_rel_error": mean_rel_error,
         }
     )
-
     return accuracy_df
 
 
@@ -189,8 +156,6 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         dest_dir: Destination directory for results
         group_size: Number of samples per group for statistics
     """
-    # Use bfloat16 parameters
-    parameters = datatypes_parameters["bfloat16"]
 
     # Ensure group_size is a power of 2
     if group_size is not None and (group_size & (group_size - 1)) != 0:
@@ -201,9 +166,6 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     TENSOR_HEIGHT = 2**9
     size = [TENSOR_HEIGHT, TENSOR_WIDTH]
 
-    NUMPY_INT_TYPE = parameters["numpy_int_type"]
-    TORCH_TYPE = parameters["torch_type"]
-    TTNN_TYPE = parameters["ttnn_type"]
 
     # Group by exponent if group_size is not specified (default: 512 = 2^9)
     if group_size is None:
@@ -212,9 +174,9 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     start_time = time.time()
 
     # Create input tensors (computed ONCE)
-    input_np = np.arange(0, 2**16, dtype=NUMPY_INT_TYPE)  # All possible bfloat16 values
+    input_np = np.arange(0, 2**16, dtype=np.uint32).astype(np.uint16)  # All possible bfloat16 values
     torch_value = torch.from_numpy(input_np).reshape(size)
-    torch_input_bf16 = torch_value.view(TORCH_TYPE)  # reinterpret data as bfloat16
+    torch_input_bf16 = torch_value.view(torch.bfloat16)  # reinterpret data as bfloat16
     torch_input_f64 = torch_input_bf16.to(torch.float64)  # Convert to float64 for torch golden function
 
     # Run golden operation (computed ONCE for all implementations)
@@ -222,7 +184,7 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
 
     # Create TTNN input (reused for all implementations)
-    ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=TTNN_TYPE, layout=ttnn.TILE_LAYOUT)
+    ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
 
     # Precompute data for PCC calculation (used by all implementations)
     np_flat_input = torch_input_f64.flatten().numpy()
@@ -236,7 +198,7 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         impl_start_time = time.time()
         
         # Run TTNN operation
-        ttnn_output = ttnn.zeros(size, dtype=TTNN_TYPE, device=device, layout=ttnn.TILE_LAYOUT)
+        ttnn_output = ttnn.zeros(size, dtype=ttnn.bfloat16, device=device, layout=ttnn.TILE_LAYOUT)
         calculated_ttnn_bf16 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
 
         # Use compare_with_golden to compute error metrics
