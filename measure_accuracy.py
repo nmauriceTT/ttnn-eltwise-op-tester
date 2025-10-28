@@ -486,17 +486,10 @@ def main(args):
 
         golden_function = get_golden_function(UNARY_OPERATIONS, operation_name)
 
-        print(f"extra operations = {extra_operations}")
-        if operation_name == "tanh":
-            assert golden_function == torch.tanh
-
         if operation_name in all_operations:
 
             for extra_operation_name, extra_operation in extra_operations.items():
                 all_operations[extra_operation_name] = (extra_operation, golden_function)
-                
-
-        print(f"Added custom new operations")
 
 
     success_count = 0
@@ -507,15 +500,6 @@ def main(args):
     total_operation_cnt = len(all_operations)
     print(f"Measuring operations")
     for operation_name, (ttnn_op, golden_op) in all_operations.items():
-
-        if operation_name in ["tanh", "tanh-v1", "tanh-pade-5,5", "tanh-minimax-v1[6]"]:
-            assert golden_op == torch.tanh
-
-        if ttnn_op == ttnn.tanh:
-            assert golden_op == torch.tanh
-
-        print(f"operation_name = {operation_name}, ttnn_op = {ttnn_op}, golden_op = {golden_op}, is_torch = {golden_op == torch.tanh}")
-        # continue
 
         cnt += 1
         print(f"Running operation {operation_name} #{cnt}/{total_operation_cnt}", end="\r")
