@@ -91,15 +91,21 @@ def generate_exp_kernel_from_polynomial(polynomial_coefficients):
 
 
 
-def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, metal_home_dir):
+def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, metal_home_dir, core_grid=None):
+
+
+    if isinstance(core_grid, ttnn.CoreGrid):
+        grid_coord = ttnn.CoreCoord(core_grid.x - 1, core_grid.y - 1)
+        core_grid = ttnn.CoreRangeSet([ttnn.CoreRange(ttnn.CoreCoord(0, 0), grid_coord)])
 
 
     output_tensor = ttnn.zeros_like(ttnn_input_tensor)
 
     io_tensors = [ttnn_input_tensor, output_tensor]
 
-    core = ttnn.CoreCoord(0, 0)
-    core_grid = ttnn.CoreRangeSet([ttnn.CoreRange(core, core)])
+    if core_grid is None:
+        core = ttnn.CoreCoord(0, 0)
+        core_grid = ttnn.CoreRangeSet([ttnn.CoreRange(core, core)])
 
     input_cb_data_format = ttnn_input_tensor.dtype  # this will be mapped tt::DataFormat::Float16_b
 
@@ -212,7 +218,7 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
     return output
 
 
-def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name, full_name=None):
+def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name, full_name=None, core_grid=None):
 
     compute_kernel_source_code = generate_kernel_from_sfpi_source("unary", sfpi_kernel_name)
 
@@ -228,12 +234,12 @@ def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name, full_name=None):
     
 
     fun =  lambda tensor, device, kernel_source_code=compute_kernel_source_code: \
-                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME))
+                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME, core_grid=core_grid))
     
     return fun
 
 
-def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients, full_name=None):
+def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients, full_name=None, core_grid=None):
 
     TT_METAL_HOME = os.getenv("TT_METAL_HOME")
 
@@ -250,7 +256,7 @@ def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficie
 
     # Doudble lambda to properly copy value of kernel_source_code
     fun =  lambda tensor, device, kernel_source_code=compute_kernel_source_code: \
-                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME))
+                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME, core_grid=core_grid))
     
     return fun
 
@@ -296,11 +302,32 @@ def test_tanh_kernel():
     ttnn.close_device(device)
 
 
+def test_log2_kernel():
+
+    device = ttnn.open_device(device_id=0)
+
+    shape = [32, 32]
+    value = 0.999
+    tensor = torch.full(shape, value, dtype=torch.float32)
+
+    ttnn_tensor = ttnn.from_torch(tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
+
+    log2_op = generate_unary_kernel_from_polynomial("log2-poly", [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0])
+    # log2_op = generate_unary_kernel_from_sfpi_source("log2")
+
+    output_tensor = log2_op(ttnn_tensor, device)
+
+    torch_calculated_output = ttnn.to_torch(output_tensor)
+
+    print(f"torch_calculated_output =\n{torch_calculated_output}")
+
+    ttnn.close_device(device)
+
 def main():
 
     function = generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753])
 
-    test_tanh_kernel()
+    test_log2_kernel()
     # test_generated_kernel(function)
 
 if __name__ == "__main__":
