@@ -70,6 +70,52 @@
                     }
                 },
                 {
+                    "id": "identity-bfloat16-ulp",
+                    "name": "identity",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/identity/identity-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/identity/identity-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ]
+                    }
+                },
+                {
+                    "id": "fill-bfloat16-ulp",
+                    "name": "fill",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/fill/fill-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/fill/fill-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ]
+                    }
+                },
+                {
                     "id": "exp-bfloat16-ulp",
                     "name": "exp",
                     "outputs": [
@@ -191,6 +237,50 @@
                         "xlim": [
                             -100,
                             100
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "exp2-bfloat16-ulp",
+                    "name": "exp2",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/exp2/exp2-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/exp2/exp2-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -128,
+                            128
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "expm1-bfloat16-ulp",
+                    "name": "expm1",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/expm1/expm1-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/expm1/expm1-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -128,
+                            128
                         ],
                         "ylim": [
                             0,
@@ -615,8 +705,9 @@
                         ],
                         "ylim": [
                             0,
-                            200
-                        ]
+                            50
+                        ],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -729,6 +820,10 @@
                             -10,
                             10
                         ],
+                        "ylim": [
+                            0,
+                            50
+                        ],
                         "yscale": "linear"
                     }
                 },
@@ -784,11 +879,10 @@
                             -10,
                             10
                         ],
-                        "yscale": "asinh",
-                        "xscale": "linear",
+                        "yscale": "linear",
                         "ylim": [
                             0,
-                            300
+                            50
                         ]
                     }
                 },
@@ -2926,6 +3020,25 @@
                         "ylim": [
                             -10,
                             3
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "tanh-bfloat16-value",
+                    "name": "tanh",
+                    "outputs": [
+                        "accuracy_results/plots/value/tanh/tanh-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/tanh/tanh-approx-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -4,
+                            4
                         ],
                         "xscale": "linear",
                         "yscale": "linear"
