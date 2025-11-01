@@ -220,8 +220,6 @@ def main():
     if not os.path.exists(f"{dest_dir}/abs/"):
         os.makedirs(f"{dest_dir}/abs/")
 
-    # plot_all_ops(f"{accuracy_dir}", all_operations, f"{dest_dir}/abs/", highres=False, plot_absolute=True)
-
     plot_config = parse_plot_config("eltwise-accuracy/plot-params.json")
 
     last_hashes = load_plot_config_hashes(f"accuracy_results/plot-hashes.csv")

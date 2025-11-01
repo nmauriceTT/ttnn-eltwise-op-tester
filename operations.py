@@ -367,9 +367,9 @@ def get_golden_function(operation_dict, operation_name: str):
 
 def iterate_all_operations(operation_dict):
     """ Iterate over all operations in the operation dictionary 
-    and yield the implementation name, the implementation function, and the golden function
+    and yield the implementation name, base operation name the implementation function, and the golden function
     """
-    for category, operations in operation_dict.items():
+    for base_operation_name, operations in operation_dict.items():
 
         golden_function = None
         if "golden" in operations:
@@ -386,13 +386,13 @@ def iterate_all_operations(operation_dict):
                 break
 
         if golden_function is None:
-            print(f"{TERM_RED}No golden operation found for category {category}{TERM_RESET}")
+            print(f"{TERM_RED}No golden operation found for category {base_operation_name}{TERM_RESET}")
             continue
 
         for impl_name, implementation in operations["implementations"].items():
-            yield (impl_name, implementation, golden_function)
+            yield (impl_name, base_operation_name, implementation, golden_function)
 
-def get_operation_by_name(operation_dict, impl_name):
+def get_operation_variant_by_name(operation_dict, impl_name):
 
     for category, operations in operation_dict.items():
         if impl_name in operations["implementations"].keys():

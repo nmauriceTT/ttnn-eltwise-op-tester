@@ -16,7 +16,7 @@ from models.common.utility_functions import ulp
 
 
 from arg_parser import parse_args
-from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_by_name, get_golden_function
+from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function
 
 
 device_id = 0

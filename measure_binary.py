@@ -9,7 +9,7 @@ from utils import TERM_RED, TERM_GREEN, TERM_RESET
 
 from models.common.utility_functions import ulp
 import operations
-from operations import run_ttnn_op, iterate_all_operations, get_operation_by_name, BINARY_OPERATIONS
+from operations import run_ttnn_op, iterate_all_operations, get_operation_variant_by_name, BINARY_OPERATIONS
 
 device = ttnn.open_device(device_id=0)
 
@@ -46,7 +46,7 @@ def bench_binary_op(operation, dest_dir):
     df_all_results = pd.DataFrame()
     batch_size = 128
 
-    operation_name, ttnn_op, torch_op = operation
+    operation_name, base_operation_name, ttnn_op, torch_op = operation
 
     i = 0
     for tensor_a, tensor_b in utils.generate_binary_tensors_bf16():
