@@ -91,17 +91,21 @@ def generate_exp_kernel_from_polynomial(polynomial_coefficients):
 
 
 
-def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, metal_home_dir, core_grid=None):
+def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_output_tensor=None, core_grid=None, metal_home_dir=None):
 
 
     if isinstance(core_grid, ttnn.CoreGrid):
         grid_coord = ttnn.CoreCoord(core_grid.x - 1, core_grid.y - 1)
         core_grid = ttnn.CoreRangeSet([ttnn.CoreRange(ttnn.CoreCoord(0, 0), grid_coord)])
 
+    if metal_home_dir is None:
+        metal_home_dir = os.getenv("TT_METAL_HOME")
+        if metal_home_dir is None:
+            raise RuntimeError("TT_METAL_HOME environment variable is not set")
 
-    output_tensor = ttnn.zeros_like(ttnn_input_tensor)
+    assert ttnn_output_tensor is not None
 
-    io_tensors = [ttnn_input_tensor, output_tensor]
+    io_tensors = [ttnn_input_tensor, ttnn_output_tensor]
 
     if core_grid is None:
         core = ttnn.CoreCoord(0, 0)
@@ -148,10 +152,10 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
 
     reader_compile_time_args = ttnn.TensorAccessorArgs(ttnn_input_tensor).get_compile_time_args()
     writer_compile_time_args = [out_cb]
-    writer_compile_time_args.extend(ttnn.TensorAccessorArgs(output_tensor).get_compile_time_args())
+    writer_compile_time_args.extend(ttnn.TensorAccessorArgs(ttnn_output_tensor).get_compile_time_args())
     compute_compile_time_args = [num_tiles, 1]
     reader_rt_args = [ttnn_input_tensor.buffer_address(), num_tiles, 0]
-    writer_rt_args = [output_tensor.buffer_address(), num_tiles, 0]
+    writer_rt_args = [ttnn_output_tensor.buffer_address(), num_tiles, 0]
 
     reader_kernel_descriptor = ttnn.KernelDescriptor(
         kernel_source=f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary/device/kernels/dataflow/reader_unary_interleaved_start_id.cpp",
@@ -171,9 +175,6 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
     )
 
     sfpu_defines = []
-    # struct ComputeConfigDescriptor {
-    # using UnpackToDestModes = std::vector<UnpackToDestMode>;
-
     # MathFidelity math_fidelity = MathFidelity::HiFi4;
     # bool fp32_dest_acc_en = false;
     # bool dst_full_sync_en = false;
@@ -189,8 +190,6 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
     compute_kernel_config.math_fidelity = ttnn.MathFidelity.HiFi4
     compute_kernel_config.unpack_to_dest_mode = [ttnn._ttnn.program_descriptor.UnpackToDestMode.UnpackToDestFp32] * 32 #  ttnn.UnpackToDestMode.UnpackToDestFp32
     # math_fidelity=ttnn.MathFidelity.HiFi4,
-    
-    
 
     compute_kernel_descriptor = ttnn.KernelDescriptor(
         # kernel_source=f"{metal_home_dir}/tt_metal/kernels/compute/eltwise_sfpu.cpp",
@@ -204,44 +203,25 @@ def base_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, device, met
         config=compute_kernel_config,
     )
 
-
-    
-
     program_descriptor = ttnn.ProgramDescriptor(
         kernels=[reader_kernel_descriptor, writer_kernel_descriptor, compute_kernel_descriptor],
         semaphores=[],
         cbs=[in_cb_descriptor, out_cb_descriptor],
     )
 
+    # from tracy import signpost
+    # signpost(f"Running generic_op")
     output = ttnn.generic_op(io_tensors, program_descriptor)
+    # signpost("Generic op completed")
 
     return output
 
 
-def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name, full_name=None, core_grid=None):
-
-    compute_kernel_source_code = generate_kernel_from_sfpi_source("unary", sfpi_kernel_name)
-
-    # For debugging purposes
-    if full_name is None:
-        full_name = sfpi_kernel_name
-
-    os.makedirs("generated", exist_ok=True)
-
-    TT_METAL_HOME = os.getenv("TT_METAL_HOME")
-    with open(f"generated/compute_unary_{full_name}.cpp", "w") as f:
-        f.write(compute_kernel_source_code)
-    
-
-    fun =  lambda tensor, device, kernel_source_code=compute_kernel_source_code: \
-                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME, core_grid=core_grid))
-    
-    return fun
+def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name):
+    return generate_kernel_from_sfpi_source("unary", sfpi_kernel_name)
 
 
 def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients, full_name=None, core_grid=None):
-
-    TT_METAL_HOME = os.getenv("TT_METAL_HOME")
 
     compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary", sfpi_kernel_name, polynomial_coefficients)
     
@@ -254,11 +234,7 @@ def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficie
     with open(f"generated/compute_unary_{full_name}.cpp", "w") as f:
         f.write(compute_kernel_source_code)
 
-    # Doudble lambda to properly copy value of kernel_source_code
-    fun =  lambda tensor, device, kernel_source_code=compute_kernel_source_code: \
-                    (base_unary_kernel(kernel_source_code, tensor, device, TT_METAL_HOME, core_grid=core_grid))
-    
-    return fun
+    return compute_kernel_source_code
 
 
 def test_generated_kernel(function):

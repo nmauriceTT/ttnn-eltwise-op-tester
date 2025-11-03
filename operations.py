@@ -3,7 +3,7 @@ import torch
 import math
 from utils import TERM_RED, TERM_RESET
 
-from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source
+from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel
 
 
 global_device = None
@@ -66,12 +66,12 @@ UNARY_OPERATIONS = {
             "exp-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "exp-fast-approx-v2": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "exp-21f": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.33718944, 0.65763629, 1.0017248], "exp-21f"): ttnn_function(x, output_tensor),
-            "exp-61f": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018], "exp-61f"): ttnn_function(x, output_tensor),
-            "exp-Chebyshev-v1[2]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753], "exp-Chebyshev-v1[2]"): ttnn_function(x, output_tensor),
-            "exp-Chebyshev-v1[4]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397], "exp-Chebyshev-v1[4]"): ttnn_function(x, output_tensor),
-            "exp-Chebyshev-v1[6]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0], "exp-Chebyshev-v1[6]"): ttnn_function(x, output_tensor),
-            "exp-Chebyshev-v1-c0ef0[4]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("exp", [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0], "exp-Chebyshev-v1-c0ef0[4]"): ttnn_function(x, output_tensor),
+            "exp-21f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.33718944, 0.65763629, 1.0017248], "exp-21f"), x, output_tensor),
+            "exp-61f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018], "exp-61f"), x, output_tensor),
+            "exp-Chebyshev-v1[2]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753], "exp-Chebyshev-v1[2]"), x, output_tensor),
+            "exp-Chebyshev-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397], "exp-Chebyshev-v1[4]"), x, output_tensor),
+            "exp-Chebyshev-v1[6]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0], "exp-Chebyshev-v1[6]"), x, output_tensor),
+            "exp-Chebyshev-v1-c0ef0[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0], "exp-Chebyshev-v1-c0ef0[4]"), x, output_tensor),
 
         },
         "golden": torch.exp,
@@ -90,9 +90,9 @@ UNARY_OPERATIONS = {
         "implementations": {
             "tanh": ttnn.tanh,
             "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "tanh-cf": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-v1"): ttnn_function(x, output_tensor),
-            "tanh-pade-5,5":  lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"): ttnn_function(x, output_tensor),
-            "tanh-minimax-v1[6]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"): ttnn_function(x, output_tensor),
+            "tanh-cf": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-v1"), x, output_tensor),
+            "tanh-pade-5,5":  lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"), x, output_tensor),
+            "tanh-minimax-v1[6]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"), x, output_tensor),
             # Other approximations:
             # "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
             # "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
@@ -125,8 +125,8 @@ UNARY_OPERATIONS = {
     "log2": {
         "implementations": {
             "log2": ttnn.log2,
-            "log2-minimax-v1[3]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("log2-poly", [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0], "log2-minimax-v1[3]"): ttnn_function(x, output_tensor),
-            "log2-minimax-v1[5]": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_polynomial("log2-poly", [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0], "log2-minimax-v1[5]"): ttnn_function(x, output_tensor),
+            "log2-minimax-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0], "log2-minimax-v1[3]"), x, output_tensor),
+            "log2-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0], "log2-minimax-v1[5]"), x, output_tensor),
         },
     },
     "log1p": {
@@ -175,7 +175,7 @@ UNARY_OPERATIONS = {
             "sigmoid-approx": lambda x, output_tensor: ttnn.sigmoid(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "sigmoid-accurate": ttnn.sigmoid_accurate,
             "sigmoid-accurate-approx": lambda x, output_tensor: ttnn.sigmoid_accurate(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "sigmoid-21f": lambda x, output_tensor, ttnn_function=generate_unary_kernel_from_sfpi_source("sigmoid"): ttnn_function(x, output_tensor),
+            "sigmoid-21f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("sigmoid"), x, output_tensor),
         },
     },
     "selu": {
@@ -371,24 +371,7 @@ def iterate_all_operations(operation_dict):
     """
     for base_operation_name, operations in operation_dict.items():
 
-        golden_function = None
-        if "golden" in operations:
-            golden_function = operations["golden"]
-        else:
-            for impl_name, implementation in operations["implementations"].items():
-                try:
-                    golden_function = ttnn.get_golden_function(impl_name)
-                except:
-                    print(f"{TERM_RED}No golden function found for implementation {impl_name}{TERM_RESET}")
-                    continue
-                
-                golden_function = implementation.golden_function
-                break
-
-        if golden_function is None:
-            print(f"{TERM_RED}No golden operation found for category {base_operation_name}{TERM_RESET}")
-            continue
-
+        golden_function = get_golden_function(operation_dict, base_operation_name)
         for impl_name, implementation in operations["implementations"].items():
             yield (impl_name, base_operation_name, implementation, golden_function)
 
