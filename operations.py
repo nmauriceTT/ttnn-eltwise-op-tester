@@ -143,7 +143,8 @@ UNARY_OPERATIONS = {
     "gelu": {
         "implementations": {
             "gelu": ttnn.gelu,
-            "gelu_approx": lambda x, output_tensor: ttnn.gelu(x, fast_and_approximate_mode=True, output_tensor=output_tensor)
+            "gelu_approx": lambda x, output_tensor: ttnn.gelu(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "gelu-tanh": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("gelu-tanh"), x, output_tensor),
         },
     },
     "logit": {
@@ -186,7 +187,10 @@ UNARY_OPERATIONS = {
     },
     "softplus": {
         "implementations": {
-            "softplus": ttnn.softplus
+            "softplus": ttnn.softplus,
+            "softplus-log1pexp": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("softplus-log1pexp"), x, output_tensor),
+            "softplus-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("softplus-poly", [-1.88397825695574283599853515625e-4, -1.717669540084898471832275390625e-3, 5.2007441408932209014892578125e-3, 0.113285191357135772705078125, 0.476007401943206787109375, 0.689675033092498779296875]), x, output_tensor),
+            "softplus-minimax-v1[8]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("softplus-poly", [7.496111464888599584810435771942138671875e-8, 7.1853546614875085651874542236328125e-6, 5.31854093424044549465179443359375e-5, -2.879406674765050411224365234375e-4, -3.30807245336472988128662109375e-3, 3.11028095893561840057373046875e-3, 0.121423818171024322509765625, 0.4927570819854736328125, 0.692435443401336669921875]), x, output_tensor),
         },
     },
     "softsign": {

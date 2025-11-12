@@ -12,7 +12,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
     sfpi::vFloat result = ckernel::sfpu::_sfpu_reciprocal_<2>(denominator);
     result = result * numerator;
     
-    sfpi::vFloat threshold_value = sfpi::vFloat(1.0f);
+    sfpi::vFloat threshold_value = sfpi::vConst1;
     sfpi::vec_min_max(result, threshold_value);
 
     result = sfpi::setsgn(result, val); // restore sign (i.e. tanh(-x) = -tanh(x))

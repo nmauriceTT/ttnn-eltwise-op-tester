@@ -475,7 +475,8 @@
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
                         "accuracy_results/results/unary/tanh/tanh-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/tanh/tanh-cf-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -844,6 +845,30 @@
                     }
                 },
                 {
+                    "id": "softplus-accurate-bfloat16-ulp",
+                    "name": "softplus",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/softplus/softplus-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/softplus/softplus-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/softplus/softplus-log1pexp-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/softplus/softplus-minimax-v1[8]-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -15,
+                            15
+                        ],
+                        "ylim": [
+                            0,
+                            50
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
+                },
+                {
                     "id": "softsign-bfloat16-ulp",
                     "name": "softsign",
                     "outputs": [
@@ -873,6 +898,29 @@
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
                         "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            50
+                        ]
+                    }
+                },
+                {
+                    "id": "gelu-accurate-bfloat16-ulp",
+                    "name": "gelu-accurate",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/gelu/gelu-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv",
+                         "accuracy_results/results/unary/gelu/gelu-tanh-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1590,8 +1638,7 @@
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
                         "accuracy_results/results/unary/tanh/tanh-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh/tanh-v1-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -1608,14 +1655,6 @@
                             [
                                 32000,
                                 "32000 ULP ~ 0.5 bfloat16 ULP"
-                            ],
-                            [
-                                2000,
-                                "2000 ULP - \"approx\""
-                            ],
-                            [
-                                1000,
-                                "1000 ULP - \"accurate\""
                             ]
                         ]
                     }
@@ -3048,8 +3087,7 @@
                     "id": "mish-bfloat16-value",
                     "name": "mish",
                     "outputs": [
-                        "accuracy_results/plots/value/mish/mish-bfloat16.png",
-                        "accuracy_results/plots/value/mish/mish-bfloat16.svg"
+                        "accuracy_results/plots/value/mish/mish-bfloat16.png"
                     ],
                     "files": [
                         "accuracy_results/results/unary/mish/mish-bfloat16-[1].csv"
@@ -3063,6 +3101,25 @@
                             -100.0,
                             1000.0
                         ]
+                    }
+                },
+                {
+                    "id": "gelu-bfloat16-value",
+                    "name": "gelu",
+                    "outputs": [
+                        "accuracy_results/plots/value/gelu/gelu-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/gelu/gelu-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/gelu/gelu-tanh-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10.0,
+                            10.0
+                        ],
+                        "yscale": "linear"
                     }
                 },
                 {
