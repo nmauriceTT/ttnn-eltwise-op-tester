@@ -102,7 +102,7 @@ def find_latest_profiler_csv(operation, implementation_name):
     return str(csv_files[0])
 
 
-def run_bench(impl_file, implementation, dest_dir):
+def run_bench(impl_file, implementation, dtype, dest_dir):
 
     implementation_name, base_operation_name = implementation
     print(f"Running benchmark for {base_operation_name} {implementation_name}")
@@ -112,7 +112,7 @@ def run_bench(impl_file, implementation, dest_dir):
     name_append = f"{base_operation_name}_{implementation_name}_{timestamp}"
     
     BENCH_ITERATIONS = 10
-    BENCH_DTYPE = "bfloat16"
+    BENCH_DTYPE = dtype
 
 
     # Build tracy command
@@ -157,12 +157,12 @@ def run_bench(impl_file, implementation, dest_dir):
     
     return df
 
-def run_benchmarks(operation_file, all_implementations, dest_dir):
+def run_benchmarks(operation_file, all_implementations, dtype, dest_dir):
     
     df_all_results = pd.DataFrame()
     for implementation in all_implementations:
         print(f"Running benchmark for {implementation}")
-        df = run_bench(operation_file, implementation, dest_dir)
+        df = run_bench(operation_file, implementation, dtype, dest_dir)
         df_all_results = pd.concat([df_all_results, df], ignore_index=True)
 
     return df_all_results
@@ -223,6 +223,12 @@ def main(args):
         default=None,
         help="Filter operations by base operation name. If specified, runs all variants of the given operation. If not specified, runs all operations."
     )
+    parser.add_argument(
+        "--dtype", "-t",
+        type=str,
+        default="bfloat16",
+        help="Data type to benchmark (default: bfloat16). Must be one of: float32, bfloat16"
+    )
     
     parsed_args = parser.parse_args(args)
     
@@ -254,7 +260,7 @@ def main(args):
 
     METAL_HOME = os.getenv("TT_METAL_HOME")
     benchmark_dest_dir = f"{METAL_HOME}/generated/profiler/reports/"
-    df_all_results = run_benchmarks(operation_file, all_operations, benchmark_dest_dir)
+    df_all_results = run_benchmarks(operation_file, all_operations, parsed_args.dtype, benchmark_dest_dir)
     df_processed_results = process_benchmarks(df_all_results)
 
     print(f"Processed results: {df_processed_results}")
