@@ -50,6 +50,14 @@ def try_plot(plot_entry):
         print(f"Error plotting {RED}{plot_entry['id']}: {e}{RESET}")
 
 
+# Remove data where inputs are subnormals
+def remove_subnormals(data, min_normal_value=2**-126):
+    data = data[data["base_x"].abs() >= min_normal_value]
+
+    data = data[data["base_y"].abs() >= min_normal_value]
+    return data
+
+
 def plot(plot_entry):
     all_outputs = plot_entry["outputs"]
     data = plot_entry["data"]
@@ -94,6 +102,9 @@ def plot(plot_entry):
 
     plot_type = plot_entry["type"] if "type" in plot_entry else "lineplot"
     print(f"Plot type: {id} - {plot_type}")
+
+    if "keep_subnormals" not in plot_params:
+        data = remove_subnormals(data)
 
     # Remove data that exceeds xmin,xmax,ymin,ymax
     if xmin is not None:
