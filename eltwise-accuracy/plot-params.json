@@ -37,7 +37,8 @@
                             10,
                             "10 ULP - \"approx\""
                         ]
-                    ]
+                    ],
+                    "keep_subnormals": true
                 }
             },
             "plots": [
@@ -125,6 +126,36 @@
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
                         "accuracy_results/results/unary/exp/exp-approx-bfloat16-[1].csv",
                         "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -200,
+                            128
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2,
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ]
+                    }
+                },
+                {
+                    "id": "exp-accurate-bfloat16-ulp",
+                    "name": "exp",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/exp/exp-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-21f-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-21f-v1-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -539,7 +570,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1e+38
+                            1000
                         ],
                         "ylim": [
                             0,
@@ -560,7 +591,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1e+38
+                            1000
                         ],
                         "ylim": [
                             0,
@@ -574,6 +605,27 @@
                     "name": "log2",
                     "outputs": [
                         "accuracy_results/plots/ulp/log2/log2-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            0,
+                            100
+                        ],
+                        "ylim": [
+                            0,
+                            40
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "log2-accurate-bfloat16-ulp",
+                    "name": "log2",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/log2/log2-accurate-bfloat16.png"
                     ],
                     "files": [
                         "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
@@ -605,7 +657,7 @@
                     "plot_params": {
                         "xlim": [
                             -0.9,
-                            1e+38
+                            1000
                         ],
                         "ylim": [
                             0,
@@ -625,6 +677,27 @@
                     ],
                     "plot_params": {
                         "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "tan-zoom-bfloat16-ulp",
+                    "name": "tan",
+                    "outputs": [
+                        "accuracy_results/plots/ulp/tan/tan-zoom-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/tan/tan-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "linear",
+                        "xlim": [
+                            -5,
+                            5
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ]
                     }
                 },
                 {
@@ -1397,15 +1470,14 @@
                     }
                 },
                 {
-                    "id": "exp-float32-ulp",
+                    "id": "exp-accurate-float32-ulp",
                     "name": "exp",
                     "outputs": [
-                        "accuracy_results/plots/ulp/exp/exp-float32.png"
+                        "accuracy_results/plots/ulp/exp/exp-accurate-float32.png"
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-fast-approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-21f-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2971,6 +3043,29 @@
             },
             "plots": [
                 {
+                    "id": "abs-bfloat16-value",
+                    "name": "abs",
+                    "outputs": [
+                        "accuracy_results/plots/value/abs/abs-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/abs/abs-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/abs/unknown-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -5,
+                            5
+                        ],
+                        "ylim": [
+                            -5,
+                            5
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
+                },
+                {
                     "id": "exp-bfloat16-value",
                     "name": "exp",
                     "outputs": [
@@ -2978,7 +3073,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-21f-v1-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
