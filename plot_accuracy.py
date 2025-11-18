@@ -53,7 +53,6 @@ def try_plot(plot_entry):
 # Remove data where inputs are subnormals
 def remove_subnormals(data, min_normal_value=2**-126):
     data = data[data["base_x"].abs() >= min_normal_value]
-
     data = data[data["base_y"].abs() >= min_normal_value]
     return data
 
@@ -167,11 +166,26 @@ def plot(plot_entry):
 
     if "vertical_lines" in plot_params:
         for vertical_line in plot_params["vertical_lines"]:
+
+            # Do not plot lines if outside graphs
+            if xmax is not None and vertical_line[0] > xmax:
+                continue
+            if xmin is not None and vertical_line[0] < xmin:
+                continue
+
             ax.axvline(x=vertical_line[0], color="k", linestyle="--")
             label_y = ax.get_ylim()[1] / 2
             ax.text(vertical_line[0], label_y, vertical_line[1])
+
     if "horizontal_lines" in plot_params:
         for horizontal_line in plot_params["horizontal_lines"]:
+
+            # Do not plot lines if outside graphs
+            if ymax is not None and horizontal_line[0] > ymax:
+                continue
+            if ymin is not None and horizontal_line[0] < ymin:
+                continue
+
             ax.axhline(y=horizontal_line[0], color="k", linestyle="--")
             label_x = ax.get_xlim()[1] / 2
             ax.text(label_x, horizontal_line[0], horizontal_line[1])
