@@ -20,22 +20,6 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 
 
-def load_report_params(params_file="eltwise-accuracy/report-params.json"):
-    """Load report parameters from JSON file."""
-    try:
-        with open(params_file, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"Error: {params_file} not found.")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"Error parsing {params_file}: {e}")
-        return None
-
-
-def check_image_exists(image_path):
-    """Check if an image file exists."""
-    return os.path.exists(image_path)
 
 def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_template):
 
@@ -106,11 +90,6 @@ def main():
     print("(From Report Parameters)")
     print("=" * 50)
     
-    # Step 1: Load report parameters
-    report_params = load_report_params()
-    if not report_params:
-        print("Failed to load report parameters. Exiting.")
-        return 1
     
     all_dtypes = ["bfloat16", "float32"]
     
@@ -128,12 +107,9 @@ def main():
         "binary": all_binary_operations
     }
 
-    print("Report parameters loaded successfully")
-
-    # Step 2: Create markdown report
     create_markdown_report_jinja2("accuracy_report.md", all_dtypes, all_operations, "report.md.j2")
-    # markdown_file = create_markdown_report(report_params)
     
+
     # Step 3: Convert to PDF
     if convert_to_pdf("accuracy_report.md"):
         print("\n" + "=" * 50)
