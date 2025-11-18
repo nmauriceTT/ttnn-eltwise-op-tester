@@ -6,9 +6,14 @@ This report contains accuracy analysis plots for various TTNN eltwise operations
 
 The following sections contain accuracy plots for different types of operations:
 
-1. **Unary Operations** - Single-input mathematical functions
-2. **Binary Operations** - Two-input mathematical functions
+1. **Unary Operations** - f(a) = y
+2. **Binary Operations** - f(a, b) = y
 
+Note: Tenstorrent hardware does not support subnormals and flushes subnormals values to zero. To reduce clutter, the following graphs do not plot subnoramls outputs.
+
+Tested data types: {{ dtypes }}
+Since float32 uses 23 bits of mantissa whereas bfloat16 uses 7 bits, float32 resolution will be `2^(16)` times higher than bfloat16. 
+This means that for a given ULP error of 1 with bfloat16, the ULP error for float32 will be `2^(16)`.
 
 # Unary Operations
 
