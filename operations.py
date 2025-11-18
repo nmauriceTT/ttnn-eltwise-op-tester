@@ -45,7 +45,7 @@ def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
 UNARY_OPERATIONS = {
     "abs": {
         "implementations": {
-            "abs": ttnn.abs 
+            "abs": ttnn.abs
         },
         "golden": torch.abs
     },
@@ -177,6 +177,11 @@ UNARY_OPERATIONS = {
             "sigmoid-accurate": ttnn.sigmoid_accurate,
             "sigmoid-accurate-approx": lambda x, output_tensor: ttnn.sigmoid_accurate(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "sigmoid-21f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("sigmoid"), x, output_tensor),
+        },
+    },
+    "log_sigmoid": {
+        "implementations": {
+            "log_sigmoid": ttnn.log_sigmoid
         },
     },
     "selu": {
@@ -316,12 +321,6 @@ BINARY_OPERATIONS = {
         },
         "golden": torch.pow
     },
-    "pow21f": {
-        "implementations": {
-            "pow21f": ttnn.pow
-        },
-        "golden": torch.pow
-    },
     "divide": {
         "implementations": {
             "divide": ttnn.divide,
@@ -336,6 +335,12 @@ BINARY_OPERATIONS = {
             "atan2": ttnn.atan2
         },
         "golden": torch.atan2
+    },
+    "rsub": {
+        "implementations": {
+            "rsub": ttnn.rsub
+        },
+        "golden": torch.rsub
     }
 }
 
@@ -395,12 +400,6 @@ def get_operation_variant_by_name(operation_dict, impl_name):
             return impl, golden_operation
 
     return None
-
-
-
-
-
-
 
 
 
