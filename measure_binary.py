@@ -39,6 +39,11 @@ def reduce_on_batch_and_cols(tensor):
     return {"min": tensor_min, "max": tensor_max, "mean": tensor_mean}
 
 
+# Remove data where inputs are subnormals
+def flush_subnormals(tensor, min_normal_value=2**-126):
+    return torch.where(tensor.abs() >= min_normal_value, tensor, torch.zeros_like(tensor))
+
+
 def bench_binary_op(operation, dest_dir):
     assert device is not None
     print(f"device =\n{device}")
@@ -57,6 +62,10 @@ def bench_binary_op(operation, dest_dir):
         ttnn_result = run_ttnn_op(ttnn_op, [tensor_a, tensor_b], device=device)
 
         torch_result = ttnn.to_torch(ttnn_result).to(torch.float32)
+
+        # Ideally, we would like to only flush subnormals when plottings.
+        # But this would be inconvenient here because we group take and take maximum errors.
+        torch_result = flush_subnormals(torch_result)
 
         # Compute ULP error
         golden_ulp = ulp(golden_result.to(torch.bfloat16)).to(torch.float32)
