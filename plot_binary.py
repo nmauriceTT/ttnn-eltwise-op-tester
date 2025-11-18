@@ -42,6 +42,7 @@ def plot_heatmap(plot_entry):
     operation_name = plot_entry["name"]
     output_paths = plot_entry["outputs"]
 
+
     # Get parameters from JSON config
     colormap_config = plot_params.get(
         "colormap",
@@ -104,12 +105,25 @@ def plot_heatmap(plot_entry):
 
     ascale = plot_params.get("ascale", "symlog")
     bscale = plot_params.get("bscale", "symlog")
+    
+    # If using log scale with negative limits, switch to symlog
+    if ascale == "log" and alim[0] < 0:
+        print(f"Warning: log scale cannot handle negative values. Switching to symlog for x-axis.")
+        ascale = "symlog"
+    if bscale == "log" and blim[0] < 0:
+        print(f"Warning: log scale cannot handle negative values. Switching to symlog for y-axis.")
+        bscale = "symlog"
+    
     plt.gca().set_xscale(ascale)
     plt.gca().set_yscale(bscale)
 
     # Use limits from JSON config
     plt.gca().set_xlim(alim[0], alim[1])
     plt.gca().set_ylim(blim[0], blim[1])
+
+    print(f"Xlim: {plt.gca().get_xlim()}")
+    print(f"Ylim: {plt.gca().get_ylim()}")
+    print(f"alim = {alim}, blim = {blim}")
 
     # Add reference lines
     if "horizontal_lines" in plot_params:

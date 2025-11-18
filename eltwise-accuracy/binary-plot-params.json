@@ -42,9 +42,9 @@
                         "vertical_lines": [
                             [1, "$y = 0 + b$"]
                         ],
-                        "alim": [1e-12, 1e12],
-                        "blim": [-1e3, 1e3],
-                        "ascale": "log",
+                        "alim": [1e-38, 1e38],
+                        "blim": [-1e38, 1e38],
+                        "ascale": "symlog",
                         "bscale": "symlog"
                     }
                 },
@@ -59,10 +59,32 @@
                     ],
                     "plot_params": {
                         "horizontal_lines": [
-                            [0, "$y = a \times 0$"]
+                            [0, "$y = a \\times 0$"]
                         ],
                         "vertical_lines": [
-                            [1, "$y = 0 \times b$"]
+                            [1, "$y = 0 \\times b$"]
+                        ],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "pow-bfloat16-ulp",
+                    "name": "pow",
+                    "outputs": [
+                        "accuracy_results/plots/binary_heatmaps/pow/pow[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/pow/pow[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a ^ 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 ^ b$"]
                         ],
                         "alim": [1e-12, 1e12],
                         "blim": [-1e3, 1e3],
@@ -80,9 +102,9 @@
                         "accuracy_results/results/binary/hypot/hypot[bfloat16].csv"
                     ],
                     "plot_params": {
-                        "alim": [1e-12, 1e12],
-                        "blim": [-1e3, 1e3],
-                        "ascale": "log",
+                        "alim": [-1e20, 1e20],
+                        "blim": [-1e20, 1e20],
+                        "ascale": "symlog",
                         "bscale": "symlog"
                     }
                 },
@@ -101,7 +123,11 @@
                         ],
                         "vertical_lines": [
                             [1, "x/1"]
-                        ]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
                     }
                 },
                 {
@@ -119,7 +145,11 @@
                         ],
                         "vertical_lines": [
                             [1, "x/1"]
-                        ]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
                     }
                 },
                 {
@@ -137,7 +167,11 @@
                         ],
                         "vertical_lines": [
                             [1, "x/1"]
-                        ]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
                     }
                 },
                 {
@@ -155,7 +189,11 @@
                         ],
                         "vertical_lines": [
                             [1, "x/1"]
-                        ]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
                     }
                 },
                 {
@@ -173,7 +211,11 @@
                         ],
                         "vertical_lines": [
                             [1, "atan2(x, 1)"]
-                        ]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
                     }
                 }
             ]
