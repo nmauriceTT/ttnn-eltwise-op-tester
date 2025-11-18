@@ -195,6 +195,10 @@ def process_benchmarks(df_all_results):
         if ignore_row:
             continue
 
+        CORE_FREQ = 1e9 # Hardcode value for Wormhole
+        SECONDS_PER_UNIT = 1e9 # Nanoseconds per s
+        CYCLES_PER_NS = CORE_FREQ / SECONDS_PER_UNIT
+
         input_x = parse_input_size(row["OUTPUT_0_X_PAD[LOGICAL]"])
         input_y = parse_input_size(row["OUTPUT_0_Y_PAD[LOGICAL]"])
         input_z = parse_input_size(row["OUTPUT_0_Z_PAD[LOGICAL]"])
@@ -205,7 +209,7 @@ def process_benchmarks(df_all_results):
         input_size = input_x * input_y * input_z * input_w
         base_operation_name = row["base_operation_name"]
         implementation_name = row["implementation_name"]
-        cycles_per_datum = row["DEVICE KERNEL DURATION PER CORE MIN [ns]"] * core_count/ input_size
+        cycles_per_datum = row["DEVICE KERNEL DURATION PER CORE MIN [ns]"] * core_count / input_size * CYCLES_PER_NS
         cycles_per_tile = cycles_per_datum * TILE_SIZE
         processed_results = pd.concat([processed_results, pd.DataFrame({"base_operation_name": [base_operation_name], "implementation_name": [implementation_name], "cycles_per_datum": [cycles_per_datum], "cycles_per_tile": [cycles_per_tile]})], ignore_index=True)
 
