@@ -3,7 +3,7 @@ import torch
 import math
 from utils import TERM_RED, TERM_RESET
 
-from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel
+from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
 
 
 global_device = None
@@ -41,6 +41,7 @@ def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
     result = ttnn.from_torch(result, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device)
     return result
 
+
 # No golden function set => use ttnn.get_golden_function() from first implementation
 UNARY_OPERATIONS = {
     "abs": {
@@ -63,16 +64,14 @@ UNARY_OPERATIONS = {
     "exp": {
         "implementations": {
             "exp": ttnn.exp,
-            "exp-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "exp-fast-approx-v2": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            "exp-21f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.33718944, 0.65763629, 1.0017248], "exp-21f"), x, output_tensor),
-            "exp-61f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.0002170391, 0.001243946, 0.0096788315, 0.055483369, 0.24022982, 0.69314699, 1.0000000018], "exp-61f"), x, output_tensor),
-            "exp-Chebyshev-v1[2]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.34228965640068054,0.652752697467804,1.0022648572921753], "exp-Chebyshev-v1[2]"), x, output_tensor),
-            "exp-Chebyshev-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.013670309446752071,0.05174499750137329,0.24160435795783997,0.6929728984832764,1.000003457069397], "exp-Chebyshev-v1[4]"), x, output_tensor),
-            "exp-Chebyshev-v1[6]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.00021865784947294742,0.0012391331838443875,0.009684186428785324,0.055480629205703735,0.24023045599460602,0.6931469440460205,1.0], "exp-Chebyshev-v1[6]"), x, output_tensor),
-            "exp-Chebyshev-v1-c0ef0[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [0.012763113714754581,0.05344102904200554,0.24064704775810242,0.6931340098381042,1.0], "exp-Chebyshev-v1-c0ef0[4]"), x, output_tensor),
-
+            # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v1"), x, output_tensor),
+            # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v2", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v2"), x, output_tensor),
+            #  "exp-21f-v3": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v3", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v3"), x, output_tensor),
+            
+            # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [729586733673043887443944223575054454855764871356884577452638243716612489216.0, 24041561540797272846156846812991848448.0, 1.03109920024871826171875], "exp-21f-v1"), x, output_tensor),
+            # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2.2060558795928955078125, -1.9994220733642578125, 2.5256407260894775390625], "exp-21f-v2"), x, output_tensor),
         },
         "golden": torch.exp,
     },
@@ -262,7 +261,7 @@ UNARY_OPERATIONS = {
             "tanhshrink": lambda x, output_tensor: ttnn.tanhshrink(x)
         },
         "golden": lambda x, out: torch.nn.functional.tanhshrink(x)
-    }
+    },
 }
 
 

@@ -10,8 +10,51 @@
 #include "compute_kernel_api/eltwise_unary/trigonometry.h"
 #include "compute_kernel_api/mul_int32_sfpu.h"
 #include "compute_kernel_api/mul_int_sfpu.h"
-#include "compute_kernel_api/eltwise_unary/exp.h"
 #include "compute_kernel_api/eltwise_unary/rpow.h"
+
+#ifdef TRISC_MATH
+
+#include "ckernel.h"
+#include "ckernel_sfpu_conversions.h"
+#include "sfpi.h"
+
+
+{{ SFPU_KERNEL_IMPL }}
+
+template <bool is_fp32_dest_acc_en = false>
+void sfpu_kernel_generic() {
+    constexpr unsigned VECTORS_PER_FACE = 8;
+    for (unsigned i = 0; i < VECTORS_PER_FACE; i++) {
+        sfpi::vFloat in = dst_reg[0];
+        sfpi::vFloat result = {{ SFPU_KERNEL_NAME }}<is_fp32_dest_acc_en>(in);
+        dst_reg[0] = result;
+        dst_reg++; 
+    }
+}
+
+
+
+#endif // TRISC_MATH
+
+inline void sfpu_kernel(int dst_reg_index) {
+#ifdef TRISC_MATH
+    _llk_math_eltwise_unary_sfpu_params_<false>(
+        sfpu_kernel_generic<DST_ACCUM_MODE>,
+        dst_reg_index,
+        VectorMode::RC // Apply on all 4 faces of the tile
+    );
+#endif // TRISC_MATH
+}
+
+
+
+inline void sfpu_kernel_init() {
+#ifdef TRISC_MATH
+    llk_math_eltwise_unary_sfpu_init<SfpuType::exponential, false>(
+        {{ SFPU_KERNEL_NAME }}_init);
+#endif // TRISC_MATH
+}
+
 
 
 namespace NAMESPACE {
@@ -31,8 +74,8 @@ void MAIN {
             copy_tile(tt::CBIndex::c_0, 0, 0);
 
             constexpr int dst_reg_index = 0;
-            {{ SFPU_LLK_INIT_NAME }}();
-            {{ SFPU_LLK_NAME }}(dst_reg_index);
+            sfpu_kernel_init();
+            sfpu_kernel(dst_reg_index);
 
             tile_regs_commit();
 

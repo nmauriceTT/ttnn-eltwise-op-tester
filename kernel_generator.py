@@ -40,7 +40,7 @@ def generate_sfpi_kernel_source_code_with_polynomial(jinja_env, sfpi_kernel_name
 
 def generate_kernel_from_sfpi_source(kernel_name, sfpi_kernel_name):
 
-    kernel_name = "unary"
+    kernel_name = "unary-sfpi"
 
     jinja_env = Environment(
         loader=FileSystemLoader("kernel_templates"),
@@ -62,7 +62,7 @@ def generate_kernel_from_sfpi_source(kernel_name, sfpi_kernel_name):
 
 def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, polynomial_coefficients):
 
-    kernel_name = "unary"
+    kernel_name = "unary-sfpi"
 
     jinja_env = Environment(
         loader=FileSystemLoader("kernel_templates"),
@@ -83,12 +83,20 @@ def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, p
 
     return kernel_source_code
 
-def generate_exp_kernel_from_polynomial(polynomial_coefficients):
-    
-    compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary", "exp", polynomial_coefficients)
-    
-    return compute_kernel_source_code
+def generate_kernel_source_code_from_llk(kernel_name, llk_init, llk_name):
 
+    kernel_name = "unary"
+    jinja_env = Environment(
+        loader=FileSystemLoader("kernel_templates"),
+    )
+
+    template = jinja_env.get_template(f"{kernel_name}.cpp.j2")
+
+    kernel_source_code = template.render(
+        SFPU_LLK_INIT_NAME=llk_init,
+        SFPU_LLK_NAME=llk_name,
+    )
+    return kernel_source_code
 
 
 def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_output_tensor=None, core_grid=None, metal_home_dir=None):
@@ -218,12 +226,12 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
 
 
 def generate_unary_kernel_from_sfpi_source(sfpi_kernel_name):
-    return generate_kernel_from_sfpi_source("unary", sfpi_kernel_name)
+    return generate_kernel_from_sfpi_source("unary-sfpi", sfpi_kernel_name)
 
 
 def generate_unary_kernel_from_polynomial(sfpi_kernel_name, polynomial_coefficients, full_name=None, core_grid=None):
 
-    compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary", sfpi_kernel_name, polynomial_coefficients)
+    compute_kernel_source_code = generate_kernel_source_code_from_polynomial("unary-sfpi", sfpi_kernel_name, polynomial_coefficients)
     
     # For debugging purposes
     if full_name is None:
