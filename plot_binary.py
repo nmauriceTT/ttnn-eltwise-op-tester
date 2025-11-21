@@ -34,7 +34,7 @@ def plot_heatmap(plot_entry):
     Similar to the plot function in plot_accuracy.py but adapted for heatmaps.
 
     Args:
-        plot_entry: Dictionary containing plot configuration from binary-plot-params.json
+        plot_entry: Dictionary containing plot configuration from binary-plots.json
     """
     # Extract data from plot_entry
     data = plot_entry["data"]
@@ -244,7 +244,7 @@ def main():
 
     # plot_all_ops(f"{accuracy_dir}", all_operations, f"{dest_dir}/abs/", highres=False, plot_absolute=True)
 
-    plot_config = parse_plot_config("eltwise-accuracy/binary-plot-params.json")
+    plot_config = parse_plot_config("configs/binary-plots.json")
 
     last_hashes = load_plot_config_hashes(f"accuracy_results/binary-plot-hashes.csv")
 

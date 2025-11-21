@@ -100,13 +100,13 @@ python generate_report_from_existing_plots.py
 ### Data Requirements
 - Accuracy data files in `accuracy_results/results/`
 - Plot configuration files:
-  - `eltwise-accuracy/plot-params.json`
-  - `eltwise-accuracy/binary-plot-params.json`
+  - `configs/unary-plots.json`
+  - `configs/binary-plots.json`
 
 ## How to Use
 
 ```bash
-python eltwise-accuracy/generate_report.py
+python generate_report.py
 ```
 
 ### Output Files
@@ -148,7 +148,7 @@ pip install matplotlib seaborn pandas numpy
 sudo apt-get install pandoc texlive-latex-recommended
 
 # 4. Generate the complete report
-python3 eltwise-accuracy/generate_report.py
+python3 generate_report.py
 
 # 5. View the results
 ls -la accuracy_report.*

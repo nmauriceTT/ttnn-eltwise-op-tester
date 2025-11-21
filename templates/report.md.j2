@@ -25,7 +25,7 @@ This means that for a given ULP error of 1 with bfloat16, the ULP error for floa
 
 ### ttnn.{{ operation }}
 
-![ttnn.{{ operation }}](accuracy_results/plots/ulp/{{operation}}/{{ operation }}-{{ dtype }}.png)
+![ttnn.{{ operation }}](accuracy_results/plots/unary/ulp/{{operation}}/{{ operation }}-{{ dtype }}.png)
 
 {% endfor %}
 
@@ -42,7 +42,7 @@ This means that for a given ULP error of 1 with bfloat16, the ULP error for floa
 
 ### ttnn.{{ operation }}
 
-![ttnn.{{ operation }}](accuracy_results/plots/binary_heatmaps/{{ operation }}/{{ operation }}[{{ dtype }}].png)
+![ttnn.{{ operation }}](accuracy_results/plots/binary/heatmaps/{{ operation }}/{{ operation }}[{{ dtype }}].png)
 
 
 {% endfor %}
@@ -59,7 +59,7 @@ This means that for a given ULP error of 1 with bfloat16, the ULP error for floa
 ## Data Sources
 
 - Accuracy data: `accuracy_results/results/`
-- Plot configurations: `eltwise-accuracy/plot-params.json` and `eltwise-accuracy/binary-plot-params.json`
+- Plot configurations: `configs/unary-plots.json` and `configs/binary-plots.json`
 - Report configuration: `report-params.json`
 - Default `memory_config`
 

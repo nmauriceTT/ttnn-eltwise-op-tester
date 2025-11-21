@@ -245,7 +245,7 @@ def main():
     if not os.path.exists(f"{dest_dir}/abs/"):
         os.makedirs(f"{dest_dir}/abs/")
 
-    plot_config = parse_plot_config("eltwise-accuracy/plot-params.json")
+    plot_config = parse_plot_config("configs/unary-plots.json")
 
     last_hashes = load_plot_config_hashes(f"accuracy_results/plot-hashes.csv")
 

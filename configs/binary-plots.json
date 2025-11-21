@@ -30,7 +30,7 @@
                     "id": "add-bfloat16-ulp",
                     "name": "add",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/add/add[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/add/add[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/add/add[bfloat16].csv"
@@ -42,8 +42,8 @@
                         "vertical_lines": [
                             [1, "$y = 0 + b$"]
                         ],
-                        "alim": [1e-38, 1e38],
-                        "blim": [-1e38, 1e38],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
@@ -52,7 +52,7 @@
                     "id": "multiply-bfloat16-ulp",
                     "name": "multiply",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/multiply/multiply[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/multiply/multiply[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/multiply/multiply[bfloat16].csv"
@@ -74,7 +74,7 @@
                     "id": "pow-bfloat16-ulp",
                     "name": "pow",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/pow/pow[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/pow/pow[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/pow/pow[bfloat16].csv"
@@ -96,7 +96,7 @@
                     "id": "hypot-bfloat16-ulp",
                     "name": "hypot",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/hypot/hypot[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/hypot/hypot[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/hypot/hypot[bfloat16].csv"
@@ -112,7 +112,7 @@
                     "id": "divide-bfloat16-ulp",
                     "name": "divide",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/divide/divide[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/divide/divide[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/divide/divide[bfloat16].csv"
@@ -134,7 +134,7 @@
                     "id": "divide-sfpu-bfloat16-ulp",
                     "name": "divide-sfpu",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/divide-sfpu/divide-sfpu[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/divide-sfpu/divide-sfpu[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/divide-sfpu/divide-sfpu[bfloat16].csv"
@@ -156,7 +156,7 @@
                     "id": "div-bfloat16-ulp",
                     "name": "div",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/div/div[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/div/div[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/div/div[bfloat16].csv"
@@ -178,7 +178,7 @@
                     "id": "div-accurate-bfloat16-ulp",
                     "name": "div-accurate",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/div-accurate/div-accurate[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/div-accurate/div-accurate[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/div-accurate/div-accurate[bfloat16].csv"
@@ -200,7 +200,7 @@
                     "id": "atan2-bfloat16-ulp",
                     "name": "atan2",
                     "outputs": [
-                        "accuracy_results/plots/binary_heatmaps/atan2/atan2[bfloat16].png"
+                        "accuracy_results/plots/binary/heatmaps/atan2/atan2[bfloat16].png"
                     ],
                     "files": [
                         "accuracy_results/results/binary/atan2/atan2[bfloat16].csv"
