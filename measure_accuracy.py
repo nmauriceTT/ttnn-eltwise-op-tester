@@ -16,7 +16,7 @@ from models.common.utility_functions import ulp
 
 
 from arg_parser import parse_args
-from operations import UNARY_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function
+from operations import UNARY_OPERATIONS, BINARY_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function, run_ttnn_op
 
 
 device_id = 0
@@ -217,47 +217,158 @@ def parse_operations_config_file(config_file):
     return config["operations"]
 
 
-def main(args):
-
-    args = parse_args("unary")
-
-
-    dest_dir = "accuracy_results/results/unary/"
-    os.makedirs(dest_dir, exist_ok=True)
-
-    # Set numpy floating point warning to reduce stdout clutter
-    # Since we test *all* possible floating point values, invalid values
-    # are expected.
-    np.seterr(divide="ignore")
-    np.seterr(invalid="ignore")
-    np.seterr(over="ignore")
-
-
-    if args.group_size is None:
-        if args.type == "bfloat16":
-            group_size = 1
-        elif args.type == "float32":
-            group_size = 65536
-        else:
-            raise ValueError(f"Invalid data type: {args.type}")
+def detect_operation_type(operation_name):
+    """Automatically determine if an operation is unary or binary by checking both dictionaries."""
+    if operation_name in UNARY_OPERATIONS:
+        return "unary"
+    elif operation_name in BINARY_OPERATIONS:
+        return "binary"
     else:
-        group_size = args.group_size
+        raise ValueError(f"Operation '{operation_name}' not found in UNARY_OPERATIONS or BINARY_OPERATIONS")
 
+
+# Binary operation measurement functions (from measure_binary.py)
+
+def reduce_batch_and_cols(tensor):
+    """Take 3D tensor and return 1D tensor
+    Input: [batch, rows, cols]
+    Output: [rows]
+    """
+    (tensor_tmp, _) = torch.max(tensor, dim=0)
+    (tensor_max, _) = tensor_tmp.max(dim=1)
+    return tensor_max
+
+
+def reduce_on_batch_and_cols(tensor):
+    """Reduce 3D tensor across batch and columns dimensions."""
+    # Compute max
+    (tensor_tmp, _) = torch.max(tensor, dim=0)
+    (tensor_max, _) = torch.max(tensor_tmp, dim=1)
+
+    # Compute min
+    (tensor_tmp, _) = torch.min(tensor, dim=0)
+    (tensor_min, _) = torch.min(tensor_tmp, dim=1)
+
+    # Compute average
+    tensor_tmp = torch.mean(tensor, dim=0)
+    tensor_mean = torch.mean(tensor_tmp, dim=1)
+
+    return {"min": tensor_min, "max": tensor_max, "mean": tensor_mean}
+
+
+def flush_subnormals(tensor, min_normal_value=2**-126):
+    """Remove data where inputs are subnormals."""
+    return torch.where(tensor.abs() >= min_normal_value, tensor, torch.zeros_like(tensor))
+
+
+def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name, dest_dir, group_size=128):
+    """Measure accuracy of a binary operation."""
+    assert device is not None
+    print(f"device =\n{device}")
+
+    df_all_results = pd.DataFrame()
+    batch_size = 128
+
+    # Initialize result storage for each implementation
+    impl_results = {impl_name: [] for _, impl_name in implementations}
+
+    i = 0
+    for tensor_a, tensor_b in utils.generate_binary_tensors_bf16():
+        print(f"Iteration = {i}")
+
+        # Run OP
+        golden_result = golden_binary_op(tensor_a.to(torch.float32), tensor_b.to(torch.float32))
+        # Ideally, we would like to only flush subnormals when plottings.
+        # But this would be inconvenient here because we group take and take maximum errors.
+        golden_result = flush_subnormals(golden_result)
+    
+        # Compute ULP resolution of golden output
+        golden_ulp = ulp(golden_result.to(torch.bfloat16)).to(torch.float32)
+        golden_result_f32 = golden_result.to(torch.float32)
+        
+        size = tensor_a.size()
+
+        for ttnn_binary_op, implementation_name in implementations:
+
+            ttnn_tensor_a = ttnn.from_torch(tensor_a, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
+            ttnn_tensor_b = ttnn.from_torch(tensor_b, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
+
+            ttnn_output = ttnn.zeros(size, dtype=ttnn.bfloat16, device=device, layout=ttnn.TILE_LAYOUT)
+            ttnn_output = ttnn_binary_op(ttnn_tensor_a, ttnn_tensor_b)
+            
+            calculated_torch_output = ttnn.to_torch(ttnn_output).to(torch.float32)
+
+            ulp_delta = torch.abs(calculated_torch_output - golden_result_f32) / golden_ulp
+
+            # Reduce values to same mantissa
+            # This should give 1D tensors with 2**9 elements,
+            # Each elements is the min/max/mean/... error for a pair of (mantissa_a, mantissa_b)
+            ulp_batch = reduce_on_batch_and_cols(ulp_delta)
+
+            rows = 2**9
+
+            assert ulp_batch["min"].size() == torch.Size([rows])
+            assert ulp_batch["max"].size() == torch.Size([rows])
+            assert ulp_batch["mean"].size() == torch.Size([rows])
+
+            # We must reduce on batch + columns
+            series_a_reduced = reduce_batch_and_cols(tensor_a.to(torch.float32))  # Note: 128 different mantissas
+            series_b_reduced = reduce_batch_and_cols(
+                tensor_b.to(torch.float32)
+            )  # Note: tensor has 128 elements, but all have same mantissa
+            assert series_a_reduced.size() == torch.Size([rows])
+            assert series_b_reduced.size() == torch.Size([rows])
+
+            # Insert into results
+            df_results = pd.DataFrame({
+                "a": series_a_reduced,
+                "b": series_b_reduced,
+                "max_ulp_error": ulp_batch["max"],
+                "operation": implementation_name,
+                "dtype": "bfloat16",
+            })
+
+            impl_results[implementation_name].append(df_results)
+
+        i += 1
+
+    # Write results to CSV
+    for _, implementation_name in implementations:
+        df_all_results.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[bfloat16].csv", na_rep="NaN", index_label="index")
+
+
+def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_name_filter=None, **kwargs):
+    """
+    Execute benchmarks for operations in the given operations dictionary.
+    
+    Args:
+        measurement_fun: Function to call for measuring accuracy (e.g., measure_op_accuracy_bf16, measure_op_accuracy_f32)
+        operations_dict: Dictionary of operations (e.g., UNARY_OPERATIONS, BINARY_OPERATIONS)
+        dest_dir: Destination directory for results
+        operation_name_filter: Optional operation name to filter by (if None, process all operations)
+        group_size: Optional group size parameter to pass to measurement function
+        **kwargs: Additional keyword arguments to pass to measurement function
+    
+    Returns:
+        Tuple of (successfull_operations, failed_operations)
+    """
     success_count = 0
     successfull_operations = []
     failed_operations = []
 
-    group_cnt = 0
+    # Calculate total group count (operations that match the filter)
     total_group_cnt = 0
+    if operation_name_filter is not None:
+        total_group_cnt = 1 if operation_name_filter in operations_dict else 0
+    else:
+        total_group_cnt = len(operations_dict)
+    group_cnt = 0
     
-
-    all_operations = UNARY_OPERATIONS
-    for operation_name, op_data in all_operations.items():
-
-        if args.operation is not None and operation_name != args.operation:
+    for operation_name, op_data in operations_dict.items():
+        if operation_name_filter is not None and operation_name != operation_name_filter:
             continue
 
-        golden_op = get_golden_function(UNARY_OPERATIONS, operation_name)
+        golden_op = get_golden_function(operations_dict, operation_name)
         implementations = [(ttnn_op_impl, impl_name) for impl_name, ttnn_op_impl in op_data["implementations"].items()]
 
         group_cnt += 1
@@ -266,12 +377,10 @@ def main(args):
         
         try:
             start_time = time.time()
-            if args.type == "bfloat16":
-                measure_op_accuracy_bf16(implementations, golden_op, operation_name, dest_dir, group_size=group_size)
-            elif args.type == "float32":
-                measure_op_accuracy_f32(implementations, golden_op, operation_name, dest_dir, group_size=group_size)
-            else:
-                raise ValueError(f"Invalid data type: {args.type}")
+            
+            # Call measurement function with implementations, golden_op, operation_name, dest_dir, and optional group_size
+            
+            measurement_fun(implementations, golden_op, operation_name, dest_dir, **kwargs)
 
             end_time = time.time()
             elapsed_s = end_time - start_time
@@ -284,13 +393,101 @@ def main(args):
             logger.warning(f"{traceback.format_exc()}")
             failed_operations.extend([impl_name for _, impl_name in implementations])
 
-    print(f"\nSucessfully ran {success_count} / {len(all_operations)} operations")
+    # Calculate total implementation count (accounting for filter)
+    if operation_name_filter is not None:
+        total_impl_count = len(operations_dict[operation_name_filter]["implementations"]) if operation_name_filter in operations_dict else 0
+    else:
+        total_impl_count = sum(len(op_data['implementations']) for op_data in operations_dict.values())
+    
+    print(f"\nSucessfully ran {success_count} / {total_impl_count} operations")
     print(f"{TERM_GREEN}SUCCESS: {successfull_operations}{TERM_RESET}")
     logger.warning(f"FAILED: {failed_operations}")
+    
+    return (successfull_operations, failed_operations)
 
 
-args = sys.argv
-main(args)
+
+def main(args, operation_type=None):
+    from arg_parser import create_parser, validate_operation
+    
+    # Create a parser to get operation name first (using unary parser which has all args)
+    basic_parser = create_parser("unary")  # Use unary as template (has all args including group-size)
+    
+    # Parse to get operation name first (without type-specific validation)
+    # args is sys.argv, so skip the script name
+    temp_args = basic_parser.parse_args(args[1:])
+    
+    # If operation is specified, auto-detect the type
+    if temp_args.operation is not None:
+        operation_type = detect_operation_type(temp_args.operation)
+        # Validate the operation with the detected type
+        temp_args.operation, temp_args.type = validate_operation(temp_args.operation, operation_type, temp_args.type)
+    else:
+        # No operation specified, use provided operation_type or default to "unary"
+        if operation_type is None:
+            operation_type = "unary"
+    
+    # Use the parsed args (they're already validated if operation was specified)
+    # Note: group-size will be None for binary operations, which is fine
+    args = temp_args
 
 
-ttnn.close_device(device)
+
+
+    # Set numpy floating point warning to reduce stdout clutter
+    # Since we test *all* possible floating point values, invalid values
+    # are expected.
+    np.seterr(divide="ignore")
+    np.seterr(invalid="ignore")
+    np.seterr(over="ignore")
+
+    if operation_type == "binary":
+        # Binary operations use a different measurement approach
+        all_operations = iterate_all_operations(BINARY_OPERATIONS)
+        dest_dir = f"accuracy_results/results/binary/"
+        os.makedirs(dest_dir, exist_ok=True)
+
+        # Use execute_benchmarks to process all unary operations
+        (successfull_operations, failed_operations) = execute_benchmarks(
+            measurement_fun=measure_binary_op_accuracy,
+            operations_dict=BINARY_OPERATIONS,
+            dest_dir=dest_dir,
+            operation_name_filter=args.operation,
+        )
+    else:
+        # Unary operations
+        if args.group_size is None:
+            if args.type == "bfloat16":
+                group_size = 1
+            elif args.type == "float32":
+                group_size = 65536
+            else:
+                raise ValueError(f"Invalid data type: {args.type}")
+        else:
+            group_size = args.group_size
+
+        dest_dir = f"accuracy_results/results/unary/"
+        os.makedirs(dest_dir, exist_ok=True)
+
+        # Select measurement function based on data type
+        if args.type == "bfloat16":
+            measurement_fun = measure_op_accuracy_bf16
+        elif args.type == "float32":
+            measurement_fun = measure_op_accuracy_f32
+        else:
+            raise ValueError(f"Invalid data type: {args.type}")
+
+        # Use execute_benchmarks to process all unary operations
+        (successfull_operations, failed_operations) = execute_benchmarks(
+            measurement_fun=measurement_fun,
+            operations_dict=UNARY_OPERATIONS,
+            dest_dir=dest_dir,
+            operation_name_filter=args.operation,
+            group_size=group_size
+        )
+
+
+if __name__ == "__main__":
+    args = sys.argv
+    main(args, operation_type="unary")
+    ttnn.close_device(device)

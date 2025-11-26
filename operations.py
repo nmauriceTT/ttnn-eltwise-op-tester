@@ -324,10 +324,15 @@ BINARY_OPERATIONS = {
         "implementations": {
             "divide": ttnn.divide,
             "div": ttnn.div,
-            "divide-sfpu": lambda x, y: run_ttnn_fp32_and_round_bf16(ttnn.divide, [x, y]),
             "div-accurate": lambda x, y: ttnn.div(x, y, accurate_mode=True)
         },
         "golden": torch.div
+    },
+    "fmod": {
+        "implementations": {
+            "fmod": ttnn.fmod
+        },
+        "golden": torch.fmod
     },
     "atan2": {
         "implementations": {
