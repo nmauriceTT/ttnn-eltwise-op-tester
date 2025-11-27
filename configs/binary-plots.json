@@ -1,7 +1,7 @@
 {
     "groups": [
         {
-            "id": "ulp_plots",
+            "id": "ulp_plot_bfloat16",
             "default_params": {
                 "type": "heatmap",
                 "dtype": "bfloat16",
@@ -15,9 +15,13 @@
                     "title": "ULP Error of ttnn.{} against torch\n[bfloat16]",
                     "colormap": [
                         {"threshold": 0, "color": "#2E8B57"},
-                        {"threshold": 2, "color": "#FFD700"},
+                        {"threshold": 1, "color": "#FFD700"},
+                        {"threshold": 2, "color": "#FF6347"},
+                        {"threshold": 3, "color": "#FF6347"},
+                        {"threshold": 4, "color": "#FF6347"},
                         {"threshold": 5, "color": "#FF6347"},
-                        {"threshold": 10, "color": "#8B0000"}
+                        {"threshold": 10, "color": "#FF6347"},
+                        {"threshold": 100, "color": "#8B0000"}
                     ],
                     "alim": [-1e9, 1e9],
                     "blim": [-1e9, 1e9],
@@ -217,8 +221,319 @@
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
+                },
+                {
+                    "id": "fmod-bfloat16-ulp",
+                    "name": "fmod",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/fmod/fmod[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/fmod/fmod[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "fmod(1, x)"]
+                        ],
+                        "vertical_lines": [
+                            [1, "fmod(x, 1)"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "rsub-bfloat16-ulp",
+                    "name": "rsub",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/rsub/rsub[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/rsub/rsub[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = 0 - a$"]
+                        ],
+                        "vertical_lines": [
+                            [0, "$y = 0 - b$"]
+                        ],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "ulp_plot_float32",
+            "default_params": {
+                "type": "heatmap",
+                "dtype": "float32",
+                "aname": "a",
+                "bname": "b",
+                "valuename": "max_ulp_error",
+                "ynames": [
+                    ["max_ulp_error", "", "-"]
+                ],
+                "plot_params": {
+                    "title": "ULP Error of ttnn.{} against torch\n[float32]",
+                    "colormap": [
+                        {"threshold": 1, "color": "#2E8B57"},
+                        {"threshold": 5, "color": "#2E8B57"},
+                        {"threshold": 10, "color": "#2E8B57"},
+                        {"threshold": 100, "color": "#FFD700"},
+                        {"threshold": 1000, "color": "#FF6347"},
+                        {"threshold": 10000, "color": "#8B0000"},
+                        {"threshold": 32000, "color": "#8B0000"}
+                    ],
+                    "alim": [-1e9, 1e9],
+                    "blim": [-1e9, 1e9],
+                    "ascale": "symlog",
+                    "bscale": "symlog"
+                }
+            },
+            "plots": [
+                {
+                    "id": "add-float32-ulp",
+                    "name": "add",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/add/add[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/add/add[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a + 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 + b$"]
+                        ],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "multiply-bfloat32-ulp",
+                    "name": "multiply",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/multiply/multiply[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/multiply/multiply[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a \\times 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 \\times b$"]
+                        ],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "pow-float32-ulp",
+                    "name": "pow",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/pow/pow[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/pow/pow[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a ^ 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 ^ b$"]
+                        ],
+                        "alim": [1e-12, 1e12],
+                        "blim": [-1e3, 1e3],
+                        "ascale": "log",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "hypot-float32-ulp",
+                    "name": "hypot",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/hypot/hypot[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/hypot/hypot[float32].csv"
+                    ],
+                    "plot_params": {
+                        "alim": [-1e20, 1e20],
+                        "blim": [-1e20, 1e20],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "divide-float32-ulp",
+                    "name": "divide",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/divide/divide[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide/divide[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "1/x"]
+                        ],
+                        "vertical_lines": [
+                            [1, "x/1"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "divide-sfpu-float32-ulp",
+                    "name": "divide-sfpu",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/divide-sfpu/divide-sfpu[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide-sfpu/divide-sfpu[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "1/x"]
+                        ],
+                        "vertical_lines": [
+                            [1, "x/1"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "div-float32-ulp",
+                    "name": "div",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/div/div[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div/div[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "1/x"]
+                        ],
+                        "vertical_lines": [
+                            [1, "x/1"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "div-accurate-float32-ulp",
+                    "name": "div-accurate",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/div-accurate/div-accurate[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div-accurate/div-accurate[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "1/x"]
+                        ],
+                        "vertical_lines": [
+                            [1, "x/1"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "atan2-float32-ulp",
+                    "name": "atan2",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/atan2/atan2[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "atan2(1, x)"]
+                        ],
+                        "vertical_lines": [
+                            [1, "atan2(x, 1)"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "fmod-float32-ulp",
+                    "name": "fmod",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/fmod/fmod[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/fmod/fmod[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "fmod(1, x)"]
+                        ],
+                        "vertical_lines": [
+                            [1, "fmod(x, 1)"]
+                        ],
+                        "alim": [-1e30, 1e30],
+                        "blim": [-1e30, 1e30],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "rsub-float32-ulp",
+                    "name": "rsub",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/rsub/rsub[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/rsub/rsub[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = 0 - a$"]
+                        ],
+                        "vertical_lines": [
+                            [0, "$y = 0 - b$"]
+                        ],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
                 }
             ]
         }
-]
+    ]
 }

@@ -36,126 +36,136 @@ def plot_heatmap(plot_entry):
     Args:
         plot_entry: Dictionary containing plot configuration from binary-plots.json
     """
-    # Extract data from plot_entry
-    data = plot_entry["data"]
-    plot_params = plot_entry["plot_params"]
-    operation_name = plot_entry["name"]
-    output_paths = plot_entry["outputs"]
 
 
-    # Get parameters from JSON config
-    colormap_config = plot_params.get(
-        "colormap",
-        [
-            {"threshold": 0, "color": "#2E8B57"},
-            {"threshold": 2, "color": "#FFD700"},
-            {"threshold": 5, "color": "#FF6347"},
-            {"threshold": 10, "color": "#8B0000"},
-        ],
-    )
+    try:
 
-    alim = plot_params.get("alim", [-1e9, 1e9])
-    blim = plot_params.get("blim", [-1e9, 1e9])
-
-    # Extract column names from config
-    aname = plot_entry.get("aname", "a")
-    bname = plot_entry.get("bname", "b")
-    valuename = plot_entry.get("valuename", "max_ulp_error")
-
-    # Create pivot table with a on x-axis, b on y-axis, max_ulp_error as values
-    pivot_data = data.pivot(columns=aname, index=bname, values=valuename)
-
-    # Create figure with appropriate size
-    plt.figure(figsize=(12, 10))
-
-    # Create custom colormap from JSON config
-    # colors = [item["color"] for item in colormap_config]
-    # boundaries = [item["threshold"] for item in colormap_config] + [1e9]
-
-    # print(f"BOUNDARIES = {boundaries}")
-    # print(f"COLORS = {colors}")
-
-    # cmap = mcolors.ListedColormap(colors)
-    # norm = mcolors.BoundaryNorm(boundaries, cmap.N)
-    levels = [1e-6, 1, 2, 3, 4, 5, 10, 100, 100]
-    cmap = plt.colormaps["PiYG"]
-    cmap.set_bad(color="purple")
-
-    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-
-    # Handle NaN values
-    nan_mask = np.isnan(pivot_data.values)
-
-    # Create the color mesh
-    x_coords = pivot_data.columns.values
-    y_coords = pivot_data.index.values
-
-    # Create meshgrid for pcolormesh
-    X, Y = np.meshgrid(x_coords, y_coords)
-
-    # Create the color mesh
-    mesh = plt.pcolormesh(X, Y, pivot_data.values, norm=norm, cmap="PuBu_r", shading="auto")
-
-    # Create colorbar
-    cbar = plt.colorbar(mesh, norm=norm, label="Max ULP Error", ticks=levels)
-
-    # Set background color for NaN values to Yellow
-    plt.gca().set_facecolor("yellow")
+        # Extract data from plot_entry
+        data = plot_entry["data"]
+        plot_params = plot_entry["plot_params"]
+        operation_name = plot_entry["name"]
+        output_paths = plot_entry["outputs"]
 
 
-    ascale = plot_params.get("ascale", "symlog")
-    bscale = plot_params.get("bscale", "symlog")
-    
-    # If using log scale with negative limits, switch to symlog
-    if ascale == "log" and alim[0] < 0:
-        print(f"Warning: log scale cannot handle negative values. Switching to symlog for x-axis.")
-        ascale = "symlog"
-    if bscale == "log" and blim[0] < 0:
-        print(f"Warning: log scale cannot handle negative values. Switching to symlog for y-axis.")
-        bscale = "symlog"
-    
-    plt.gca().set_xscale(ascale)
-    plt.gca().set_yscale(bscale)
+        # Get parameters from JSON config
+        colormap_config = plot_params.get(
+            "colormap",
+            [
+                {"threshold": 0, "color": "#2E8B57"},
+                {"threshold": 2, "color": "#FFD700"},
+                {"threshold": 5, "color": "#FF6347"},
+                {"threshold": 10, "color": "#8B0000"},
+            ],
+        )
 
-    # Use limits from JSON config
-    plt.gca().set_xlim(alim[0], alim[1])
-    plt.gca().set_ylim(blim[0], blim[1])
+        alim = plot_params.get("alim", [-1e9, 1e9])
+        blim = plot_params.get("blim", [-1e9, 1e9])
 
-    print(f"Xlim: {plt.gca().get_xlim()}")
-    print(f"Ylim: {plt.gca().get_ylim()}")
-    print(f"alim = {alim}, blim = {blim}")
+        # Extract column names from config
+        aname = plot_entry.get("aname", "a")
+        bname = plot_entry.get("bname", "b")
+        valuename = plot_entry.get("valuename", "max_ulp_error")
 
-    # Add reference lines
-    if "horizontal_lines" in plot_params:
-        for horizontal_line in plot_params["horizontal_lines"]:
-            plt.axhline(y=horizontal_line[0], color="red", linestyle="--", linewidth=1.5, label=horizontal_line[1], alpha=0.5)
-            plt.text(x=plt.gca().get_xlim()[0], y=horizontal_line[0], s=horizontal_line[1], color="red", va="bottom", ha="left")
+        # Create pivot table with a on x-axis, b on y-axis, max_ulp_error as values
+        pivot_data = data.pivot(columns=aname, index=bname, values=valuename)
 
-    if "vertical_lines" in plot_params:
-        for vertical_line in plot_params["vertical_lines"]:
-            plt.axvline(x=vertical_line[0], color="red", linestyle="--", linewidth=1.5, label=vertical_line[1], alpha=0.5)
-            plt.text(x=vertical_line[0], y=plt.gca().get_ylim()[1] * 0.9, s=vertical_line[1], color="red", va="top", ha="left")
+        # Create figure with appropriate size
+        plt.figure(figsize=(12, 10))
 
-    # Set title and labels
+        # Create custom colormap from JSON config
+        # colors = [item["color"] for item in colormap_config]
+        # boundaries = [item["threshold"] for item in colormap_config] + [1e9]
 
-    title = plot_params.get("title", None)
-    short_name = plot_entry["name"] if "name" in plot_entry else operation_name
-    if title is not None:
-        title = title.format(short_name)
+        # print(f"BOUNDARIES = {boundaries}")
+        # print(f"COLORS = {colors}")
 
-    plt.title(title + f"\n(Yellow = NaN or Inf)", pad=20)
-    plt.xlabel("X")
-    plt.ylabel("Y")
+        # cmap = mcolors.ListedColormap(colors)
+        # norm = mcolors.BoundaryNorm(boundaries, cmap.N)
+        # levels = [1e-6, 1, 2, 3, 4, 5, 10, 100, 100]
+        levels = [1e-6] + [item["threshold"] for item in colormap_config]
+        cmap = plt.colormaps[plot_params.get("colormap_name", "PiYG")]
+        cmap.set_bad(color="purple")
 
-    # Adjust layout to prevent label cutoff
-    plt.tight_layout()
+        norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
-    # Save the plot to all specified output paths
-    for output_path in output_paths:
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        plt.savefig(output_path, dpi=300, bbox_inches="tight")
+        # Handle NaN values
+        nan_mask = np.isnan(pivot_data.values)
 
-    plt.close()
+        # Create the color mesh
+        x_coords = pivot_data.columns.values
+        y_coords = pivot_data.index.values
+
+        # Create meshgrid for pcolormesh
+        X, Y = np.meshgrid(x_coords, y_coords)
+
+        # Create the color mesh
+        mesh = plt.pcolormesh(X, Y, pivot_data.values, norm=norm, cmap="PuBu_r", shading="auto")
+
+        # Create colorbar
+        cbar = plt.colorbar(mesh, norm=norm, label="Max ULP Error", ticks=levels)
+
+        # Set background color for NaN values to Yellow
+        plt.gca().set_facecolor("yellow")
+
+
+        ascale = plot_params.get("ascale", "symlog")
+        bscale = plot_params.get("bscale", "symlog")
+        
+        # If using log scale with negative limits, switch to symlog
+        if ascale == "log" and alim[0] < 0:
+            print(f"Warning: log scale cannot handle negative values. Switching to symlog for x-axis.")
+            ascale = "symlog"
+        if bscale == "log" and blim[0] < 0:
+            print(f"Warning: log scale cannot handle negative values. Switching to symlog for y-axis.")
+            bscale = "symlog"
+        
+        plt.gca().set_xscale(ascale)
+        plt.gca().set_yscale(bscale)
+
+        # Use limits from JSON config
+        plt.gca().set_xlim(alim[0], alim[1])
+        plt.gca().set_ylim(blim[0], blim[1])
+
+        print(f"Xlim: {plt.gca().get_xlim()}")
+        print(f"Ylim: {plt.gca().get_ylim()}")
+        print(f"alim = {alim}, blim = {blim}")
+
+        # Add reference lines
+        if "horizontal_lines" in plot_params:
+            for horizontal_line in plot_params["horizontal_lines"]:
+                plt.axhline(y=horizontal_line[0], color="red", linestyle="--", linewidth=1.5, label=horizontal_line[1], alpha=0.5)
+                plt.text(x=plt.gca().get_xlim()[0], y=horizontal_line[0], s=horizontal_line[1], color="red", va="bottom", ha="left")
+
+        if "vertical_lines" in plot_params:
+            for vertical_line in plot_params["vertical_lines"]:
+                plt.axvline(x=vertical_line[0], color="red", linestyle="--", linewidth=1.5, label=vertical_line[1], alpha=0.5)
+                plt.text(x=vertical_line[0], y=plt.gca().get_ylim()[1] * 0.9, s=vertical_line[1], color="red", va="top", ha="left")
+
+        # Set title and labels
+
+        title = plot_params.get("title", None)
+        short_name = plot_entry["name"] if "name" in plot_entry else operation_name
+        if title is not None:
+            title = title.format(short_name)
+
+        plt.title(title + f"\n(Yellow = NaN or Inf)", pad=20)
+        plt.xlabel("X")
+        plt.ylabel("Y")
+
+        # Adjust layout to prevent label cutoff
+        plt.tight_layout()
+
+        # Save the plot to all specified output paths
+        for output_path in output_paths:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            plt.savefig(output_path, dpi=300, bbox_inches="tight")
+
+        plt.close()
+    except Exception as e:
+        import traceback
+        print(f"Error plotting {plot_entry['id']}: {e}")
+        traceback.print_exc()
+        plt.close()
 
 
 def preprocess_data(data):

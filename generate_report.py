@@ -100,7 +100,7 @@ def main():
         "digamma", "lgamma", "tanhshrink"
     ]
     all_binary_operations = [
-        "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2"
+        "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2", "rsub"
     ]
     all_operations = {
         "unary": all_unary_operations,

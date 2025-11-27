@@ -261,16 +261,22 @@ def flush_subnormals(tensor, min_normal_value=2**-126):
     return torch.where(tensor.abs() >= min_normal_value, tensor, torch.zeros_like(tensor))
 
 
-def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name, dest_dir, group_size=128):
+def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name, dest_dir, dtype):
     """Measure accuracy of a binary operation."""
     assert device is not None
     print(f"device =\n{device}")
+
+    ttnn_dtype = getattr(ttnn, dtype)
+    torch_dtype = getattr(torch, dtype)
 
     df_all_results = pd.DataFrame()
     batch_size = 128
 
     # Initialize result storage for each implementation
     impl_results = {impl_name: [] for _, impl_name in implementations}
+
+    # Ensure output directory exists
+    os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
 
     i = 0
     for tensor_a, tensor_b in utils.generate_binary_tensors_bf16():
@@ -283,17 +289,17 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
         golden_result = flush_subnormals(golden_result)
     
         # Compute ULP resolution of golden output
-        golden_ulp = ulp(golden_result.to(torch.bfloat16)).to(torch.float32)
+        golden_ulp = ulp(golden_result.to(torch_dtype)).to(torch.float32)
         golden_result_f32 = golden_result.to(torch.float32)
         
         size = tensor_a.size()
 
         for ttnn_binary_op, implementation_name in implementations:
 
-            ttnn_tensor_a = ttnn.from_torch(tensor_a, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
-            ttnn_tensor_b = ttnn.from_torch(tensor_b, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
+            ttnn_tensor_a = ttnn.from_torch(tensor_a, device=device, dtype=ttnn_dtype, layout=ttnn.TILE_LAYOUT)
+            ttnn_tensor_b = ttnn.from_torch(tensor_b, device=device, dtype=ttnn_dtype, layout=ttnn.TILE_LAYOUT)
 
-            ttnn_output = ttnn.zeros(size, dtype=ttnn.bfloat16, device=device, layout=ttnn.TILE_LAYOUT)
+            ttnn_output = ttnn.zeros(size, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT)
             ttnn_output = ttnn_binary_op(ttnn_tensor_a, ttnn_tensor_b)
             
             calculated_torch_output = ttnn.to_torch(ttnn_output).to(torch.float32)
@@ -325,7 +331,7 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
                 "b": series_b_reduced,
                 "max_ulp_error": ulp_batch["max"],
                 "operation": implementation_name,
-                "dtype": "bfloat16",
+                "dtype": dtype,
             })
 
             impl_results[implementation_name].append(df_results)
@@ -334,7 +340,8 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
 
     # Write results to CSV
     for _, implementation_name in implementations:
-        df_all_results.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[bfloat16].csv", na_rep="NaN", index_label="index")
+        all_df = pd.concat(impl_results[implementation_name])
+        all_df.to_csv(f"{dest_dir}/{implementation_name}/{implementation_name}[{dtype}].csv", na_rep="NaN", index_label="index")
 
 
 def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_name_filter=None, **kwargs):
@@ -431,9 +438,6 @@ def main(args, operation_type=None):
     # Note: group-size will be None for binary operations, which is fine
     args = temp_args
 
-
-
-
     # Set numpy floating point warning to reduce stdout clutter
     # Since we test *all* possible floating point values, invalid values
     # are expected.
@@ -453,6 +457,7 @@ def main(args, operation_type=None):
             operations_dict=BINARY_OPERATIONS,
             dest_dir=dest_dir,
             operation_name_filter=args.operation,
+            dtype=args.type,
         )
     else:
         # Unary operations
