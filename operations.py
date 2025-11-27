@@ -1,7 +1,11 @@
 import ttnn
 import torch
 import math
+import numpy as np
 from utils import TERM_RED, TERM_RESET
+import struct
+
+
 
 from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
 
@@ -42,6 +46,387 @@ def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
     return result
 
 
+def exp_fp32(x):
+    """
+    Compute exp(x) using only fp32 internal arithmetic.
+    Vectorized to handle arrays element-wise.
+
+    Algorithm:
+    1. Handle special cases (overflow, underflow)
+    2. Convert to base-2: exp(x) = 2^(x/ln2)
+    3. Range reduction: z = x/ln2 = k + r where k is integer, r in [-0.5, 0.5]
+    4. Compute 2^r using polynomial approximation
+    5. Scale by 2^k: result = 2^k * 2^r
+
+    IMPORTANT: All intermediate computations use ONLY fp32 precision.
+    """
+
+    ttnn_dtype = x.dtype
+    x = ttnn.to_torch(x, dtype=torch.float32)
+    x = x.numpy()
+
+    x = np.float32(x)
+
+    # Constants (all in fp32)
+    INV_LN2 = np.float32(1.4426950408889634)  # 1/ln(2)
+    OVERFLOW_THRESHOLD = np.float32(88.0)
+    UNDERFLOW_THRESHOLD = np.float32(-103.97)
+    HALF = np.float32(0.5)
+    ONE = np.float32(1.0)
+
+    # Initialize result array with same shape as input
+    result = np.zeros_like(x, dtype=np.float32)
+
+    # Handle special cases (vectorized)
+    nan_mask = np.isnan(x)
+    overflow_mask = x >= OVERFLOW_THRESHOLD
+    underflow_mask = x <= UNDERFLOW_THRESHOLD
+    
+    # Set special case values
+    result[nan_mask] = np.float32(np.nan)
+    result[overflow_mask] = np.float32(np.inf)
+    result[underflow_mask] = np.float32(0.0)
+    
+    # Mask for normal computation (not special cases)
+    normal_mask = ~(nan_mask | overflow_mask | underflow_mask)
+
+    # Only compute for normal values
+    if np.any(normal_mask):
+        x_normal = x[normal_mask]
+
+        # Step 1: Convert to base-2 exponential
+        # z = x / ln(2)
+        z = np.float32(x_normal * INV_LN2)
+
+        # Step 2: Range reduction
+        # Split z = k + r where k is integer, r in [-0.5, 0.5]
+        k_temp = np.float32(z + HALF)
+        k = np.float32(np.floor(k_temp))
+        k_int = k.astype(np.int32)  # Convert to integer array
+
+        # BUG FIX: Compute r = z - k (NOT r = x - k*ln2)
+        # This is correct because we want: 2^z = 2^(k+r) = 2^k * 2^r
+        r = np.float32(z - k)
+
+        # Step 3: Polynomial approximation for 2^r
+        # Using Taylor series: 2^r = exp(r*ln2) = 1 + r*ln2 + (r*ln2)²/2! + ...
+        # For better accuracy, compute s = r*ln2, then use exp(s) polynomial
+
+        LN2 = np.float32(0.6931471805599453)
+
+        # Compute s = r * ln(2), all in fp32
+        s = np.float32(r * LN2)
+
+        # Now approximate exp(s) using Taylor series
+        # exp(s) = 1 + s + s²/2! + s³/3! + s⁴/4! + s⁵/5! + s⁶/6!
+        # Coefficients for exp(s)
+        c6 = np.float32(1.0 / 720.0)     # 1/6!
+        c5 = np.float32(1.0 / 120.0)     # 1/5!
+        c4 = np.float32(1.0 / 24.0)      # 1/4!
+        c3 = np.float32(1.0 / 6.0)       # 1/3!
+        c2 = np.float32(0.5)             # 1/2!
+        c1 = np.float32(1.0)             # 1/1!
+        c0 = np.float32(1.0)             # constant
+
+        # Horner's method for better accuracy (vectorized)
+        # p = c0 + s*(c1 + s*(c2 + s*(c3 + s*(c4 + s*(c5 + s*c6)))))
+        p = np.float32(c6)
+
+        temp = np.float32(p * s)
+        p = np.float32(c5 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c4 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c3 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c2 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c1 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c0 + temp)
+
+        # Step 4: Scale by 2^k using ldexp (fp32 only, vectorized)
+        # ldexp is just bit manipulation of exponent, works fine on fp32
+        result_normal = np.float32(np.ldexp(p, k_int))
+        
+        # Assign computed values back to result array
+        result[normal_mask] = result_normal
+
+    result = torch.from_numpy(result)
+    result = ttnn.from_torch(result, dtype=ttnn_dtype)
+
+    return result
+
+def exp_claude1(x):
+    """
+    Compute exp(x) using only fp32 internal arithmetic.
+    Vectorized to handle arrays element-wise.
+
+    Algorithm:
+    1. Handle special cases (overflow, underflow)
+    2. Convert to base-2: exp(x) = 2^(x/ln2)
+    3. Range reduction: z = x/ln2 = k + r where k is integer, r in [-0.5, 0.5]
+    4. Compute 2^r using polynomial approximation
+    5. Scale by 2^k: result = 2^k * 2^r
+
+    IMPORTANT: All intermediate computations use ONLY fp32 precision.
+    """
+
+    ttnn_dtype = x.dtype
+    x = ttnn.to_torch(x, dtype=torch.float32)
+    x = x.numpy()
+
+    x = np.float32(x)
+
+    # Constants (all in fp32)
+    INV_LN2 = np.float32(1.4426950408889634)  # 1/ln(2)
+    OVERFLOW_THRESHOLD = np.float32(88.0)
+    UNDERFLOW_THRESHOLD = np.float32(-103.97)
+    HALF = np.float32(0.5)
+    ONE = np.float32(1.0)
+
+    # Initialize result array with same shape as input
+    result = np.zeros_like(x, dtype=np.float32)
+
+    # Handle special cases (vectorized)
+    nan_mask = np.isnan(x)
+    overflow_mask = x >= OVERFLOW_THRESHOLD
+    underflow_mask = x <= UNDERFLOW_THRESHOLD
+    
+    # Set special case values
+    result[nan_mask] = np.float32(np.nan)
+    result[overflow_mask] = np.float32(np.inf)
+    result[underflow_mask] = np.float32(0.0)
+    
+    # Mask for normal computation (not special cases)
+    normal_mask = ~(nan_mask | overflow_mask | underflow_mask)
+
+    # Only compute for normal values
+    if np.any(normal_mask):
+        x_normal = x[normal_mask]
+
+        # Step 1: Convert to base-2 exponential
+        # z = x / ln(2)
+        z = np.float32(x_normal * INV_LN2)
+
+        # Step 2: Range reduction
+        # Split z = k + r where k is integer, r in [-0.5, 0.5]
+        k_temp = np.float32(z + HALF)
+        k = np.float32(np.floor(k_temp))
+        k_int = k.astype(np.int32)  # Convert to integer array
+
+        # BUG FIX: Compute r = z - k (NOT r = x - k*ln2)
+        # This is correct because we want: 2^z = 2^(k+r) = 2^k * 2^r
+        r = np.float32(z - k)
+
+        # Step 3: Polynomial approximation for 2^r
+        # Using Taylor series: 2^r = exp(r*ln2) = 1 + r*ln2 + (r*ln2)²/2! + ...
+        # For better accuracy, compute s = r*ln2, then use exp(s) polynomial
+
+        LN2 = np.float32(0.6931471805599453)
+
+        # Compute s = r * ln(2), all in fp32
+        s = np.float32(r * LN2)
+
+        # Now approximate exp(s) using Taylor series
+        # exp(s) = 1 + s + s²/2! + s³/3! + s⁴/4! + s⁵/5! + s⁶/6!
+        # Coefficients for exp(s)
+        # 1 + x * (1 + x * (0.5 + x * (0.16666664183139801025390625 + x * (4.16664592921733856201171875e-2 + x * (8.333896286785602569580078125e-3 + x * (1.39354146085679531097412109375e-3 + x * 1.95693559362553060054779052734375e-4))))))
+        
+        c7 = np.float32(1.95693559362553060054779052734375e-4)     # 1/7!
+        c6 = np.float32(1.39354146085679531097412109375e-3)     # 1/6!
+        c5 = np.float32(8.333896286785602569580078125e-3)
+        c4 = np.float32(4.16664592921733856201171875e-2)
+        c3 = np.float32(0.16666664183139801025390625)
+        c2 = np.float32(0.5)
+        c1 = np.float32(1.0)
+        c0 = np.float32(1.0)
+
+
+        # Horner's method for better accuracy (vectorized)
+        # p = c0 + s*(c1 + s*(c2 + s*(c3 + s*(c4 + s*(c5 + s*c6)))))
+        p = np.float32(c7)
+
+        temp = np.float32(p * s)
+        p = np.float32(c6 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c5 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c4 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c3 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c2 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c1 + temp)
+
+        temp = np.float32(p * s)
+        p = np.float32(c0 + temp)
+
+        
+
+
+
+        # Step 4: Scale by 2^k using ldexp (fp32 only, vectorized)
+        # ldexp is just bit manipulation of exponent, works fine on fp32
+        result_normal = np.float32(np.ldexp(p, k_int))
+        
+        # Assign computed values back to result array
+        result[normal_mask] = result_normal
+
+    result = torch.from_numpy(result)
+    result = ttnn.from_torch(result, dtype=ttnn_dtype)
+
+    return result
+
+
+def float_to_bits(f):
+    """Convert float32 to its bit representation as uint32."""
+    return struct.unpack('>I', struct.pack('>f', f))[0]
+
+
+def bits_to_float(b):
+    """Convert uint32 bit representation to float32."""
+    return struct.unpack('>f', struct.pack('>I', b))[0]
+
+def ln_fp32(x):
+    """
+    Compute natural logarithm using only fp32 internal arithmetic.
+    Vectorized to handle arrays element-wise.
+
+    Algorithm:
+    1. Handle special cases (x <= 0, infinity, NaN)
+    2. Extract exponent and mantissa: x = 2^n × m
+    3. Reduce range: adjust m to be in [sqrt(2)/2, sqrt(2)]
+    4. Compute ln(m) using polynomial approximation
+    5. Return n×ln(2) + ln(m)
+
+    IMPORTANT: All intermediate computations use ONLY fp32 precision.
+    """
+
+    ttnn_dtype = x.dtype
+    x = ttnn.to_torch(x, dtype=torch.float32)
+    x = x.numpy()
+
+    x = np.float32(x)
+
+    # Constants (precomputed in fp32)
+    LN2 = np.float32(0.6931471805599453)  # ln(2)
+    SQRT2 = np.float32(1.4142135623730951)  # sqrt(2)
+    HALF = np.float32(0.5)
+    ONE = np.float32(1.0)
+    TWO = np.float32(2.0)
+    ZERO = np.float32(0.0)
+    BIAS = np.float32(127.0)
+
+    # Initialize result array with same shape as input
+    result = np.zeros_like(x, dtype=np.float32)
+
+    # Handle special cases (vectorized)
+    nan_mask = np.isnan(x)
+    neg_mask = x < ZERO
+    zero_mask = x == ZERO
+    inf_mask = np.isinf(x)
+    
+    # Set special case values
+    result[nan_mask] = np.float32(np.nan)
+    result[neg_mask] = np.float32(np.nan)
+    result[zero_mask] = np.float32(-np.inf)
+    result[inf_mask] = np.float32(np.inf)
+    
+    # Mask for normal computation (not special cases)
+    normal_mask = ~(nan_mask | neg_mask | zero_mask | inf_mask)
+
+    # Only compute for normal values
+    if np.any(normal_mask):
+        x_normal = x[normal_mask]
+
+        # Extract bits using view casting (vectorized)
+        # NOTE: This is acceptable as it's just bit manipulation
+        # not higher precision arithmetic. We're extracting the IEEE 754 components.
+        bits = x_normal.view(np.uint32)
+
+        # Extract exponent (biased by 127) - convert to fp32 immediately (vectorized)
+        exp_biased = np.float32((bits >> 23) & 0xFF)
+        exp = np.float32(exp_biased - BIAS)
+
+        # Extract mantissa and construct m in [1, 2) (vectorized)
+        mantissa_bits = (bits & 0x007FFFFF) | 0x3F800000
+        m = mantissa_bits.view(np.float32).astype(np.float32)
+
+        # Range reduction: if m >= sqrt(2), divide by 2 and increment exponent
+        # All operations in fp32 (vectorized)
+        sqrt2_mask = m >= SQRT2
+        m = np.where(sqrt2_mask, np.float32(m * HALF), m)
+        exp = np.where(sqrt2_mask, np.float32(exp + ONE), exp)
+
+        # Now m is in [sqrt(2)/2, sqrt(2)] ≈ [0.707, 1.414]
+        # Transform to z = (m - 1) / (m + 1) for better convergence
+        # This maps m ∈ [0.707, 1.414] to z ∈ [-0.172, 0.172]
+        # ln(m) = 2 × (z + z³/3 + z⁵/5 + z⁷/7 + ...)
+
+        # ALL operations happen on fp32 values (vectorized)
+        m_minus_1 = np.float32(m - ONE)
+        m_plus_1 = np.float32(m + ONE)
+        z = np.float32(m_minus_1 / m_plus_1)
+        z2 = np.float32(z * z)
+
+        # Polynomial approximation using odd powers
+        # ln(m) = 2z(1 + z²/3 + z⁴/5 + z⁶/7 + z⁸/9 + z¹⁰/11)
+        # Using Horner's method with ALL operations in fp32 (vectorized)
+
+        # Coefficients for the series (precomputed as fp32)
+        c11 = np.float32(0.09090909090909091)  # 1/11
+        c9 = np.float32(0.1111111111111111)    # 1/9
+        c7 = np.float32(0.14285714285714285)   # 1/7
+        c5 = np.float32(0.2)                    # 1/5
+        c3 = np.float32(0.3333333333333333)    # 1/3
+
+        # Horner's method - each operation happens in fp32 before next (vectorized)
+        p = np.float32(c11)
+
+        temp = np.float32(z2 * p)
+        p = np.float32(c9 + temp)
+
+        temp = np.float32(z2 * p)
+        p = np.float32(c7 + temp)
+
+        temp = np.float32(z2 * p)
+        p = np.float32(c5 + temp)
+
+        temp = np.float32(z2 * p)
+        p = np.float32(c3 + temp)
+
+        temp = np.float32(z2 * p)
+        p = np.float32(ONE + temp)
+
+        # Final computation: ln(m) = 2 * z * p
+        temp = np.float32(z * p)
+        ln_m = np.float32(TWO * temp)
+
+        # Combine: ln(x) = exp×ln(2) + ln(m)
+        temp = np.float32(exp * LN2)
+        result_normal = np.float32(temp + ln_m)
+        
+        # Assign computed values back to result array
+        result[normal_mask] = result_normal
+
+    result = torch.from_numpy(result)
+    result = ttnn.from_torch(result, dtype=ttnn_dtype)
+
+    return result
+
+
 # No golden function set => use ttnn.get_golden_function() from first implementation
 UNARY_OPERATIONS = {
     "abs": {
@@ -66,12 +451,16 @@ UNARY_OPERATIONS = {
             "exp": ttnn.exp,
             "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            # "exp-minimax-v1[10]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [1.63186797408343409188091754913330078125e-9, ], "exp"), x, output_tensor),
             # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v1"), x, output_tensor),
             # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v2", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v2"), x, output_tensor),
             #  "exp-21f-v3": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v3", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v3"), x, output_tensor),
-            
+            #  "exp-v4": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-v4"), x, output_tensor),
+            # "exp-claude0": lambda x, output_tensor: exp_fp32(x),
+            # "exp-claude1": lambda x, output_tensor: exp_claude1(x),
             # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [729586733673043887443944223575054454855764871356884577452638243716612489216.0, 24041561540797272846156846812991848448.0, 1.03109920024871826171875], "exp-21f-v1"), x, output_tensor),
             # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2.2060558795928955078125, -1.9994220733642578125, 2.5256407260894775390625], "exp-21f-v2"), x, output_tensor),
+            "exp-claude-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-claude"), x, output_tensor),
         },
         "golden": torch.exp,
     },
@@ -82,7 +471,8 @@ UNARY_OPERATIONS = {
     },
     "expm1": {
         "implementations": {
-            "expm1": ttnn.expm1
+            "expm1": ttnn.expm1,
+            "expm1-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("expm1-v1"), x, output_tensor),
         },
     },
     "tanh": {
@@ -113,7 +503,17 @@ UNARY_OPERATIONS = {
     },
     "log": {
         "implementations": {
-            "log": ttnn.log
+            "log": ttnn.log,
+            # "log2-minimax-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [1.44212806224822998046875, -0.701747000217437744140625, 0.3664800822734832763671875, -0.1072541177272796630859375], "log2-minimax-v1[3]"), x, output_tensor),
+            
+            # "log-minimax-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [0.1417110860347747802734375, -0.4437794387340545654296875, 0.997174203395843505859375, 0.0], "log-minimax-v1[4]"), x, output_tensor),
+            # "log-minimax-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [-7.4343144893646240234375e-2, 0.2540250718593597412109375, -0.4864141643047332763671875, 0.999607026576995849609375, 0.0], "log-minimax-v1[4]"), x, output_tensor),
+            # "log-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [4.13467921316623687744140625e-2, -0.1574260294437408447265625, 0.3063000142574310302734375, -0.4969775378704071044921875, 0.999943256378173828125, 0.0], "log-minimax-v1[5]"), x, output_tensor),
+            # "log-minimax-alt0-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [0.146640300750732421875, -0.89004647731781005859375, 2.339030742645263671875, -1.59562456607818603515625], "log-minimax-alt0-v1[3]"), x, output_tensor),
+            # "log-minimax-alt0-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [-7.6315104961395263671875e-2, 0.562811195850372314453125, -1.7187786102294921875, 3.054232120513916015625, -1.82194960117340087890625], "log-minimax-alt0-v1[4]"), x, output_tensor),
+            # "log-minimax-alt0-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [4.22401130199432373046875e-2, -0.3706687390804290771484375, 1.36813914775848388671875, -2.800232410430908203125, 3.767500400543212890625, -2.006978511810302734375], "log-minimax-alt0-v1[5]"), x, output_tensor),
+            "log-claude0": lambda x, output_tensor: ln_fp32(x),
+            "log-claude-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("log-claude"), x, output_tensor),
         },
     },
     "log10": {
@@ -125,7 +525,9 @@ UNARY_OPERATIONS = {
         "implementations": {
             "log2": ttnn.log2,
             "log2-minimax-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0], "log2-minimax-v1[3]"), x, output_tensor),
+            "log2-minimax-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [-0.1072541177272796630859375, 0.3664800822734832763671875, -0.701747000217437744140625, 1.44212806224822998046875, 0.0], "log2-minimax-v1[2]"), x, output_tensor),
             "log2-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0], "log2-minimax-v1[5]"), x, output_tensor),
+            "log2-cheby": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [1.1370563864569108e-01,-7.6167537405157848e-01, 2.1822338321948429e+00, -1.5342640967889554e+00], "log2-cheby"), x, output_tensor),
         },
     },
     "log1p": {
