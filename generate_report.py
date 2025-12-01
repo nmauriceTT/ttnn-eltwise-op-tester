@@ -97,7 +97,7 @@ def main():
         "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2,", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
         "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "celu", "sigmoid", "log_sigmoid", "selu", "softplus", "softsign", "tan", 
         "atan", "sin", "cos", "sqrt", "cbrt", "rsqrt", "reciprocal",
-        "digamma", "lgamma", "tanhshrink"
+        "digamma", "lgamma", "tanhshrink", "erfinv"
     ]
     all_binary_operations = [
         "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2", "rsub"

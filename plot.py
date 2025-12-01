@@ -62,8 +62,6 @@ def plot(plot_entry):
     data = plot_entry["data"]
 
     # Read parameters
-
-
     plot_params = plot_entry["plot_params"]
 
     id = plot_entry["id"]
@@ -118,6 +116,8 @@ def plot(plot_entry):
     color_palette = sns.color_palette("deep", ncolors + palette_offset)[palette_offset:]
 
 
+    ref_plotted = False
+
     for y in ynames:
         d2 = data.copy()
 
@@ -130,18 +130,26 @@ def plot(plot_entry):
         # if ymax is not None:
         #     d2 = d2[d2[yname] <= ymax]
 
+        # Hacky way to only plot torch once
+        palette = color_palette.copy()
+        if ysuffix == "(torch)" and ref_plotted:
+            continue
+        elif ysuffix == "(torch)":
+            palette = ["red"]
+            ref_plotted = True
+
 
         if plot_type == "lineplot":
             if hseries is not None:
                 ax = sns.lineplot(
-                    data=d2, x=xname, y=yname, ax=ax, hue=hseries, linestyle=linestyle, palette=color_palette
+                    data=d2, x=xname, y=yname, ax=ax, hue=hseries, linestyle=linestyle, palette=palette
                 )
             else:
                 ax = sns.lineplot(
-                    data=d2, x=xname, y=yname, ax=ax, label=yname, linestyle=linestyle, palette=color_palette
+                    data=d2, x=xname, y=yname, ax=ax, label=yname, linestyle=linestyle, palette=palette
                 )
         elif plot_type == "scatterplot":
-            ax = sns.scatterplot(data=d2, x=xname, y=yname, ax=ax, hue=hseries, palette=color_palette, edgecolor="none")
+            ax = sns.scatterplot(data=d2, x=xname, y=yname, ax=ax, hue=hseries, palette=palette, edgecolor="none")
 
     if xscale == "linear":
         ax.set_xscale("linear")

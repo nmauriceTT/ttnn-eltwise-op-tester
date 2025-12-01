@@ -153,9 +153,9 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-21f-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-21f-v1-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-21f-v3-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-claude0-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-claude2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-claude2-ttnn-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -164,7 +164,7 @@
                         ],
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "yscale": "linear",
                         "xbase": 2,
@@ -310,14 +310,39 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -128,
-                            128
+                            -1,
+                            1
                         ],
                         "ylim": [
                             0,
-                            20
+                            50
                         ],
                         "yscale": "linear",
+                        "xscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "expm1-accurate-bfloat16-ulp",
+                    "name": "expm1",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/expm1/expm1-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/expm1/expm1-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/expm1/expm1-new-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -1,
+                            1
+                        ],
+                        "ylim": [
+                            0,
+                            50
+                        ],
+                        "yscale": "linear",
+                        "xscale": "linear",
                         "xbase": 2
                     }
                 },
@@ -572,9 +597,27 @@
                             0,
                             1000
                         ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "log-accurate-bfloat16-ulp",
+                    "name": "log",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/log/log-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/log/log-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log/log-minimax-alt0-v1[5]-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            0,
+                            1000
+                        ],
                         "ylim": [
                             0,
-                            120
+                            60
                         ],
                         "yscale": "linear"
                     }
@@ -628,19 +671,12 @@
                         "accuracy_results/plots/unary/ulp/log2/log2-accurate-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2/log2-v0-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2/log2-minimax-v1[3]-bfloat16-[1].csv",
                         "accuracy_results/results/unary/log2/log2-minimax-v1[5]-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
                             0,
                             100
-                        ],
-                        "ylim": [
-                            0,
-                            40
                         ],
                         "yscale": "linear"
                     }
@@ -676,7 +712,11 @@
                         "accuracy_results/results/unary/tan/tan-bfloat16-[1].csv"
                     ],
                     "plot_params": {
-                        "yscale": "linear"
+                        "yscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ]
                     }
                 },
                 {
@@ -1291,6 +1331,27 @@
                             50000.0
                         ]
                     }
+                },
+                {
+                    "id": "erfinv-bfloat16-ulp",
+                    "name": "erfinv",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/erfinv/erfinv-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/erfinv/erfinv-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -1.0,
+                            1.0
+                        ],
+                        "ylim": [
+                            1e-3, 1e6
+                        ],
+                        "xscale": "linear",
+                        "yscale": "log"
+                    }
                 }
             ]
         },
@@ -1468,12 +1529,40 @@
                     ],
                     "plot_params": {
                         "xlim": [
+                            -100,
+                            100
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "expm1-float32-ulp",
+                    "name": "expm1",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/expm1/expm1-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/expm1/expm1-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
                             -200,
                             200
                         ],
                         "ylim": [
                             0,
-                            40000
+                            10
                         ],
                         "yscale": "linear",
                         "xbase": 2
@@ -1487,7 +1576,10 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-21f-v3-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-claude0-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-claude2-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-claude-ttnn-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp/exp-claude2-ttnn-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1496,7 +1588,10 @@
                         ],
                         "ylim": [
                             0,
-                            40000
+                            20
+                        ],
+                        "horizontal_lines": [ 
+                            [ 1, "1 ULP" ]
                         ],
                         "yscale": "linear",
                         "xbase": 2
@@ -1823,6 +1918,46 @@
                     }
                 },
                 {
+                    "id": "log-accurate-float32-ulp",
+                    "name": "log",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/log/log-accurate-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/log/log-float32-[65536].csv",
+                        "accuracy_results/results/unary/log/log-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            1,
+                            1e38
+                        ],
+                        "ylim": [
+                            0,
+                            1e7
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                5,
+                                "5 ULP"
+                            ],
+                            [
+                                1000,
+                                "1000 ULP"
+                            ],
+                            [
+                                32000,
+                                "32000 ULP ~ 0.5 bfloat16 ULP"
+                            ]
+                        ],
+                        "yscale": "log"
+                    }
+                },
+                {
                     "id": "log10-float32-ulp",
                     "name": "log10",
                     "outputs": [
@@ -1850,17 +1985,20 @@
                         "accuracy_results/plots/unary/ulp/log2/log2-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/log2/log2-float32-[65536].csv",
-                        "accuracy_results/results/unary/log2/log2-v0-float32-[65536].csv",
-                        "accuracy_results/results/unary/log2/log2-minimax-v1[3]-float32-[65536].csv",
-                        "accuracy_results/results/unary/log2/log2-minimax-v1[5]-float32-[65536].csv"
+                        "accuracy_results/results/unary/log2/log2-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
                             0,
                             100
                         ],
-                        "yscale": "log"
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -1931,7 +2069,7 @@
                         ],
                         "ylim": [
                             0,
-                            20000
+                            100
                         ]
                     }
                 },
@@ -1980,8 +2118,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid/sigmoid-21f-float32-[65536].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1991,6 +2128,29 @@
                         "ylim": [
                             0,
                             200000
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "sigmoid-accurate-float32-ulp",
+                    "name": "sigmoid",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/sigmoid/sigmoid-accurate-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-float32-[65536].csv",
+                        "accuracy_results/results/unary/sigmoid/sigmoid-21f-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -100,
+                            100
+                        ],
+                        "ylim": [
+                            0,
+                            40000
                         ],
                         "yscale": "linear"
                     }
@@ -3031,14 +3191,14 @@
                 "xname": "base_x",
                 "ynames": [
                     [
-                        "base_y",
-                        "(ttnn)",
+                        "base_yref",
+                        "(torch)",
                         "-"
                     ],
                     [
-                        "base_yref",
-                        "(torch)",
-                        "--"
+                        "base_y",
+                        "(ttnn)",
+                        "-"
                     ]
                 ],
                 "hue": "operation",
@@ -3129,8 +3289,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/log2/log2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2/log2-minimax-v1[3]-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log2/log2-minimax-v1[5]-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/log2/log2-cheby-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3300,6 +3459,27 @@
                         "accuracy_results/results/unary/softplus/softplus-bfloat16-[1].csv"
                     ],
                     "plot_params": {}
+                },
+                {
+                    "id": "digamma-bfloat16-value",
+                    "name": "digamma",
+                    "outputs": [
+                        "accuracy_results/plots/unary/value/digamma/digamma-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/digamma/digamma-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -5,
+                            10
+                        ],
+                        "ylim": [
+                            -10, 10
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
                 }
             ]
         }
