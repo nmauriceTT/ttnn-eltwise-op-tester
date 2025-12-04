@@ -8,6 +8,19 @@ from pathlib import Path
 import re
 import argparse
 
+def get_freq():
+
+    import ttnn
+
+    arch_name = ttnn.get_arch_name()
+    if arch_name == "wormhole_b0":
+        return 1e9
+    elif arch_name == "blackhole":
+        return 1.35e9
+    else:
+        raise ValueError(f"Unknown arch name: {arch_name}")
+
+
 def list_available_unary_operations():
 
     import operations
@@ -195,7 +208,7 @@ def process_benchmarks(df_all_results):
         if ignore_row:
             continue
 
-        CORE_FREQ = 1e9 # Hardcode value for Wormhole
+        CORE_FREQ = get_freq() # Hardcode value for Wormhole
         SECONDS_PER_UNIT = 1e9 # Nanoseconds per s
         CYCLES_PER_NS = CORE_FREQ / SECONDS_PER_UNIT
 
