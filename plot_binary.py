@@ -82,7 +82,10 @@ def plot_heatmap(plot_entry):
         # cmap = mcolors.ListedColormap(colors)
         # norm = mcolors.BoundaryNorm(boundaries, cmap.N)
         # levels = [1e-6, 1, 2, 3, 4, 5, 10, 100, 100]
-        levels = [1e-6] + [item["threshold"] for item in colormap_config]
+        # Collect all threshold values and ensure they're sorted and monotonically increasing
+        thresholds = [item["threshold"] for item in colormap_config]
+        # Combine 1e-6 with thresholds, remove duplicates, and sort to ensure monotonicity
+        levels = sorted(set([1e-6] + thresholds))
         cmap = plt.colormaps[plot_params.get("colormap_name", "PiYG")]
         cmap.set_bad(color="purple")
 
