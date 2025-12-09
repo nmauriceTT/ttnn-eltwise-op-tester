@@ -884,7 +884,14 @@ BINARY_OPERATIONS = {
             "rsub": ttnn.rsub
         },
         "golden": torch.rsub
-    }
+    },
+    "subtract": {
+        "implementations": {
+            "subtract": ttnn.subtract
+        },
+        "golden": torch.subtract
+    },
+
 }
 
 
