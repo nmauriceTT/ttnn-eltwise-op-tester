@@ -171,6 +171,129 @@ def plot_heatmap(plot_entry):
         plt.close()
 
 
+def plot_histogram(plot_entry):
+    """
+    Create a histogram from binary operation accuracy data showing ULP error distribution.
+
+    Args:
+        plot_entry: Dictionary containing plot configuration from binary-plots.json
+    """
+
+    try:
+        # Extract data from plot_entry
+        data = plot_entry["data"]
+        plot_params = plot_entry["plot_params"]
+        operation_name = plot_entry["name"]
+        output_paths = plot_entry["outputs"]
+
+        # Get the value column name (default: max_ulp_error)
+        valuename = plot_entry.get("valuename", "max_ulp_error")
+
+        # Extract values, filtering out NaN and infinite values
+        values = data[valuename].values
+        values = values[np.isfinite(values)]
+
+        if len(values) == 0:
+            print(f"Warning: No valid data for histogram {plot_entry['id']}")
+            return
+
+        # Create figure
+        fig, ax = plt.subplots(figsize=(12, 8))
+
+        # Get histogram parameters from config
+        bins = plot_params.get("bins", 50)
+        log_scale = plot_params.get("log_scale", True)
+        color = plot_params.get("color", "#4C72B0")
+        edgecolor = plot_params.get("edgecolor", "white")
+
+        # Calculate statistics
+        max_error = np.max(values)
+        min_error = np.min(values)
+        mean_error = np.mean(values)
+        median_error = np.median(values)
+        p99_error = np.percentile(values, 99)
+        p95_error = np.percentile(values, 95)
+
+        # Create histogram
+        if log_scale and min_error > 0:
+            # Use log-spaced bins for better visualization of wide ranges
+            log_min = np.log10(max(min_error, 1e-10))
+            log_max = np.log10(max(max_error, 1))
+            bin_edges = np.logspace(log_min, log_max, bins + 1)
+            ax.set_xscale("log")
+        else:
+            # Handle zero/negative values with linear bins
+            bin_edges = bins
+
+        # Normalize to percentages using weights
+        weights = np.ones_like(values) * (100.0 / len(values))
+
+        counts, bin_edges, patches = ax.hist(
+            values,
+            bins=bin_edges,
+            weights=weights,
+            color=color,
+            edgecolor=edgecolor,
+            alpha=0.8,
+            linewidth=0.5,
+        )
+
+        # Set y-axis to log scale if specified
+        if plot_params.get("log_y", True) and np.max(counts) > 0:
+            ax.set_yscale("log")
+
+        # Add vertical lines for statistics
+        ax.axvline(x=mean_error, color="#E24A33", linestyle="--", linewidth=2, label=f"Mean: {mean_error:.2f}")
+        ax.axvline(x=median_error, color="#348ABD", linestyle="-.", linewidth=2, label=f"Median: {median_error:.2f}")
+        ax.axvline(x=p99_error, color="#988ED5", linestyle=":", linewidth=2, label=f"P99: {p99_error:.2f}")
+        ax.axvline(x=max_error, color="#8EBA42", linestyle="-", linewidth=2, label=f"Max: {max_error:.2f}")
+
+        # Set title and labels
+        title = plot_params.get("title", "ULP Error Distribution of ttnn.{}")
+        short_name = plot_entry.get("name", operation_name)
+        title = title.format(short_name)
+
+        ax.set_title(title, fontsize=16, pad=15)
+        ax.set_xlabel("ULP Error", fontsize=14)
+        ax.set_ylabel("Frequency (%)", fontsize=14)
+        ax.set_yscale("linear")
+
+        # Add legend
+        ax.legend(loc="upper right", fontsize=10, framealpha=0.9)
+
+        # Add statistics text box
+        stats_text = (
+            f"Total samples: {len(values):,}\n"
+            f"Max: {max_error:.2f}\n"
+            f"P99: {p99_error:.2f}\n"
+            f"P95: {p95_error:.2f}\n"
+            f"Mean: {mean_error:.2f}\n"
+            f"Median: {median_error:.2f}\n"
+            f"Min: {min_error:.2f}"
+        )
+        props = dict(boxstyle="round", facecolor="wheat", alpha=0.8)
+        ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, fontsize=10,
+                verticalalignment="top", bbox=props)
+
+        # Add grid
+        ax.grid(True, alpha=0.3, which="both")
+
+        plt.tight_layout()
+
+        # Save the plot to all specified output paths
+        for output_path in output_paths:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            plt.savefig(output_path, dpi=300, bbox_inches="tight")
+
+        plt.close()
+
+    except Exception as e:
+        import traceback
+        print(f"Error plotting histogram {plot_entry['id']}: {e}")
+        traceback.print_exc()
+        plt.close()
+
+
 def preprocess_data(data):
     """
     Remove rows where 'a' or 'b' are either infinite or NaN.
@@ -259,21 +382,47 @@ def main():
 
     plot_config = parse_plot_config("configs/binary-plots.json")
 
-    last_hashes = load_plot_config_hashes(f"accuracy_results/binary-plot-hashes.csv")
-
     # Get time stamp of last modification of this script
     script_mtime = os.path.getmtime(__file__)
-    force_replot = False
-    if script_mtime > last_hashes["last_modified"]:
-        force_replot = True
 
-    current_hashes = generate_plot_config_hashes(plot_config)
+    # Separate groups by plot type
+    heatmap_groups = []
+    histogram_groups = []
 
-    plot_all(plot_heatmap, plot_config, dest_dir, last_hashes, current_hashes, force_replot, sanitize_data)
+    for group in plot_config["groups"]:
+        plot_type = group.get("default_params", {}).get("type", "heatmap")
+        if plot_type == "histogram":
+            histogram_groups.append(group)
+        else:
+            heatmap_groups.append(group)
 
-    save_plot_config_hashes(current_hashes, f"accuracy_results/binary-plot-hashes.csv")
+    # Process heatmaps
+    if heatmap_groups:
+        heatmap_config = {"groups": heatmap_groups}
+        last_hashes_heatmap = load_plot_config_hashes(f"accuracy_results/binary-plot-hashes.csv")
+        
+        force_replot_heatmap = False
+        if script_mtime > last_hashes_heatmap["last_modified"]:
+            force_replot_heatmap = True
+        
+        current_hashes_heatmap = generate_plot_config_hashes(heatmap_config)
+        plot_all(plot_heatmap, heatmap_config, dest_dir, last_hashes_heatmap, current_hashes_heatmap, force_replot_heatmap, sanitize_data)
+        save_plot_config_hashes(current_hashes_heatmap, f"accuracy_results/binary-plot-hashes.csv")
+        print("All JSON-configured heatmaps generated successfully!")
 
-    print("All JSON-configured heatmaps generated successfully!")
+    # Process histograms
+    if histogram_groups:
+        histogram_config = {"groups": histogram_groups}
+        last_hashes_histogram = load_plot_config_hashes(f"accuracy_results/binary-histogram-hashes.csv")
+        
+        force_replot_histogram = False
+        if script_mtime > last_hashes_histogram["last_modified"]:
+            force_replot_histogram = True
+        
+        current_hashes_histogram = generate_plot_config_hashes(histogram_config)
+        plot_all(plot_histogram, histogram_config, dest_dir, last_hashes_histogram, current_hashes_histogram, force_replot_histogram, sanitize_data)
+        save_plot_config_hashes(current_hashes_histogram, f"accuracy_results/binary-histogram-hashes.csv")
+        print("All JSON-configured histograms generated successfully!")
 
 
 if __name__ == "__main__":

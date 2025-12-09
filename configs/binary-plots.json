@@ -53,6 +53,28 @@
                     }
                 },
                 {
+                    "id": "subtract-bfloat16-ulp",
+                    "name": "subtract",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/subtract/subtract[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/subtract/subtract[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a - 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 - b$"]
+                        ],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
                     "id": "multiply-bfloat16-ulp",
                     "name": "multiply",
                     "outputs": [
@@ -532,6 +554,284 @@
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
+                }
+            ]
+        },
+        {
+            "id": "histogram_bfloat16",
+            "default_params": {
+                "type": "histogram",
+                "dtype": "bfloat16",
+                "valuename": "max_ulp_error",
+                "plot_params": {
+                    "title": "ULP Error Distribution of ttnn.{}\n[bfloat16]",
+                    "bins": 50,
+                    "log_scale": true,
+                    "log_y": true,
+                    "color": "#4C72B0",
+                    "edgecolor": "white"
+                }
+            },
+            "plots": [
+                {
+                    "id": "add-bfloat16-histogram",
+                    "name": "add",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/add/add[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/add/add[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "multiply-bfloat16-histogram",
+                    "name": "multiply",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/multiply/multiply[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/multiply/multiply[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "pow-bfloat16-histogram",
+                    "name": "pow",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/pow/pow[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/pow/pow[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "hypot-bfloat16-histogram",
+                    "name": "hypot",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/hypot/hypot[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/hypot/hypot[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "divide-bfloat16-histogram",
+                    "name": "divide",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/divide/divide[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide/divide[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "divide-sfpu-bfloat16-histogram",
+                    "name": "divide-sfpu",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/divide-sfpu/divide-sfpu[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide-sfpu/divide-sfpu[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "div-bfloat16-histogram",
+                    "name": "div",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/div/div[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div/div[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "div-accurate-bfloat16-histogram",
+                    "name": "div-accurate",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/div-accurate/div-accurate[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div-accurate/div-accurate[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "atan2-bfloat16-histogram",
+                    "name": "atan2",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/atan2/atan2[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "fmod-bfloat16-histogram",
+                    "name": "fmod",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/fmod/fmod[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/fmod/fmod[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "rsub-bfloat16-histogram",
+                    "name": "rsub",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/rsub/rsub[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/rsub/rsub[bfloat16].csv"
+                    ],
+                    "plot_params": {}
+                }
+            ]
+        },
+        {
+            "id": "histogram_float32",
+            "default_params": {
+                "type": "histogram",
+                "dtype": "float32",
+                "valuename": "max_ulp_error",
+                "plot_params": {
+                    "title": "ULP Error Distribution of ttnn.{}\n[float32]",
+                    "bins": 50,
+                    "log_scale": true,
+                    "log_y": true,
+                    "color": "#55A868",
+                    "edgecolor": "white"
+                }
+            },
+            "plots": [
+                {
+                    "id": "add-float32-histogram",
+                    "name": "add",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/add/add[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/add/add[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "multiply-float32-histogram",
+                    "name": "multiply",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/multiply/multiply[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/multiply/multiply[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "pow-float32-histogram",
+                    "name": "pow",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/pow/pow[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/pow/pow[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "hypot-float32-histogram",
+                    "name": "hypot",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/hypot/hypot[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/hypot/hypot[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "divide-float32-histogram",
+                    "name": "divide",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/divide/divide[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide/divide[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "divide-sfpu-float32-histogram",
+                    "name": "divide-sfpu",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/divide-sfpu/divide-sfpu[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/divide-sfpu/divide-sfpu[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "div-float32-histogram",
+                    "name": "div",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/div/div[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div/div[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "div-accurate-float32-histogram",
+                    "name": "div-accurate",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/div-accurate/div-accurate[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/div-accurate/div-accurate[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "atan2-float32-histogram",
+                    "name": "atan2",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/atan2/atan2[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "fmod-float32-histogram",
+                    "name": "fmod",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/fmod/fmod[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/fmod/fmod[float32].csv"
+                    ],
+                    "plot_params": {}
+                },
+                {
+                    "id": "rsub-float32-histogram",
+                    "name": "rsub",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/rsub/rsub[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/rsub/rsub[float32].csv"
+                    ],
+                    "plot_params": {}
                 }
             ]
         }
