@@ -579,8 +579,8 @@ UNARY_OPERATIONS = {
     "exp": {
         "implementations": {
             "exp": ttnn.exp,
-            # "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
-            # "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
+            "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             # "exp-minimax-v1[10]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [1.63186797408343409188091754913330078125e-9, ], "exp"), x, output_tensor),
             # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v1"), x, output_tensor),
             # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v2", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v2"), x, output_tensor),
@@ -592,7 +592,7 @@ UNARY_OPERATIONS = {
             # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [729586733673043887443944223575054454855764871356884577452638243716612489216.0, 24041561540797272846156846812991848448.0, 1.03109920024871826171875], "exp-21f-v1"), x, output_tensor),
             # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2.2060558795928955078125, -1.9994220733642578125, 2.5256407260894775390625], "exp-21f-v2"), x, output_tensor),
             # "exp-claude-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-claude"), x, output_tensor),
-            "exp-claude2-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-claude2"), x, output_tensor),
+            # "exp-claude2-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-claude2"), x, output_tensor),
         },
         "golden": torch.exp,
     },
@@ -604,7 +604,7 @@ UNARY_OPERATIONS = {
     "expm1": {
         "implementations": {
             "expm1": ttnn.expm1,
-            "expm1-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("expm1-v1"), x, output_tensor),
+            # "expm1-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("expm1-v1"), x, output_tensor),
         },
     },
     "tanh": {
@@ -614,12 +614,14 @@ UNARY_OPERATIONS = {
             "tanh-cf": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-v1"), x, output_tensor),
             "tanh-pade-5,5":  lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"), x, output_tensor),
             "tanh-minimax-v1[6]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"), x, output_tensor),
-            # Other approximations:
-            # "tanh-Chebyshev-v1-c0ef0[6]": [0.004613510798662901,-0.0569886788725853,0.25763407349586487,-0.46735504269599915,0.02672632411122322,0.9987236261367798,0.0],
-            # "tanh-minimax-v0[4]": [2.49048434197902679443359375e-2, -8.3681561052799224853515625e-2, -0.20078647136688232421875,1.0220668315887451171875, 0.0],
-            # "tanh-minimax-v1[5]": [-1.950809545814990997314453125e-2, 0.1467897593975067138671875, -0.325587689876556396484375, -4.27231900393962860107421875e-2, 1.00523841381072998046875, 0.0],
-        },
+            },
         "golden": torch.tanh
+    },
+    "hardtanh": {
+        "implementations": {
+            "hardtanh": lambda x, output_tensor: ttnn.hardtanh(x)
+        },
+        "golden": lambda x, out: torch.nn.functional.hardtanh(x)
     },
     "cosh": {
         "implementations": {
@@ -645,7 +647,7 @@ UNARY_OPERATIONS = {
             # "log-minimax-alt0-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [-7.6315104961395263671875e-2, 0.562811195850372314453125, -1.7187786102294921875, 3.054232120513916015625, -1.82194960117340087890625], "log-minimax-alt0-v1[4]"), x, output_tensor),
             # "log-minimax-alt0-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [4.22401130199432373046875e-2, -0.3706687390804290771484375, 1.36813914775848388671875, -2.800232410430908203125, 3.767500400543212890625, -2.006978511810302734375], "log-minimax-alt0-v1[5]"), x, output_tensor),
             # "log-claude0": lambda x, output_tensor: ln_fp32(x),
-            "log-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("log-claude"), x, output_tensor),
+            # "log-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("log-claude"), x, output_tensor),
         },
     },
     "log10": {
@@ -666,6 +668,23 @@ UNARY_OPERATIONS = {
         "implementations": {
             "log1p": ttnn.log1p
         },
+    },
+    "relu": {
+        "implementations": {
+            "relu": ttnn.relu
+        },
+    },
+    "relu_max": {
+        "implementations": {
+            "relu_max": lambda x, output_tensor: ttnn.relu_max(x, output_tensor=output_tensor, upper_limit=1.0)
+        },
+        "golden": lambda x, out: torch.minimum(torch.nn.functional.relu(x), torch.full_like(x, 1.0)) 
+    },
+    "relu_min": {
+        "implementations": {
+            "relu_min": lambda x, output_tensor: ttnn.relu_min(x, output_tensor=output_tensor, lower_limit=1.0)
+        },
+        "golden": lambda x, out: torch.maximum(torch.nn.functional.relu(x), torch.full_like(x, 1.0)) 
     },
     "silu": {
         "implementations": {
@@ -689,6 +708,12 @@ UNARY_OPERATIONS = {
     "mish": {
         "implementations": {
             "mish": ttnn.mish
+        },
+    },
+    "hardmish": {
+        "implementations": {
+            "hardmish": ttnn.hardmish,
+            "hardmish-fast": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("hardmish"), x, output_tensor)
         },
     },
     "elu": {

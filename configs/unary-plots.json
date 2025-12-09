@@ -523,6 +523,28 @@
                     }
                 },
                 {
+                    "id": "hardtanh-bfloat16-ulp",
+                    "name": "hardtanh",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/hardtanh/hardtanh-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/hardtanh/hardtanh-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xbase": 2,
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            40
+                        ],
+                        "xlim": [
+                            -10,
+                            10
+                        ]
+                    }
+                },
+                {
                     "id": "tanh-accurate-bfloat16-ulp",
                     "name": "tanh",
                     "outputs": [
@@ -638,7 +660,7 @@
                         ],
                         "ylim": [
                             0,
-                            100
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -659,7 +681,7 @@
                         ],
                         "ylim": [
                             0,
-                            40
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -716,6 +738,10 @@
                         "xlim": [
                             -10,
                             10
+                        ],
+                        "ylim": [
+                            0,
+                            20
                         ]
                     }
                 },
@@ -804,6 +830,69 @@
                     }
                 },
                 {
+                    "id": "relu-bfloat16-ulp",
+                    "name": "relu",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/relu/relu-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/relu/relu-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "relu_max-bfloat16-ulp",
+                    "name": "relu_max",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/relu_max/relu_max-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/relu_max/relu_max-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "relu_min-bfloat16-ulp",
+                    "name": "relu_min",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/relu_min/relu_min-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/relu_min/relu_min-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
                     "id": "silu-bfloat16-ulp",
                     "name": "silu",
                     "outputs": [
@@ -859,8 +948,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -150,
-                            150
+                            -1e38,
+                            1e38
                         ],
                         "yscale": "linear",
                         "ylim": [
@@ -1154,6 +1243,28 @@
                     }
                 },
                 {
+                    "id": "hardmish-bfloat16-ulp",
+                    "name": "hardmish",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/hardmish/hardmish-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/hardmish/hardmish-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/hardmish/hardmish-fast-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
                     "id": "elu-bfloat16-ulp",
                     "name": "elu",
                     "outputs": [
@@ -1347,10 +1458,10 @@
                             1.0
                         ],
                         "ylim": [
-                            1e-3, 1e6
+                            0, 200
                         ],
                         "xscale": "linear",
-                        "yscale": "log"
+                        "yscale": "linear"
                     }
                 }
             ]
@@ -1562,7 +1673,7 @@
                         ],
                         "ylim": [
                             0,
-                            10
+                            50000
                         ],
                         "yscale": "linear",
                         "xbase": 2
@@ -1973,7 +2084,7 @@
                         ],
                         "ylim": [
                             0,
-                            200000
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1990,7 +2101,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            100
+                            10
                         ],
                         "horizontal_lines": [
                             [
@@ -2122,8 +2233,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -20,
-                            20
+                            -1e38,
+                            1e38
                         ],
                         "ylim": [
                             0,
@@ -2321,6 +2432,23 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/mish/mish-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ]
+                    }
+                },
+                {
+                    "id": "hardmish-float32-ulp",
+                    "name": "hardmish",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/hardmish/hardmish-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/hardmish/hardmish-float32-[65536].csv",
+                        "accuracy_results/results/unary/hardmish/hardmish-fast-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3327,18 +3455,43 @@
                     }
                 },
                 {
-                    "id": "tanh-bfloat16-value",
-                    "name": "tanh",
+                    "id": "relu_max-bfloat16-value",
+                    "name": "relu_max",
                     "outputs": [
-                        "accuracy_results/plots/unary/value/tanh/tanh-bfloat16.png"
+                        "accuracy_results/plots/unary/value/relu_max/relu_max-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/tanh/tanh-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/tanh/tanh-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/relu_max/relu_max-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
                             -4,
+                            4
+                        ],
+                        "ylim": [
+                            -1,
+                            2
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "relu_min-bfloat16-value",
+                    "name": "relu_min",
+                    "outputs": [
+                        "accuracy_results/plots/unary/value/relu_min/relu_min-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/relu_min/relu_min-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -4,
+                            4
+                        ],
+                        "ylim": [
+                            0,
                             4
                         ],
                         "xscale": "linear",
