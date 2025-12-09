@@ -581,19 +581,7 @@ UNARY_OPERATIONS = {
             "exp": ttnn.exp,
             "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            # "exp-minimax-v1[10]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp", [1.63186797408343409188091754913330078125e-9, ], "exp"), x, output_tensor),
-            # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v1"), x, output_tensor),
-            # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v2", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v2"), x, output_tensor),
-            #  "exp-21f-v3": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v3", [2**-46 * 0.33718944, 2**-23 * 0.65763629, 1.0017248], "exp-21f-v3"), x, output_tensor),
-            #  "exp-v4": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-v4"), x, output_tensor),
-            # "exp-claude0": lambda x, output_tensor: exp_fp32(x),
-            # "exp-claude1": lambda x, output_tensor: exp_claude1(x),
-            # "exp-claude2": lambda x, output_tensor: exp_claude2(x),
-            # "exp-21f-v1": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [729586733673043887443944223575054454855764871356884577452638243716612489216.0, 24041561540797272846156846812991848448.0, 1.03109920024871826171875], "exp-21f-v1"), x, output_tensor),
-            # "exp-21f-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("exp-v1", [2.2060558795928955078125, -1.9994220733642578125, 2.5256407260894775390625], "exp-21f-v2"), x, output_tensor),
-            # "exp-claude-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-claude"), x, output_tensor),
-            # "exp-claude2-ttnn": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("exp-claude2"), x, output_tensor),
-        },
+            },
         "golden": torch.exp,
     },
     "exp2": {
@@ -638,16 +626,6 @@ UNARY_OPERATIONS = {
     "log": {
         "implementations": {
             "log": ttnn.log,
-            # "log2-minimax-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [1.44212806224822998046875, -0.701747000217437744140625, 0.3664800822734832763671875, -0.1072541177272796630859375], "log2-minimax-v1[3]"), x, output_tensor),
-            
-            # "log-minimax-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [0.1417110860347747802734375, -0.4437794387340545654296875, 0.997174203395843505859375, 0.0], "log-minimax-v1[4]"), x, output_tensor),
-            # "log-minimax-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [-7.4343144893646240234375e-2, 0.2540250718593597412109375, -0.4864141643047332763671875, 0.999607026576995849609375, 0.0], "log-minimax-v1[4]"), x, output_tensor),
-            # "log-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly", [4.13467921316623687744140625e-2, -0.1574260294437408447265625, 0.3063000142574310302734375, -0.4969775378704071044921875, 0.999943256378173828125, 0.0], "log-minimax-v1[5]"), x, output_tensor),
-            # "log-minimax-alt0-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [0.146640300750732421875, -0.89004647731781005859375, 2.339030742645263671875, -1.59562456607818603515625], "log-minimax-alt0-v1[3]"), x, output_tensor),
-            # "log-minimax-alt0-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [-7.6315104961395263671875e-2, 0.562811195850372314453125, -1.7187786102294921875, 3.054232120513916015625, -1.82194960117340087890625], "log-minimax-alt0-v1[4]"), x, output_tensor),
-            # "log-minimax-alt0-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log-poly-alt0", [4.22401130199432373046875e-2, -0.3706687390804290771484375, 1.36813914775848388671875, -2.800232410430908203125, 3.767500400543212890625, -2.006978511810302734375], "log-minimax-alt0-v1[5]"), x, output_tensor),
-            # "log-claude0": lambda x, output_tensor: ln_fp32(x),
-            # "log-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("log-claude"), x, output_tensor),
         },
     },
     "log10": {
@@ -658,10 +636,6 @@ UNARY_OPERATIONS = {
     "log2": {
         "implementations": {
             "log2": ttnn.log2,
-            # "log2-minimax-v1[3]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [0.2044459879398345947265625, -0.6402385234832763671875, 1.43861830234527587890625, 0.0], "log2-minimax-v1[3]"), x, output_tensor),
-            # "log2-minimax-v1[4]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [-0.1072541177272796630859375, 0.3664800822734832763671875, -0.701747000217437744140625, 1.44212806224822998046875, 0.0], "log2-minimax-v1[2]"), x, output_tensor),
-            # "log2-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [5.96523843705654144287109375e-2, -0.22712136805057525634765625, 0.441900312900543212890625, -0.7169878482818603515625, 1.44261324405670166015625, 0.0], "log2-minimax-v1[5]"), x, output_tensor),
-            # "log2-cheby": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("log2-poly", [1.1370563864569108e-01,-7.6167537405157848e-01, 2.1822338321948429e+00, -1.5342640967889554e+00], "log2-cheby"), x, output_tensor),
         },
     },
     "log1p": {
