@@ -619,6 +619,10 @@
                             0,
                             1000
                         ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
                         "yscale": "linear"
                     }
                 },
@@ -714,12 +718,36 @@
                     ],
                     "plot_params": {
                         "xlim": [
+                            -0.02,
+                            0.02
+                        ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "xscale": "linear"
+                    }
+                },
+                {
+                    "id": "log1p-accurate-bfloat16-ulp",
+                    "name": "log1p",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/log1p/log1p-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/log1p/log1p-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log1p/log1p-new-np-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/log1p/log1p-new-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
                             -0.9,
                             1000
                         ],
                         "ylim": [
                             0,
-                            70
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1458,7 +1486,7 @@
                             1.0
                         ],
                         "ylim": [
-                            0, 200
+                            1e-3, 2e5
                         ],
                         "xscale": "linear",
                         "yscale": "linear"
@@ -1687,10 +1715,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-claude0-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-claude2-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-claude-ttnn-float32-[65536].csv",
-                        "accuracy_results/results/unary/exp/exp-claude2-ttnn-float32-[65536].csv"
+                        "accuracy_results/results/unary/exp/exp-new-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1699,7 +1724,7 @@
                         ],
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "horizontal_lines": [ 
                             [ 1, "1 ULP" ]
@@ -1914,6 +1939,10 @@
                             -10,
                             10
                         ],
+                        "ylim": [
+                            0,
+                            10000
+                        ],
                         "yscale": "linear"
                     }
                 },
@@ -2019,11 +2048,17 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1e+38
+                            1e+10
                         ],
                         "ylim": [
                             0,
-                            200000
+                            10
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
                         ],
                         "yscale": "linear"
                     }
@@ -2124,12 +2159,41 @@
                     "plot_params": {
                         "xlim": [
                             -0.9,
-                            1e+38
+                            1e+4
                         ],
                         "ylim": [
                             0,
-                            200000
+                            10
                         ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "log1p-accurate-float32-ulp",
+                    "name": "log1p",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/log1p/log1p-accurate-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/log1p/log1p-float32-[65536].csv",
+                        "accuracy_results/results/unary/log1p/log1p-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -1,
+                            2
+                        ],
+                        "ylim": [
+                            1e-1,
+                            10
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
                         "yscale": "linear"
                     }
                 },
@@ -2552,8 +2616,8 @@
                             10
                         ],
                         "xlim": [
-                            -0.1,
-                            1e+38
+                            -10,
+                            1e+39
                         ]
                     }
                 },

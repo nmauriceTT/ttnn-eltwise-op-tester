@@ -139,6 +139,9 @@ def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, de
         all_df = pd.concat(impl_results[implementation_name])
         all_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-float32-[{group_size}].csv", na_rep="NaN", index_label="index")
         print(f"Saved results for {implementation_name} [float32]")
+    
+    # Generate summary
+    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "float32", impl_results_dict=impl_results)
 
 
 
@@ -186,6 +189,9 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     # Ensure output directory exists
     os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
 
+    # Initialize result storage for each implementation
+    impl_results = {impl_name: [] for _, impl_name in implementations}
+
     # Process each implementation
     for ttnn_unary_op, implementation_name in implementations:
         impl_start_time = time.time()
@@ -199,12 +205,18 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         accuracy_df["operation"] = implementation_name
         accuracy_df["dtype"] = "bfloat16"
 
+        # Store results for summary generation
+        impl_results[implementation_name].append(accuracy_df)
+
         # Save results with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
         accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
 
         impl_end_time = time.time()
         impl_elapsed_s = impl_end_time - impl_start_time
         print(f"{implementation_name} [bfloat16] Duration = {impl_elapsed_s:.4f}s")
+
+    # Generate summary
+    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "bfloat16", impl_results_dict=impl_results)
 
     end_time = time.time()
     elapsed_s = end_time - start_time
@@ -259,6 +271,176 @@ def reduce_on_batch_and_cols(tensor):
 def flush_subnormals(tensor, min_normal_value=2**-126):
     """Remove data where inputs are subnormals."""
     return torch.where(tensor.abs() >= min_normal_value, tensor, torch.zeros_like(tensor))
+
+
+def is_normal_number(x, dtype):
+    """
+    Check if a value is a normal number (not NaN, Inf, or subnormal).
+    
+    Args:
+        x: torch.Tensor, numpy array, or pandas Series
+        dtype: str, either "float32" or "bfloat16"
+    
+    Returns:
+        Boolean mask (numpy array) indicating normal numbers
+    """
+    # Convert to numpy array
+    if isinstance(x, torch.Tensor):
+        x_np = x.numpy()
+    elif isinstance(x, pd.Series):
+        x_np = x.values
+    else:
+        x_np = np.asarray(x)
+    
+    # Check for NaN and Inf
+    is_finite = np.isfinite(x_np)
+    
+    # Check for subnormals
+    min_normal = 2**-126
+    if dtype not in ["float32", "bfloat16"]:
+        raise ValueError(f"Unsupported dtype: {dtype}")
+    
+    is_not_subnormal = np.abs(x_np) >= min_normal
+    
+    return is_finite & is_not_subnormal
+
+
+def generate_summary(implementations, golden_unary_op, operation_name, dest_dir, dtype, impl_results_dict=None):
+    """
+    Generate a summary CSV file with accuracy metrics for each implementation.
+    
+    Args:
+        implementations: List of (ttnn_op, implementation_name) tuples
+        golden_unary_op: Golden reference function
+        operation_name: Base operation name (e.g., "tanh", "exp")
+        dest_dir: Destination directory for results
+        dtype: Data type string ("float32" or "bfloat16")
+        impl_results_dict: Optional dictionary mapping impl_name to list of DataFrames with detailed results
+                          If None, will read from CSV files
+    """
+    summary_rows = []
+    
+    torch_dtype = getattr(torch, dtype)
+    ttnn_dtype = getattr(ttnn, dtype)
+
+    # Load detailed results if not provided
+    if impl_results_dict is None:
+        impl_results_dict = {}
+        # Try to read from CSV files (need to find the group_size from existing files)
+        import glob
+        pattern = f"{dest_dir}/{operation_name}/*-{dtype}-*.csv"
+        files = glob.glob(pattern)
+        if files:
+            # Extract group_size from first file name
+            import re
+            match = re.search(r'\[(\d+)\]', files[0])
+            if match:
+                group_size = int(match.group(1))
+                for _, impl_name in implementations:
+                    csv_path = f"{dest_dir}/{operation_name}/{impl_name}-{dtype}-[{group_size}].csv"
+                    if os.path.exists(csv_path):
+                        impl_results_dict[impl_name] = [pd.read_csv(csv_path)]
+    
+    # Process each implementation
+    for ttnn_unary_op, implementation_name in implementations:
+        try:
+            # Get max ULP error (excluding special numbers and subnormals)
+            max_ulp_error = np.nan
+            
+            if implementation_name in impl_results_dict:
+                all_df = pd.concat(impl_results_dict[implementation_name])
+                
+                # Filter out special numbers and subnormals
+                # Check if input is normal
+                x_normal_mask = is_normal_number(all_df["base_x"], dtype)
+                yref_normal_mask = is_normal_number(all_df["base_yref"], dtype)
+                normal_mask = x_normal_mask & yref_normal_mask
+                
+                if np.any(normal_mask):
+                    max_ulp_error = np.nanmax(all_df.loc[normal_mask, "max_ulp_error"].values)
+            
+            # Compute values at specific points: x=0, x=1, x=+inf, x=-inf
+            test_points = {
+                "x_0": torch.tensor([0.0], dtype=torch_dtype),
+                "x_1": torch.tensor([1.0], dtype=torch_dtype),
+                "x_pos_inf": torch.tensor([float('inf')], dtype=torch_dtype),
+                "x_neg_inf": torch.tensor([float('-inf')], dtype=torch_dtype),
+            }
+            
+            values_at_points = {}
+            for point_name, test_input in test_points.items():
+                try:
+                    # Run TTNN operation
+                    ttnn_input = ttnn.from_torch(test_input, device=device, dtype=ttnn_dtype, layout=ttnn.TILE_LAYOUT)
+                    ttnn_output = ttnn.zeros_like(ttnn_input)
+                    ttnn_result = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
+                    result_torch = ttnn.to_torch(ttnn_result)
+                    values_at_points[point_name] = result_torch.item()
+                except Exception as e:
+                    logger.warning(f"Error computing {point_name} for {implementation_name}: {e}")
+                    values_at_points[point_name] = np.nan
+            
+            summary_rows.append({
+                "implementation": implementation_name,
+                "max_ulp_error": max_ulp_error,
+                "value_at_x_0": values_at_points["x_0"],
+                "value_at_x_1": values_at_points["x_1"],
+                "value_at_x_pos_inf": values_at_points["x_pos_inf"],
+                "value_at_x_neg_inf": values_at_points["x_neg_inf"],
+            })
+        except Exception as e:
+            logger.warning(f"Error generating summary for {implementation_name}: {e}")
+            # Still add a row with NaN values
+            summary_rows.append({
+                "implementation": implementation_name,
+                "max_ulp_error": np.nan,
+                "value_at_x_0": np.nan,
+                "value_at_x_1": np.nan,
+                "value_at_x_pos_inf": np.nan,
+                "value_at_x_neg_inf": np.nan,
+            })
+    
+    # Add golden function row
+    test_points = {
+        "x_0": torch.tensor([0.0], dtype=torch_dtype),
+        "x_1": torch.tensor([1.0], dtype=torch_dtype),
+        "x_pos_inf": torch.tensor([float('inf')], dtype=torch_dtype),
+        "x_neg_inf": torch.tensor([float('-inf')], dtype=torch_dtype),
+    }
+    
+    golden_values_at_points = {}
+    for point_name, test_input in test_points.items():
+        try:
+            # Convert to float64 for golden function
+            test_input_fp64 = test_input.to(torch.float64)
+            # Try with out parameter first, fallback to without
+            try:
+                golden_output = torch.zeros_like(test_input_fp64, dtype=torch.float64)
+                golden_result = golden_unary_op(test_input_fp64, out=golden_output)
+            except TypeError:
+                # Function doesn't accept out parameter
+                golden_result = golden_unary_op(test_input_fp64)
+            # Convert back to target dtype
+            golden_result_dtype = golden_result.to(torch_dtype)
+            golden_values_at_points[point_name] = golden_result_dtype.item()
+        except Exception as e:
+            logger.warning(f"Error computing {point_name} for golden function: {e}")
+            golden_values_at_points[point_name] = np.nan
+    
+    summary_rows.append({
+        "implementation": "golden",
+        "max_ulp_error": 0.0,  # Golden function has 0 ULP error by definition
+        "value_at_x_0": golden_values_at_points["x_0"],
+        "value_at_x_1": golden_values_at_points["x_1"],
+        "value_at_x_pos_inf": golden_values_at_points["x_pos_inf"],
+        "value_at_x_neg_inf": golden_values_at_points["x_neg_inf"],
+    })
+    
+    # Create summary DataFrame and save
+    summary_df = pd.DataFrame(summary_rows)
+    summary_path = f"{dest_dir}/{operation_name}/summary[{dtype}].csv"
+    summary_df.to_csv(summary_path, na_rep="NaN", index=False)
+    print(f"Saved summary to {summary_path}")
 
 
 def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name, dest_dir, dtype):

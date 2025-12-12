@@ -267,6 +267,28 @@
                     }
                 },
                 {
+                    "id": "fmod-zoom-bfloat16-ulp",
+                    "name": "fmod",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/fmod/fmod-zoom[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/fmod/fmod[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "fmod(1, x)"]
+                        ],
+                        "vertical_lines": [
+                            [1, "fmod(x, 1)"]
+                        ],
+                        "alim": [-100, 100],
+                        "blim": [-100, 100],
+                        "ascale": "linear",
+                        "bscale": "linear"
+                    }
+                },
+                {
                     "id": "rsub-bfloat16-ulp",
                     "name": "rsub",
                     "outputs": [
@@ -334,6 +356,28 @@
                         ],
                         "vertical_lines": [
                             [1, "$y = 0 + b$"]
+                        ],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "subtract-float32-ulp",
+                    "name": "subtract",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/subtract/subtract[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/subtract/subtract[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a - 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 - b$"]
                         ],
                         "alim": [-1e39, 1e39],
                         "blim": [-1e39, 1e39],

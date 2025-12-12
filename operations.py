@@ -581,7 +581,7 @@ UNARY_OPERATIONS = {
             "exp": ttnn.exp,
             "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            },
+        },
         "golden": torch.exp,
     },
     "exp2": {
@@ -627,6 +627,7 @@ UNARY_OPERATIONS = {
         "implementations": {
             "log": ttnn.log,
         },
+        "golden": torch.log,
     },
     "log10": {
         "implementations": {
@@ -801,6 +802,24 @@ UNARY_OPERATIONS = {
         },
         "golden": lambda x, out: torch.special.erfinv(x)
     },
+    "round": {
+        "implementations": {
+            "round": lambda x, output_tensor: ttnn.round(x, output_tensor=output_tensor)
+        },
+        "golden": torch.round
+    },
+    "ceil": {
+        "implementations": {
+            "ceil": lambda x, output_tensor: ttnn.ceil(x, output_tensor=output_tensor)
+        },
+        "golden": torch.ceil
+    },
+    "floor": {
+        "implementations": {
+            "floor": lambda x, output_tensor: ttnn.floor(x, output_tensor=output_tensor)
+        },
+        "golden": torch.floor
+    },
 }
 
 
@@ -840,6 +859,12 @@ BINARY_OPERATIONS = {
             "add": ttnn.add
         },
         "golden": torch.add
+    },
+    "subtract": {
+        "implementations": {
+            "subtract": ttnn.subtract
+        },
+        "golden": torch.subtract
     },
     "multiply": {
         "implementations": {
