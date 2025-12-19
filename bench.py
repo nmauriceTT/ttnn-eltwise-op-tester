@@ -133,6 +133,7 @@ def run_bench(impl_file, implementation, dtype, dest_dir):
         "python", "-m", "tracy",
         "-r",  # Generate ops report
         "-p",  # Partial profile
+        "--no-runtime-analysis",
         "-o", dest_dir,
         "-n", name_append,
         impl_file,
@@ -198,6 +199,7 @@ def process_benchmarks(df_all_results):
     processed_results = pd.DataFrame()
     for _, row in df_all_results.iterrows():
 
+
         if row["OP CODE"] == "BENCHMARK START":
             ignore_row = False
             continue
@@ -222,9 +224,11 @@ def process_benchmarks(df_all_results):
         input_size = input_x * input_y * input_z * input_w
         base_operation_name = row["base_operation_name"]
         implementation_name = row["implementation_name"]
+
         cycles_per_datum = row["DEVICE KERNEL DURATION PER CORE MIN [ns]"] * core_count / input_size * CYCLES_PER_NS
         cycles_per_tile = cycles_per_datum * TILE_SIZE
         processed_results = pd.concat([processed_results, pd.DataFrame({"base_operation_name": [base_operation_name], "implementation_name": [implementation_name], "cycles_per_datum": [cycles_per_datum], "cycles_per_tile": [cycles_per_tile]})], ignore_index=True)
+
 
     processed_results = processed_results.groupby(["implementation_name"], sort=False).min().reset_index()
 
