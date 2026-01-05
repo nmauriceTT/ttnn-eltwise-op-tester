@@ -24,25 +24,6 @@ def convert_to_ttn(tensor, device):
     return ttnn_tensor
 
 
-def run_ttnn_fp32_and_round_bf16(ttnn_op, args):
-
-    global global_device
-    device = args[0].device
-    assert device is not None
-
-    host_bf16_args = [convert_to_ttn(arg, device) for arg in args]
-    host_f32_args = [arg.to(torch.float32) for arg in host_bf16_args]
-    ttnn_args = [ttnn.from_torch(arg, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT, device=device) for arg in host_f32_args]
-
-    result = ttnn_op(*ttnn_args)
-    
-    # Convert back to bf16
-    result = ttnn.to_torch(result)
-    result = result.to(torch.bfloat16)
-    result = ttnn.from_torch(result, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device)
-    return result
-
-
 # No golden function set => use ttnn.get_golden_function() from first implementation
 UNARY_OPERATIONS = {
     "abs": {
@@ -65,8 +46,8 @@ UNARY_OPERATIONS = {
     "exp": {
         "implementations": {
             "exp": ttnn.exp,
-            # "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
-            # "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
+            "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
         },
         "golden": torch.exp,
     },
@@ -77,20 +58,12 @@ UNARY_OPERATIONS = {
     },
     "expm1": {
         "implementations": {
-            # "expm1": ttnn.expm1,
-            "expm1-new": ttnn.expm1
-            # "expm1-new": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("expm1-v1"), x, output_tensor),
+            "expm1": ttnn.expm1,
         },
     },
     "tanh": {
         "implementations": {
             "tanh": ttnn.tanh,
-            # "tanh-approx": lambda x, output_tensor: ttnn.tanh(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            # "tanh-cf": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-v1"), x, output_tensor),
-            # "tanh-pade-5,5":  lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-pade-5,5"), x, output_tensor),
-            # "tanh-minimax-v1[6]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-minimax-v1[6]"), x, output_tensor),
-            # "tanh-optimal": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-optimal"), x, output_tensor),
-            # "tanh-optimal-v2": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("tanh-optimal-v2"), x, output_tensor),
         },
         "golden": torch.tanh
     },
@@ -130,8 +103,7 @@ UNARY_OPERATIONS = {
     },
     "log1p": {
         "implementations": {
-            # "log1p": ttnn.log1p,
-            "log1p-new": ttnn.log1p
+            "log1p": ttnn.log1p
         },
     },
     "relu": {
@@ -161,7 +133,6 @@ UNARY_OPERATIONS = {
         "implementations": {
             "gelu": ttnn.gelu,
             "gelu_approx": lambda x, output_tensor: ttnn.gelu(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-             # "gelu-tanh": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("gelu-tanh"), x, output_tensor),
         },
     },
     "logit": {
@@ -178,7 +149,6 @@ UNARY_OPERATIONS = {
     "hardmish": {
         "implementations": {
             "hardmish": ttnn.hardmish,
-            "hardmish-fast": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("hardmish"), x, output_tensor)
         },
     },
     "elu": {
@@ -196,10 +166,6 @@ UNARY_OPERATIONS = {
     "sigmoid": {
         "implementations": {
             "sigmoid": ttnn.sigmoid,
-            # "sigmoid-approx": lambda x, output_tensor: ttnn.sigmoid(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            # "sigmoid-accurate": ttnn.sigmoid_accurate,
-            # "sigmoid-accurate-approx": lambda x, output_tensor: ttnn.sigmoid_accurate(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
-            # "sigmoid-21f": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("sigmoid"), x, output_tensor),
         },
     },
     "log_sigmoid": {
@@ -216,9 +182,6 @@ UNARY_OPERATIONS = {
     "softplus": {
         "implementations": {
             "softplus": ttnn.softplus,
-            "softplus-log1pexp": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_sfpi_source("softplus-log1pexp"), x, output_tensor),
-            "softplus-minimax-v1[5]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("softplus-poly", [-1.88397825695574283599853515625e-4, -1.717669540084898471832275390625e-3, 5.2007441408932209014892578125e-3, 0.113285191357135772705078125, 0.476007401943206787109375, 0.689675033092498779296875]), x, output_tensor),
-            "softplus-minimax-v1[8]": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("softplus-poly", [7.496111464888599584810435771942138671875e-8, 7.1853546614875085651874542236328125e-6, 5.31854093424044549465179443359375e-5, -2.879406674765050411224365234375e-4, -3.30807245336472988128662109375e-3, 3.11028095893561840057373046875e-3, 0.121423818171024322509765625, 0.4927570819854736328125, 0.692435443401336669921875]), x, output_tensor),
         },
     },
     "softsign": {
@@ -311,37 +274,6 @@ UNARY_OPERATIONS = {
         "golden": torch.floor
     },
 }
-
-
-def divide_sfpu(x, y):
-    assert isinstance(x, ttnn.Tensor)
-    assert isinstance(y, ttnn.Tensor)
-
-    # Convert on host to ensure proper rounding
-    # device = x.device
-    layout = x.layout
-
-    global global_device
-    device = global_device
-    assert device is not None
-
-    host_bf16_x = ttnn.to_torch(x)
-    host_bf16_y = ttnn.to_torch(y)
-
-    # Convert to float32
-    host_f32_x = host_bf16_x.to(torch.float32)
-    host_f32_y = host_bf16_y.to(torch.float32)
-
-    ttnn_x = ttnn.from_torch(host_f32_x, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT, device=device)
-    ttnn_y = ttnn.from_torch(host_f32_y, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT, device=device)
-    result = ttnn.divide(ttnn_x, ttnn_y)
-
-    # Convert back to bf16
-    result = ttnn.to_torch(result)
-    result = result.to(torch.bfloat16)
-    result = ttnn.from_torch(result, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT, device=device)
-    return result
-
 
 BINARY_OPERATIONS = {
     "add": {
