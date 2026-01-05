@@ -1,9 +1,3 @@
-sfpi_inline sfpi::vFloat poly_eval(sfpi::vFloat x) {
-
-    return {{ SFPI_POLY_APPROX }};
-}
-
-
 template <bool is_fp32_acc_to_dest_mode = true>
 sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
 
@@ -14,7 +8,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
     sfpi::vFloat x = sfpi::setexp(val, 127);
 
     // 3rd order polynomial approx - determined using rminimax over [1,2]
-    sfpi::vFloat series_result = poly_eval(x - sfpi::vConst1);
+    sfpi::vFloat series_result = sfpi::PolynomialEvaluator::eval(x - sfpi::vConst1, {{ POLY_COEFFS }});
 
     // Convert exponent to float
     sfpi::vInt exp = sfpi::exexp(val);
@@ -31,6 +25,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
     return result;
 }
 
+template <bool is_fp32_acc_to_dest_mode>
 inline void calculate_sfpi_kernel_init()
 {
 }

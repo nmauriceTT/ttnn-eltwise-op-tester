@@ -19,6 +19,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat x) {
     return result;
 }
 
+template <bool is_fp32_acc_to_dest_mode>
 inline void calculate_sfpi_kernel_init()
 {
     ckernel::sfpu::_init_reciprocal_<false, false>();

@@ -16,8 +16,10 @@
 
 #include "ckernel.h"
 #include "ckernel_sfpu_conversions.h"
+#include "ckernel_sfpu_exp.h"
 #include "sfpi.h"
 
+using namespace ckernel::sfpu;
 
 {{ SFPU_KERNEL_IMPL }}
 
@@ -25,10 +27,15 @@ template <bool is_fp32_dest_acc_en = false>
 void sfpu_kernel_generic() {
     constexpr unsigned VECTORS_PER_FACE = 8;
     for (unsigned i = 0; i < VECTORS_PER_FACE; i++) {
-        sfpi::vFloat in = dst_reg[0];
+        sfpi::vFloat in = sfpi::dst_reg[0];
         sfpi::vFloat result = {{ SFPU_KERNEL_NAME }}<is_fp32_dest_acc_en>(in);
-        dst_reg[0] = result;
-        dst_reg++; 
+
+        if constexpr(!is_fp32_dest_acc_en) {
+            result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
+        }
+
+        sfpi::dst_reg[0] = result;
+        sfpi::dst_reg++;
     }
 }
 
@@ -51,7 +58,7 @@ inline void sfpu_kernel(int dst_reg_index) {
 inline void sfpu_kernel_init() {
 #ifdef TRISC_MATH
     llk_math_eltwise_unary_sfpu_init<SfpuType::exponential, false>(
-        {{ SFPU_KERNEL_NAME }}_init);
+        {{ SFPU_KERNEL_NAME }}_init<DST_ACCUM_MODE>);
 #endif // TRISC_MATH
 }
 

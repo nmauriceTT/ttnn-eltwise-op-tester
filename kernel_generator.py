@@ -7,32 +7,20 @@ from jinja2 import Environment, FileSystemLoader
 
 
 
-def serialize_polynomial_coeff_to_horner(polynomial_coefficients):
+def serialize_polynomial_coeff(polynomial_coefficients):
     if not polynomial_coefficients:
         return "0.0"
 
-    x = "x" # Name for input variable
-    
-    if len(polynomial_coefficients) == 1:
-        return str(polynomial_coefficients[0])
-    
-    # Start with the highest degree coefficient
-    result = str(polynomial_coefficients[0])
-    
-    # Work backwards through the coefficients
-    for coeff in polynomial_coefficients[1:]:
-        result = f"{coeff} + {x} * ({result})"
-    
-    return result
+    return ','.join([str(coeff) for coeff in polynomial_coefficients])
 
 def generate_sfpi_kernel_source_code_with_polynomial(jinja_env, sfpi_kernel_name, polynomial_coefficients):
 
     template = jinja_env.get_template(f"sfpi/{sfpi_kernel_name}.cpp.j2")
 
-    polynomial_expression = serialize_polynomial_coeff_to_horner(polynomial_coefficients)
+    polynomial_coefficients = serialize_polynomial_coeff(polynomial_coefficients)
 
     kernel_source_code = template.render(
-        SFPI_POLY_APPROX=polynomial_expression,
+        POLY_COEFFS=polynomial_coefficients,
     )
 
     return kernel_source_code
@@ -162,24 +150,43 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
     writer_compile_time_args = [out_cb]
     writer_compile_time_args.extend(ttnn.TensorAccessorArgs(ttnn_output_tensor).get_compile_time_args())
     compute_compile_time_args = [num_tiles, 1]
-    reader_rt_args = [ttnn_input_tensor.buffer_address(), num_tiles, 0]
-    writer_rt_args = [ttnn_output_tensor.buffer_address(), num_tiles, 0]
+
+    shared_reader_rt_args = [ttnn_input_tensor.buffer_address(), num_tiles, 0]
+    shared_writer_rt_args = [ttnn_output_tensor.buffer_address(), num_tiles, 0]
+
+    reader_rt_args = ttnn.RuntimeArgs()
+    writer_rt_args = ttnn.RuntimeArgs()
+    for core_range in core_grid.ranges():
+        for x in range(core_range.start.x, core_range.end.x + 1):
+            for y in range(core_range.start.y, core_range.end.y + 1):
+                reader_rt_args[x][y] = shared_reader_rt_args
+                writer_rt_args[x][y] = shared_writer_rt_args
+
+    # Reader runs on NCRISC (RISCV_1), Writer runs on BRISC (RISCV_0)
+    reader_config = ttnn.DataMovementConfigDescriptor(
+        processor=ttnn.DataMovementProcessor.RISCV_1,
+        noc=ttnn.NOC.RISCV_1_default,
+    )
+    writer_config = ttnn.DataMovementConfigDescriptor(
+        processor=ttnn.DataMovementProcessor.RISCV_0,
+        noc=ttnn.NOC.RISCV_0_default,
+    )
 
     reader_kernel_descriptor = ttnn.KernelDescriptor(
         kernel_source=f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary/device/kernels/dataflow/reader_unary_interleaved_start_id.cpp",
         source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=reader_compile_time_args,
-        runtime_args=[[reader_rt_args]],
-        config=ttnn.ReaderConfigDescriptor(),
+        runtime_args=reader_rt_args,
+        config=reader_config,
     )
     writer_kernel_descriptor = ttnn.KernelDescriptor(
         kernel_source=f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary/device/kernels/dataflow/writer_unary_interleaved_start_id.cpp",
         source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=writer_compile_time_args,
-        runtime_args=[[writer_rt_args]],
-        config=ttnn.WriterConfigDescriptor(),
+        runtime_args=writer_rt_args,
+        config=writer_config,
     )
 
     sfpu_defines = []
@@ -200,14 +207,12 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
     # math_fidelity=ttnn.MathFidelity.HiFi4,
 
     compute_kernel_descriptor = ttnn.KernelDescriptor(
-        # kernel_source=f"{metal_home_dir}/tt_metal/kernels/compute/eltwise_sfpu.cpp",
         kernel_source=compute_kernel_source_code,
-        # source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH, expecting this to be the default value
         source_type=ttnn.KernelDescriptor.SourceType.SOURCE_CODE,
         core_ranges=core_grid,
         compile_time_args=compute_compile_time_args,
         defines=sfpu_defines,
-        runtime_args=[[[]]],
+        runtime_args=[],
         config=compute_kernel_config,
     )
 
@@ -217,10 +222,7 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
         cbs=[in_cb_descriptor, out_cb_descriptor],
     )
 
-    # from tracy import signpost
-    # signpost(f"Running generic_op")
     output = ttnn.generic_op(io_tensors, program_descriptor)
-    # signpost("Generic op completed")
 
     return output
 
