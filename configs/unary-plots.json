@@ -816,6 +816,28 @@
                     }
                 },
                 {
+                    "id": "atan-accurate-bfloat16-ulp",
+                    "name": "atan",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/atan/atan-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/atan/atan-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/atan/atan-sollya-bf16-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            20
+                        ]
+                    }
+                },
+                {
                     "id": "cos-bfloat16-ulp",
                     "name": "cos",
                     "outputs": [
@@ -2223,7 +2245,35 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            100
+                            5
+                        ],
+                        "xlim": [
+                            -100.0,
+                            100.0
+                        ]
+                    }
+                },
+                {
+                    "id": "atan-accurate-float32-ulp",
+                    "name": "atan",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/atan/atan-accurate-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/atan/atan-float32-[65536].csv",
+                        "accuracy_results/results/unary/atan/atan-sollya-v0-fp32-float32-[65536].csv",
+                        "accuracy_results/results/unary/atan/atan-sollya-v1-fp32-float32-[65536].csv",
+                        "accuracy_results/results/unary/atan/atan-taylor-fp32-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            5
+                        ],
+                        "xlim": [
+                            -100.0,
+                            100.0
                         ]
                     }
                 },

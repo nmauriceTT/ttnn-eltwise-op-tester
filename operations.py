@@ -197,8 +197,14 @@ UNARY_OPERATIONS = {
     },
     "atan": {
         "implementations": {
-            "atan": ttnn.atan
+            # "atan": ttnn.atan,
+            # "atan-sollya-bf16": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("atan", [0.999787867069244384765625, -0.325808584690093994140625, 0.1555790007114410400390625, -4.4326744973659515380859375e-2]), x, output_tensor),
+            "atan-sollya-v0-fp32": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("atan", [1.0, -0.3333314359188079833984375, 0.19993579387664794921875,-0.14209578931331634521484375, 0.1066047251224517822265625, -7.5408883392810821533203125e-2, 4.3082617223262786865234375e-2, -1.62907354533672332763671875e-2, 2.90188402868807315826416015625e-3]), x, output_tensor),
+            # "atan-sollya-v1-fp32": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("atan", [1.0, -0.3333329856395721435546875, 0.199985325336456298828125, -0.14264075458049774169921875, 0.109513260424137115478515625, -8.400972187519073486328125e-2, 5.79157769680023193359375e-2, -3.113678656518459320068359375e-2, 1.089288108050823211669921875e-2, -1.788833760656416416168212890625e-3]), x, output_tensor),
+            # "atan-sollya-v2-fp32": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("atan", [0.99999988079071044921875, -0.3333191573619842529296875, 0.199689209461212158203125, -0.14015688002109527587890625, 9.905083477497100830078125e-2, -5.93664981424808502197265625e-2, 2.417283318936824798583984375e-2, -4.6721356920897960662841796875e-3]), x, output_tensor),
+            "atan-taylor-fp32": lambda x, output_tensor: generic_unary_kernel(generate_unary_kernel_from_polynomial("atan", [1.0, -0.3333314528, 0.1999355085, -0.1420889944, 0.1065626393, -0.0752896400, 0.0429096138, -0.0161657367, 0.0028662257]), x, output_tensor),
         },
+        "golden": torch.atan
     },
     "sin": {
         "implementations": {
@@ -322,7 +328,7 @@ BINARY_OPERATIONS = {
     },
     "atan2": {
         "implementations": {
-            "atan2": ttnn.atan2
+            "atan2": ttnn.atan2,
         },
         "golden": torch.atan2
     },
