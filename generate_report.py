@@ -94,9 +94,9 @@ def main():
     all_dtypes = ["bfloat16", "float32"]
     
     all_unary_operations = [
-        "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2,", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
+        "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
         "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "celu", "sigmoid", "log_sigmoid", "selu", "softplus", "softsign", "tan", 
-        "atan", "sin", "cos", "sqrt", "cbrt", "rsqrt", "reciprocal",
+        "atan", "sin", "cos", "sqrt", "relu", "relu_max", "relu_min", "cbrt", "rsqrt", "reciprocal",
         "digamma", "lgamma", "tanhshrink", "erfinv"
     ]
     all_binary_operations = [
