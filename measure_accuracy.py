@@ -523,7 +523,7 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
     # Write results to CSV
     for _, implementation_name in implementations:
         all_df = pd.concat(impl_results[implementation_name])
-        all_df.to_csv(f"{dest_dir}/{implementation_name}/{implementation_name}[{dtype}].csv", na_rep="NaN", index_label="index")
+        all_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[{dtype}].csv", na_rep="NaN", index_label="index")
 
 
 def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_name_filter=None, **kwargs):
