@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import matplotlib.ticker as ticker
 import seaborn as sns
 import pandas as pd
 import numpy as np
@@ -171,129 +172,6 @@ def plot_heatmap(plot_entry):
         plt.close()
 
 
-def plot_histogram(plot_entry):
-    """
-    Create a histogram from binary operation accuracy data showing ULP error distribution.
-
-    Args:
-        plot_entry: Dictionary containing plot configuration from binary-plots.json
-    """
-
-    try:
-        # Extract data from plot_entry
-        data = plot_entry["data"]
-        plot_params = plot_entry["plot_params"]
-        operation_name = plot_entry["name"]
-        output_paths = plot_entry["outputs"]
-
-        # Get the value column name (default: max_ulp_error)
-        valuename = plot_entry.get("valuename", "max_ulp_error")
-
-        # Extract values, filtering out NaN and infinite values
-        values = data[valuename].values
-        values = values[np.isfinite(values)]
-
-        if len(values) == 0:
-            print(f"Warning: No valid data for histogram {plot_entry['id']}")
-            return
-
-        # Create figure
-        fig, ax = plt.subplots(figsize=(12, 8))
-
-        # Get histogram parameters from config
-        bins = plot_params.get("bins", 50)
-        log_scale = plot_params.get("log_scale", True)
-        color = plot_params.get("color", "#4C72B0")
-        edgecolor = plot_params.get("edgecolor", "white")
-
-        # Calculate statistics
-        max_error = np.max(values)
-        min_error = np.min(values)
-        mean_error = np.mean(values)
-        median_error = np.median(values)
-        p99_error = np.percentile(values, 99)
-        p95_error = np.percentile(values, 95)
-
-        # Create histogram
-        if log_scale and min_error > 0:
-            # Use log-spaced bins for better visualization of wide ranges
-            log_min = np.log10(max(min_error, 1e-10))
-            log_max = np.log10(max(max_error, 1))
-            bin_edges = np.logspace(log_min, log_max, bins + 1)
-            ax.set_xscale("log")
-        else:
-            # Handle zero/negative values with linear bins
-            bin_edges = bins
-
-        # Normalize to percentages using weights
-        weights = np.ones_like(values) * (100.0 / len(values))
-
-        counts, bin_edges, patches = ax.hist(
-            values,
-            bins=bin_edges,
-            weights=weights,
-            color=color,
-            edgecolor=edgecolor,
-            alpha=0.8,
-            linewidth=0.5,
-        )
-
-        # Set y-axis to log scale if specified
-        if plot_params.get("log_y", True) and np.max(counts) > 0:
-            ax.set_yscale("log")
-
-        # Add vertical lines for statistics
-        ax.axvline(x=mean_error, color="#E24A33", linestyle="--", linewidth=2, label=f"Mean: {mean_error:.2f}")
-        ax.axvline(x=median_error, color="#348ABD", linestyle="-.", linewidth=2, label=f"Median: {median_error:.2f}")
-        ax.axvline(x=p99_error, color="#988ED5", linestyle=":", linewidth=2, label=f"P99: {p99_error:.2f}")
-        ax.axvline(x=max_error, color="#8EBA42", linestyle="-", linewidth=2, label=f"Max: {max_error:.2f}")
-
-        # Set title and labels
-        title = plot_params.get("title", "ULP Error Distribution of ttnn.{}")
-        short_name = plot_entry.get("name", operation_name)
-        title = title.format(short_name)
-
-        ax.set_title(title, fontsize=16, pad=15)
-        ax.set_xlabel("ULP Error", fontsize=14)
-        ax.set_ylabel("Frequency (%)", fontsize=14)
-        ax.set_yscale("linear")
-
-        # Add legend
-        ax.legend(loc="upper right", fontsize=10, framealpha=0.9)
-
-        # Add statistics text box
-        stats_text = (
-            f"Total samples: {len(values):,}\n"
-            f"Max: {max_error:.2f}\n"
-            f"P99: {p99_error:.2f}\n"
-            f"P95: {p95_error:.2f}\n"
-            f"Mean: {mean_error:.2f}\n"
-            f"Median: {median_error:.2f}\n"
-            f"Min: {min_error:.2f}"
-        )
-        props = dict(boxstyle="round", facecolor="wheat", alpha=0.8)
-        ax.text(0.02, 0.98, stats_text, transform=ax.transAxes, fontsize=10,
-                verticalalignment="top", bbox=props)
-
-        # Add grid
-        ax.grid(True, alpha=0.3, which="both")
-
-        plt.tight_layout()
-
-        # Save the plot to all specified output paths
-        for output_path in output_paths:
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            plt.savefig(output_path, dpi=300, bbox_inches="tight")
-
-        plt.close()
-
-    except Exception as e:
-        import traceback
-        print(f"Error plotting histogram {plot_entry['id']}: {e}")
-        traceback.print_exc()
-        plt.close()
-
-
 def preprocess_data(data):
     """
     Remove rows where 'a' or 'b' are either infinite or NaN.
@@ -323,6 +201,208 @@ def sanitize_data(data):
     data = data.reset_index()
 
     return data
+
+
+def save_histogram_debug_csv(error_values, output_path):
+    """
+    Save raw histogram data without binning to CSV for debugging.
+    
+    Args:
+        error_values: Array of error values (already filtered for finite values)
+        output_path: Path where to save the CSV file
+    """
+    # Get unique values and their counts
+    unique_values, counts = np.unique(error_values, return_counts=True)
+    
+    # Calculate percentages
+    total = len(error_values)
+    percentages = (counts / total) * 100
+    
+    # Calculate cumulative percentages
+    cumulative_percentages = np.cumsum(percentages)
+    
+    # Create DataFrame
+    df = pd.DataFrame({
+        'ulp_error': unique_values,
+        'count': counts,
+        'percentage': percentages,
+        'cumulative_percentage': cumulative_percentages
+    })
+    
+    # Save to CSV
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    df.to_csv(output_path, index=False, float_format='%.6f')
+    print(f"Saved debug CSV: {output_path}")
+
+
+def plot_histogram(plot_entry):
+    """
+    Create a histogram with cumulative distribution from binary operation accuracy data.
+    
+    Args:
+        plot_entry: Dictionary containing plot configuration from binary-plots.json
+    """
+    try:
+        # Extract data from plot_entry
+        data = plot_entry["data"]
+        plot_params = plot_entry["plot_params"]
+        operation_name = plot_entry["name"]
+        output_paths = plot_entry["outputs"]
+        
+        # Extract column name for the error values
+        valuename = plot_entry.get("valuename", "max_ulp_error")
+        
+        # Get error values and remove NaN/Inf
+        error_values = data[valuename].values
+        error_values = error_values[np.isfinite(error_values)]
+        
+        if len(error_values) == 0:
+            print(f"Warning: No finite error values for {operation_name}")
+            return
+        
+        # Save debug CSV with raw values (no binning)
+        # Generate CSV path from the first PNG output path
+        # if output_paths:
+        #     csv_path = output_paths[0].replace('.png', '_debug.csv')
+        #     save_histogram_debug_csv(error_values, csv_path)
+        
+        # Calculate statistics
+        max_error = np.max(error_values)
+        mean_error = np.mean(error_values)
+        
+        # Create figure
+        fig, ax = plt.subplots(figsize=(14, 10))
+        
+        # Determine x-axis range
+        x_min = 0
+        x_max = max_error * 1.1  # Add 10% padding
+        
+        # Create x-axis ticks: [1, 2, 5, 10] + powers of 10
+        x_ticks = [1, 2, 5, 10]
+        power = 1
+        while 10**power < x_max:
+            power += 1
+            x_ticks.append(10**power)
+        x_ticks = [x for x in x_ticks if x <= x_max]
+        
+        # Create histogram bins with meaningful ULP error ranges
+        # Use bins like: [0-1, 1-2, 2-5, 5-10, 10-20, 20-50, 50-100, ...]
+        bins = [0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000]
+        # Extend with powers of 10 if needed
+        power = 4
+        while 10**power < x_max:
+            power += 1
+            bins.append(10**power)
+        # Only keep bins up to max_error
+        bins = [b for b in bins if b <= x_max]
+        bins.append(x_max)  # Add the max as final bin edge
+        bins = np.array(bins)
+        
+        # Calculate histogram
+        hist_counts, bin_edges = np.histogram(error_values, bins=bins)
+        hist_proportion = hist_counts / len(error_values)  # Keep as proportion [0, 1]
+        
+        # Calculate bin centers and widths (bins have variable widths!)
+        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+        bin_widths = bin_edges[1:] - bin_edges[:-1]
+        
+        # Calculate cumulative distribution
+        sorted_errors = np.sort(error_values)
+        cumulative_proportion = np.arange(1, len(sorted_errors) + 1) / len(sorted_errors)  # [0, 1]
+        
+        # Need to handle edge cases for logit scale (0 and 1)
+        # Logit scale is only defined for (0, 1), so we need to clip values
+        epsilon = 0.0001  # Small value to avoid singularities at 0 and 1
+        
+        # Debug: print histogram statistics
+        non_zero_hist = hist_proportion[hist_proportion > 0]
+        if len(non_zero_hist) > 0:
+            print(f"Histogram stats: min={np.min(non_zero_hist):.6f}, max={np.max(non_zero_hist):.6f}, mean={np.mean(non_zero_hist):.6f}")
+            print(f"Number of non-zero bins: {len(non_zero_hist)}/{len(hist_proportion)}")
+            print(f"Sum of all histogram proportions: {np.sum(hist_proportion):.6f} (should be 1.0)")
+            print(f"Bin widths: {bin_widths}")
+            print(f"Max error: {max_error:.2f}, Mean error: {mean_error:.2f}")
+        
+        # Set scales FIRST before plotting, so matplotlib interprets coordinates correctly
+        ax.set_xscale('asinh')
+        ax.set_yscale('logit')
+        
+        # For logit scale, only plot non-zero bins and clip away from 0 and 1
+        mask = hist_proportion > 0
+        hist_proportion_nonzero = hist_proportion[mask]
+        bin_edges_nonzero_left = bin_edges[:-1][mask]
+        bin_edges_nonzero_right = bin_edges[1:][mask]
+        
+        # Clip histogram proportions for logit scale
+        hist_proportion_clipped = np.clip(hist_proportion_nonzero, epsilon, 1 - epsilon)
+        
+        # Plot histogram as bars - draw each bar individually using rectangles
+        from matplotlib.patches import Rectangle
+        for i, (left, right, height) in enumerate(zip(bin_edges_nonzero_left, bin_edges_nonzero_right, hist_proportion_clipped)):
+            # Add small gap between bars (2.5% on each side = 95% fill)
+            gap = (right - left) * 0.025
+            rect = Rectangle((left + gap, epsilon), right - left - 2*gap, height - epsilon,
+                           facecolor='blue', edgecolor='darkblue', alpha=0.5, linewidth=1, zorder=1)
+            ax.add_patch(rect)
+        
+        # Add dummy bar for legend
+        ax.bar([0], [0], width=0, alpha=0.5, color='blue', label='Histogram', edgecolor='darkblue', linewidth=1)
+        
+        # Plot cumulative distribution on top
+        # Clip cumulative values away from 0 and 1
+        cumulative_proportion_clipped = np.clip(cumulative_proportion, epsilon, 1 - epsilon)
+        ax.plot(sorted_errors, cumulative_proportion_clipped, 'r-', linewidth=3, 
+                label='Cumulative', alpha=0.9, zorder=2)
+        
+        # Set x-axis properties
+        ax.set_xlim(0, x_max)
+        ax.set_xticks(x_ticks)
+        ax.set_xticklabels([str(int(x)) if x >= 1 else f"{x:.1f}" for x in x_ticks])
+        
+        # Set y-axis properties - logit scale for both histogram and cumulative
+        # Convert percentage tick values to proportions for logit scale
+        # Note: logit scale works with proportions [0, 1], we display them as percentages
+        y_ticks = [0.0001, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 0.9, 0.99, 0.995, 0.999, 0.9999]
+        y_labels = ['0%', '0.1%', '0.5%', '1%', '5%', '10%', '50%', '90%', '99%', '99.5%', '99.9%', '100%']
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_labels)
+        ax.set_ylim(0.0001, 0.9999)  # Stay away from 0 and 1 for logit scale
+        
+        # Labels
+        ax.set_xlabel('ULP Error', fontsize=16)
+        ax.set_ylabel('Percentage (logit scale)', fontsize=16)
+        
+        # Title with statistics
+        short_name = plot_entry.get("name", operation_name)
+        title = plot_params.get("title", "ULP Error Distribution for {}")
+        if title is not None:
+            title = title.format(short_name)
+        
+        stats_text = f"Max Error: {max_error:.2f} ULP | Mean Error: {mean_error:.2f} ULP"
+        ax.set_title(f"{title}\n{stats_text}", pad=20, fontsize=18)
+        
+        # Add legend
+        ax.legend(loc='lower right', fontsize=12, framealpha=0.9)
+        
+        # Grid
+        ax.grid(True, alpha=0.3)
+        
+        # Adjust layout
+        plt.tight_layout()
+        
+        # Save the plot to all specified output paths
+        for output_path in output_paths:
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            plt.savefig(output_path, dpi=300, bbox_inches="tight")
+            print(f"Saved histogram: {output_path}")
+        
+        plt.close()
+        
+    except Exception as e:
+        import traceback
+        print(f"Error plotting histogram for {plot_entry.get('id', 'unknown')}: {e}")
+        traceback.print_exc()
+        plt.close()
 
 
 def main():
