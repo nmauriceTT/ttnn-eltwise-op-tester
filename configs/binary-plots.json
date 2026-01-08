@@ -128,8 +128,8 @@
                         "accuracy_results/results/binary/hypot/hypot[bfloat16].csv"
                     ],
                     "plot_params": {
-                        "alim": [-1e20, 1e20],
-                        "blim": [-1e20, 1e20],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
@@ -238,8 +238,8 @@
                         "vertical_lines": [
                             [1, "atan2(x, 1)"]
                         ],
-                        "alim": [-1e30, 1e30],
-                        "blim": [-1e30, 1e30],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
@@ -327,6 +327,7 @@
                     "title": "ULP Error of ttnn.{} against torch\n[float32]",
                     "colormap": [
                         {"threshold": 1, "color": "#2E8B57"},
+                        {"threshold": 2, "color": "#2E8B57"},
                         {"threshold": 5, "color": "#2E8B57"},
                         {"threshold": 10, "color": "#2E8B57"},
                         {"threshold": 100, "color": "#FFD700"},
@@ -527,8 +528,8 @@
                         "vertical_lines": [
                             [1, "x/1"]
                         ],
-                        "alim": [-1e30, 1e30],
-                        "blim": [-1e30, 1e30],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
@@ -549,8 +550,8 @@
                         "vertical_lines": [
                             [1, "atan2(x, 1)"]
                         ],
-                        "alim": [-1e30, 1e30],
-                        "blim": [-1e30, 1e30],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
                         "ascale": "symlog",
                         "bscale": "symlog"
                     }
@@ -714,7 +715,9 @@
                     "files": [
                         "accuracy_results/results/binary/atan2/atan2[bfloat16].csv"
                     ],
-                    "plot_params": {}
+                    "plot_params": {
+                        "yscale": "logit"
+                    }
                 },
                 {
                     "id": "fmod-bfloat16-histogram",
@@ -853,7 +856,11 @@
                     "files": [
                         "accuracy_results/results/binary/atan2/atan2[float32].csv"
                     ],
-                    "plot_params": {}
+                    "plot_params": {
+                        "yscale": "logit",
+                        "xscale": "asinh"
+
+                    }
                 },
                 {
                     "id": "fmod-float32-histogram",
