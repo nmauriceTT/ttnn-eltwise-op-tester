@@ -1,7 +1,7 @@
 import ttnn
 import sys
 import traceback
-from operations import UNARY_OPERATIONS, get_operation_variant_by_name
+from operations import BINARY_OPERATIONS, get_operation_variant_by_name
 
 
 args = sys.argv[1:]
@@ -17,9 +17,9 @@ device = None
 try:
     device = ttnn.open_device(device_id=0)
 
-    shard_shape = [256, 256]
+    shard_shape = [256, 128]
     if DTYPE == "float32":
-        shard_shape = [256, 128]
+        shard_shape = [128, 128]
 
     grid = ttnn.CoreGrid(x=8, y=8)
 
@@ -33,20 +33,26 @@ try:
 
     ttnn_dtype = getattr(ttnn, DTYPE)
 
-    # input_tensor = ttnn.rand(shape, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
-    input_tensor = ttnn.full(shape=shape, fill_value=1.0, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
-    output_tensor = ttnn.zeros_like(input_tensor)
+    # Create two input tensors for binary operations
+    # input_tensor_a = ttnn.rand(shape, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
+    # input_tensor_b = ttnn.rand(shape, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
+    input_tensor_a = ttnn.full(shape=shape, fill_value=2.0, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
+    input_tensor_b = ttnn.full(shape=shape, fill_value=1.5, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
+    output_tensor = ttnn.zeros_like(input_tensor_a)
 
-    ttnn_operation, _ = get_operation_variant_by_name(UNARY_OPERATIONS, IMPLEMENTATION_NAME )
+    ttnn_operation, _ = get_operation_variant_by_name(BINARY_OPERATIONS, IMPLEMENTATION_NAME)
     print(f"Running benchmark for {IMPLEMENTATION_NAME}")
     print(f"ttnn operation: {ttnn_operation}")
+
+    assert ITERATIONS > 0
 
     from tracy import signpost
     signpost(f"BENCHMARK START")
     for i in range(ITERATIONS):
         signpost(f"ITERATION START")
-        _ = ttnn_operation(input_tensor, output_tensor=output_tensor)
+        _ = ttnn_operation(input_tensor_a, input_tensor_b)
         signpost(f"ITERATION END")
+
         # ttnn.deallocate(y)
     signpost("BENCHMARK END")
 
@@ -62,3 +68,4 @@ except Exception as e:
         except:
             pass
     sys.exit(1)
+
