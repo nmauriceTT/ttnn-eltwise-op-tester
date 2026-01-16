@@ -284,16 +284,40 @@
                         "accuracy_results/plots/unary/ulp/exp2/exp2-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/exp2/exp2-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp2/exp2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp2/exp2-new-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
-                            -128,
-                            128
+                            -150,
+                            150
                         ],
                         "ylim": [
                             0,
-                            11
+                            10
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "exp2-accurate-bfloat16-ulp",
+                    "name": "exp2",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/exp2/exp2-accurate-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/exp2/exp2-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp2/exp2-new-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -150,
+                            150
+                        ],
+                        "ylim": [
+                            0,
+                            10
                         ],
                         "yscale": "linear",
                         "xbase": 2
@@ -339,7 +363,7 @@
                         ],
                         "ylim": [
                             0,
-                            50
+                            10
                         ],
                         "yscale": "linear",
                         "xscale": "linear",
@@ -576,7 +600,8 @@
                         "accuracy_results/plots/unary/ulp/cosh/cosh-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/cosh/cosh-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/cosh/cosh-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/cosh/cosh-test-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
@@ -737,7 +762,6 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/log1p/log1p-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/log1p/log1p-new-np-bfloat16-[1].csv",
                         "accuracy_results/results/unary/log1p/log1p-new-bfloat16-[1].csv"
                     ],
                     "plot_params": {
@@ -747,7 +771,7 @@
                         ],
                         "ylim": [
                             0,
-                            10
+                            60
                         ],
                         "yscale": "linear"
                     }
@@ -795,6 +819,48 @@
                     }
                 },
                 {
+                    "id": "acos-bfloat16-ulp",
+                    "name": "acos",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/acos/acos-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/acos/acos-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            20
+                        ]
+                    }
+                },
+                {
+                    "id": "asin-bfloat16-ulp",
+                    "name": "asin",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/asin/asin-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/asin/asin-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            20
+                        ]
+                    }
+                },
+                {
                     "id": "atan-bfloat16-ulp",
                     "name": "atan",
                     "outputs": [
@@ -823,7 +889,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/atan/atan-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/atan/atan-sollya-bf16-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/atan/atan-new-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -833,7 +899,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            20
+                            10
                         ]
                     }
                 },
@@ -949,7 +1015,8 @@
                         "accuracy_results/plots/unary/ulp/silu/silu-bfloat16.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/silu/silu-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/silu/silu-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/silu/silu-new-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -958,7 +1025,7 @@
                         ],
                         "ylim": [
                             0,
-                            50
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1708,6 +1775,92 @@
                     }
                 },
                 {
+                    "id": "exp2-float32-ulp",
+                    "name": "exp2",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/exp2/exp2-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/exp2/exp2-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -150,
+                            150
+                        ],
+                        "ylim": [
+                            0,
+                            20
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "exp2-accurate-float32-ulp",
+                    "name": "exp2",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/exp2/exp2-accurate-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/exp2/exp2-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp2/exp2-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -150,
+                            150
+                        ],
+                        "ylim": [
+                            0,
+                            32000
+                        ],
+                        "horizontal_lines": [
+                            [
+                                32000,
+                                "~0.5 bfloat16 ULP"
+                            ]
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "exp2-accurate-zoom-float32-ulp",
+                    "name": "exp2",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/exp2/exp2-accurate-zoom-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/exp2/exp2-float32-[65536].csv",
+                        "accuracy_results/results/unary/exp2/exp2-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -150,
+                            150
+                        ],
+                        "ylim": [
+                            0,
+                            100
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
                     "id": "expm1-float32-ulp",
                     "name": "expm1",
                     "outputs": [
@@ -1723,7 +1876,59 @@
                         ],
                         "ylim": [
                             0,
-                            50000
+                            10
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "expm1-accurate-float32-ulp",
+                    "name": "expm1",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/expm1/expm1-accurate-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/expm1/expm1-float32-[65536].csv",
+                        "accuracy_results/results/unary/expm1/expm1-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -200,
+                            200
+                        ],
+                        "ylim": [
+                            0,
+                            60000
+                        ],
+                        "yscale": "linear",
+                        "xbase": 2
+                    }
+                },
+                {
+                    "id": "expm1-accurate-zoom-float32-ulp",
+                    "name": "expm1",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/expm1/expm1-accurate-zoom-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/expm1/expm1-float32-[65536].csv",
+                        "accuracy_results/results/unary/expm1/expm1-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -100,
+                            100
+                        ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
                         ],
                         "yscale": "linear",
                         "xbase": 2
@@ -1963,7 +2168,7 @@
                         ],
                         "ylim": [
                             0,
-                            10000
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1977,17 +2182,17 @@
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
                         "accuracy_results/results/unary/tanh/tanh-approx-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh/tanh-minimax-v1[6]-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh/tanh-new-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
                         "xlim": [
-                            -10,
-                            10
+                            -100,
+                            100
                         ],
                         "ylim": [
                             0,
-                            50000.0
+                            3000
                         ],
                         "yscale": "linear",
                         "horizontal_lines": [
@@ -1999,27 +2204,28 @@
                     }
                 },
                 {
-                    "id": "tanh-accurate-bis-float32-ulp",
+                    "id": "tanh-accurate-zoom-float32-ulp",
                     "name": "tanh",
                     "outputs": [
-                        "accuracy_results/plots/unary/ulp/tanh/tanh-accurate-bis-float32.png"
+                        "accuracy_results/plots/unary/ulp/tanh/tanh-accurate-zoom-float32.png"
                     ],
                     "files": [
                         "accuracy_results/results/unary/tanh/tanh-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh/tanh-v1-float32-[65536].csv",
-                        "accuracy_results/results/unary/tanh/tanh-pade-5,5-float32-[65536].csv"
+                        "accuracy_results/results/unary/tanh/tanh-approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/tanh/tanh-new-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
                         "xlim": [
-                            -10,
-                            10
+                            -20,
+                            20
                         ],
                         "ylim": [
                             0,
-                            4000.0
+                            10
                         ],
-                        "yscale": "linear"
+                        "yscale": "linear",
+                        "xscale": "linear"
                     }
                 },
                 {
@@ -2029,13 +2235,14 @@
                         "accuracy_results/plots/unary/ulp/cosh/cosh-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/cosh/cosh-float32-[65536].csv"
+                        "accuracy_results/results/unary/cosh/cosh-float32-[65536].csv",
+                        "accuracy_results/results/unary/cosh/cosh-test-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xbase": 2,
                         "ylim": [
                             0,
-                            200000
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -2233,6 +2440,50 @@
                     }
                 },
                 {
+                    "id": "acos-float32-ulp",
+                    "name": "acos",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/acos/acos-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/acos/acos-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10000
+                        ],
+                        "xlim": [
+                            -1.0,
+                            1.0
+                        ],
+                        "xscale": "linear"
+                    }
+                },
+                {
+                    "id": "asin-float32-ulp",
+                    "name": "asin",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/asin/asin-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/asin/asin-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10000
+                        ],
+                        "xlim": [
+                            -1.0,
+                            1.0
+                        ],
+                        "xscale": "linear"
+                    }
+                },
+                {
                     "id": "atan-float32-ulp",
                     "name": "atan",
                     "outputs": [
@@ -2245,7 +2496,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            5
+                            10
                         ],
                         "xlim": [
                             -100.0,
@@ -2261,9 +2512,29 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/atan/atan-float32-[65536].csv",
-                        "accuracy_results/results/unary/atan/atan-sollya-v0-fp32-float32-[65536].csv",
-                        "accuracy_results/results/unary/atan/atan-sollya-v1-fp32-float32-[65536].csv",
-                        "accuracy_results/results/unary/atan/atan-taylor-fp32-float32-[65536].csv"
+                        "accuracy_results/results/unary/atan/atan-new-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            100
+                        ],
+                        "xlim": [
+                            -1e5,
+                            1e5
+                        ]
+                    }
+                },
+                {
+                    "id": "atan-accurate-zoom-float32-ulp",
+                    "name": "atan",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/atan/atan-accurate-zoom-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/atan/atan-float32-[65536].csv",
+                        "accuracy_results/results/unary/atan/atan-new-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "yscale": "linear",
@@ -2326,12 +2597,23 @@
                         "accuracy_results/plots/unary/ulp/silu/silu-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/silu/silu-float32-[65536].csv"
+                        "accuracy_results/results/unary/silu/silu-float32-[65536].csv",
+                        "accuracy_results/results/unary/silu/silu-new-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
                             -1000,
                             1000
+                        ],
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                5,
+                                "5 ULP"
+                            ]
                         ]
                     }
                 },
@@ -2342,8 +2624,7 @@
                         "accuracy_results/plots/unary/ulp/sigmoid/sigmoid-float32.png"
                     ],
                     "files": [
-                        "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv",
-                        "accuracy_results/results/unary/sigmoid/sigmoid-accurate-float32-[65536].csv"
+                        "accuracy_results/results/unary/sigmoid/sigmoid-float32-[65536].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -2352,9 +2633,16 @@
                         ],
                         "ylim": [
                             0,
-                            200000
+                            10
                         ],
-                        "yscale": "linear"
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "yscale": "linear",
+                        "xscale": "linear"
                     }
                 },
                 {
@@ -2647,7 +2935,11 @@
                         "accuracy_results/results/unary/cbrt/cbrt-pow1d3-fp32-float32-[65536].csv"
                     ],
                     "plot_params": {
-                        "yscale": "linear"
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            1e6
+                        ]
                     }
                 },
                 {

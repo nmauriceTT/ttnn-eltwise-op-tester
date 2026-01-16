@@ -245,6 +245,28 @@
                     }
                 },
                 {
+                    "id": "atan2-new-bfloat16-ulp",
+                    "name": "atan2-new",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/atan2/atan2-new[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2-new[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "atan2(1, x)"]
+                        ],
+                        "vertical_lines": [
+                            [1, "atan2(x, 1)"]
+                        ],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
                     "id": "fmod-bfloat16-ulp",
                     "name": "fmod",
                     "outputs": [
@@ -557,6 +579,28 @@
                     }
                 },
                 {
+                    "id": "atan2-new-float32-ulp",
+                    "name": "atan2-new",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/atan2/atan2-new[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2-new[float32].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [1, "atan2(1, x)"]
+                        ],
+                        "vertical_lines": [
+                            [1, "atan2(x, 1)"]
+                        ],
+                        "alim": [-1e39, 1e39],
+                        "blim": [-1e39, 1e39],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
                     "id": "fmod-float32-ulp",
                     "name": "fmod",
                     "outputs": [
@@ -720,6 +764,19 @@
                     }
                 },
                 {
+                    "id": "atan2-new-bfloat16-histogram",
+                    "name": "atan2-new",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/atan2/atan2-new[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2-new[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "logit"
+                    }
+                },
+                {
                     "id": "fmod-bfloat16-histogram",
                     "name": "fmod",
                     "outputs": [
@@ -855,6 +912,21 @@
                     ],
                     "files": [
                         "accuracy_results/results/binary/atan2/atan2[float32].csv"
+                    ],
+                    "plot_params": {
+                        "yscale": "logit",
+                        "xscale": "asinh"
+
+                    }
+                },
+                {
+                    "id": "atan2-new-float32-histogram",
+                    "name": "atan2-new",
+                    "outputs": [
+                        "accuracy_results/plots/binary/histograms/atan2/atan2-new[float32].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/atan2/atan2-new[float32].csv"
                     ],
                     "plot_params": {
                         "yscale": "logit",
