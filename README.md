@@ -2,108 +2,118 @@
 
 Test and plot accuracy of TTNN's element-wise operations.
 
-# Setup 
-For now, this repository relies on tt-metal configuration.
+## Setup 
 
-```
+This repository relies on tt-metal configuration.
+
+```bash
 PYTHONPATH=<path/to/tt-metal>
 TT_METAL_HOME=<path/to/tt-metal>
 source <path/to/tt-metal>/python_env/bin/activate
 ```
 
-# Accuracy Benchmark
+## Directory Structure
 
-### For unary operations:
+```
+├── configs/
+│   ├── unary-plots.json      # Plot configuration for unary operations
+│   └── binary-plots.json     # Plot configuration for binary operations
+├── accuracy_results/
+│   ├── results/
+│   │   ├── unary/            # Raw accuracy measurement results (CSV)
+│   │   └── binary/           # Raw accuracy measurement results (CSV)
+│   └── plots/
+│       ├── unary/            # Generated plots for unary operations
+│       └── binary/           # Generated plots for binary operations
+├── templates/
+│   └── report.md.j2          # Jinja2 template for PDF report
+├── measure_accuracy.py       # Main script for accuracy measurements
+├── plot.py                   # Plot generation for unary operations
+├── plot_binary.py            # Plot generation for binary operations
+└── generate_report.py        # PDF report generation
+```
+
+## Accuracy Benchmark
+
+The `measure_accuracy.py` script measures accuracy for both unary and binary operations. The operation type is automatically detected.
+
+### Unary Operations
 
 #### bfloat16
-```
+```bash
 python measure_accuracy.py -t "bfloat16"
 ```
 
-A specific operations can be tested using
-```
+Test a specific operation:
+```bash
 python measure_accuracy.py -t "bfloat16" -o "exp"
 ```
 
 #### float32
-Note: not optimized, takes ~2 minutes per operation
+> Note: Not optimized, takes ~2 minutes per operation
 
-```
+```bash
 python measure_accuracy.py -t "float32"
 ```
 
-### For binary operations:
-```
-python measure-binary.py
+### Binary Operations
+
+```bash
+python measure_accuracy.py -t "bfloat16" -o "atan2"
 ```
 
-# Plot generation
+### Command Line Options
 
-For unary operations:
-```
-python plot_accuracy.py
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--type` | `-t` | Data type (`bfloat16` or `float32`) | `bfloat16` |
+| `--operation` | `-o` | Specific operation to test | All operations |
+| `--output-dir` | `-O` | Output directory for results | `accuracy_results/results/` |
+| `--group-size` | `-g` | Measurement batch size (unary only) | 1 (bf16) / 65536 (f32) |
+
+## Plot Generation
+
+### Unary Operations
+
+```bash
+python plot.py
 ```
 
+Reads configuration from `configs/unary-plots.json` and outputs plots to `accuracy_results/plots/unary/`.
 
-For binary operations:
-```
+### Binary Operations
+
+```bash
 python plot_binary.py
 ```
 
-# Accuracy Report Generation
+Reads configuration from `configs/binary-plots.json` and outputs plots to `accuracy_results/plots/binary/`.
 
-This directory contains scripts to generate comprehensive PDF reports of TTNN eltwise operation accuracy analysis.
+## Accuracy Report Generation
 
-## Scripts
+Generate a comprehensive PDF report with all accuracy plots.
 
-### 1. `generate_accuracy_report.py`
-**Full workflow script** that:
-- Generates all accuracy plots from scratch
-- Creates a markdown report with all plots
-- Converts the markdown to PDF using pandoc
+### Prerequisites
 
-**Usage:**
+#### Python Packages
+
 ```bash
-python generate_accuracy_report.py
+pip install matplotlib seaborn pandas numpy jinja2 loguru scipy
 ```
 
-### 2. `generate_report_from_existing_plots.py`
-**Simpler script** that:
-- Uses existing plot files (if any)
-- Creates a markdown report with existing plots
-- Converts the markdown to PDF using pandoc
+#### PDF Generation Tools
 
-**Usage:**
+The report generator uses **pandoc** with **pdflatex** as the PDF engine.
+
+**Ubuntu/Debian:**
 ```bash
-python generate_report_from_existing_plots.py
+sudo apt-get install pandoc texlive-latex-recommended texlive-fonts-recommended
 ```
 
-## Prerequisites
 
-### Required Software
-1. **Python 3** with required packages:
-   - matplotlib
-   - seaborn
-   - pandas
-   - numpy
 
-2. **pandoc** for PDF conversion:
-   - Ubuntu/Debian: `sudo apt-get install pandoc texlive-latex-recommended`
-   - macOS: `brew install pandoc`
-   - Windows: Download from https://pandoc.org/installing.html
 
-3. **LaTeX** (for PDF generation):
-   - Ubuntu/Debian: `sudo apt-get install texlive-latex-recommended`
-   - macOS: `brew install --cask mactex`
-   - Windows: Install MiKTeX or TeX Live
-
-### Data Requirements
-- Accuracy data files in `accuracy_results/results/`
-- Plot configuration files:
-  - `configs/unary-plots.json`
-  - `configs/binary-plots.json`
-
-## How to Use
+### Usage
 
 ```bash
 python generate_report.py
@@ -111,29 +121,26 @@ python generate_report.py
 
 ### Output Files
 
-- **`accuracy_report.md`** - Markdown report with all plots
-- **`accuracy_report.pdf`** - PDF report (if pandoc is available)
-
+- `accuracy_report.md` - Markdown report with all plots
+- `accuracy_report.pdf` - PDF report (if pandoc/pdflatex are available)
 
 ## Troubleshooting
 
 ### No plots found
-If you get "No plot files found", ensure:
+Ensure:
 1. Accuracy data exists in `accuracy_results/results/`
-2. Plot configuration files are present
-3. Run the plot generation scripts first
+2. Plot configuration files are present in `configs/`
+3. Run the plot generation scripts first (`plot.py`, `plot_binary.py`)
 
 ### PDF conversion fails
-If pandoc fails:
-1. Install pandoc and LaTeX
+1. Verify pandoc and LaTeX (pdflatex) are installed
 2. Check that the markdown file was created
-3. Manually convert: `pandoc accuracy_report.md -o accuracy_report.pdf`
+3. Manual conversion: `pandoc accuracy_report.md -o accuracy_report.pdf --pdf-engine=pdflatex`
 
 ### Plot generation fails
-If plot generation fails:
 1. Check that all required Python packages are installed
-2. Verify that accuracy data files exist
-3. Check plot configuration files for syntax errors
+2. Verify that accuracy data files exist in `accuracy_results/results/`
+3. Check plot configuration files in `configs/` for syntax errors
 
 ## Example Workflow
 
@@ -141,22 +148,31 @@ If plot generation fails:
 # 1. Ensure you're in the project directory
 cd /path/to/ttnn-eltwise-op-tester
 
-# 2. Install dependencies (if needed)
-pip install matplotlib seaborn pandas numpy
+# 2. Set up tt-metal environment
+source <path/to/tt-metal>/python_env/bin/activate
+export PYTHONPATH=<path/to/tt-metal>
+export TT_METAL_HOME=<path/to/tt-metal>
 
-# 3. Install pandoc and LaTeX (if needed)
-sudo apt-get install pandoc texlive-latex-recommended
+# 3. Install additional dependencies (if needed)
+pip install matplotlib seaborn pandas numpy jinja2 loguru scipy
 
-# 4. Generate the complete report
-python3 generate_report.py
+# 4. Run accuracy measurements
+python measure_accuracy.py -t "bfloat16"
 
-# 5. View the results
+# 5. Generate plots
+python plot.py
+python plot_binary.py
+
+# 6. Generate PDF report
+python generate_report.py
+
+# 7. View the results
 ls -la accuracy_report.*
 ```
 
 ## Notes
 
-- The scripts automatically organize plots by type (ULP, relative, absolute, etc.)
+- Plots are organized by error type (ULP, relative, absolute, value)
 - Plots are sorted alphabetically for consistent ordering
-- The PDF includes a table of contents for easy navigation
-- All plots are included with descriptive titles based on filenames
+- The PDF report includes a table of contents for easy navigation
+- All plots are generated with descriptive titles based on operation names
