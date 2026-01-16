@@ -1,6 +1,6 @@
 import argparse
 import sys
-from operations import UNARY_OPERATIONS, BINARY_OPERATIONS
+from .operations import UNARY_OPERATIONS, BINARY_OPERATIONS
 
 
 def get_available_operations(operation_type="unary"):

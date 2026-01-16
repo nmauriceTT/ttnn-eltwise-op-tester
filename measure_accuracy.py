@@ -11,12 +11,12 @@ import scipy
 import json
 from loguru import logger
 
-import utils
+from src import utils
 from models.common.utility_functions import ulp
 
 
-from arg_parser import parse_args
-from operations import UNARY_OPERATIONS, BINARY_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function, run_ttnn_op
+from src.arg_parser import parse_args
+from src.operations import UNARY_OPERATIONS, BINARY_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function, run_ttnn_op
 
 
 device_id = 0
@@ -597,7 +597,7 @@ def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_nam
 
 
 def main(args, operation_type=None):
-    from arg_parser import create_parser, validate_operation
+    from src.arg_parser import create_parser, validate_operation
     
     # Create a parser to get operation name first (using unary parser which has all args)
     basic_parser = create_parser("unary")  # Use unary as template (has all args including group-size)

@@ -1,8 +1,8 @@
 import ttnn
 import torch
-from utils import TERM_RED, TERM_RESET
+from .utils import TERM_RED, TERM_RESET
 
-from kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
+from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
 
 
 global_device = None

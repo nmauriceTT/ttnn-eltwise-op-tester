@@ -1,7 +1,7 @@
 import ttnn
 import sys
 import traceback
-from operations import BINARY_OPERATIONS, get_operation_variant_by_name
+from src.operations import BINARY_OPERATIONS, get_operation_variant_by_name
 
 
 args = sys.argv[1:]

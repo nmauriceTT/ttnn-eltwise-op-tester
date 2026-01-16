@@ -11,7 +11,7 @@ import json
 
 from matplotlib.colors import LogNorm, BoundaryNorm
 
-from plot_params_parser import (
+from src.plot_params_parser import (
     parse_plot_config,
     generate_plot_config_hashes,
     save_plot_config_hashes,

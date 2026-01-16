@@ -23,7 +23,7 @@ def get_freq():
 
 def list_available_unary_operations():
 
-    import operations
+    from src import operations
 
     all_operations = operations.UNARY_OPERATIONS
     all_operations = [(variant_name, base_operation_name) for variant_name, base_operation_name, _, _ in operations.iterate_all_operations(all_operations)]
@@ -33,7 +33,7 @@ def list_available_unary_operations():
 
 def list_available_binary_operations():
 
-    import operations
+    from src import operations
 
     all_operations = operations.BINARY_OPERATIONS
     all_operations = [(variant_name, base_operation_name) for variant_name, base_operation_name, _, _ in operations.iterate_all_operations(all_operations)]
@@ -43,7 +43,7 @@ def list_available_binary_operations():
 
 def detect_operation_type(operation_name):
     """Detect if an operation is unary or binary"""
-    import operations
+    from src import operations
     
     if operation_name in operations.UNARY_OPERATIONS:
         return "unary"
@@ -369,7 +369,7 @@ def main(args):
     if parsed_args.operation:
         detected_type = detect_operation_type(parsed_args.operation)
         if detected_type is None:
-            import operations
+            from src import operations
             unary_ops = list(operations.UNARY_OPERATIONS.keys())
             binary_ops = list(operations.BINARY_OPERATIONS.keys())
             print(f"Error: Operation '{parsed_args.operation}' not found.")
