@@ -47,6 +47,24 @@ def generate_kernel_from_sfpi_source(kernel_name, sfpi_kernel_name):
 
     return kernel_source_code
 
+def generate_kernel_from_tti_source(kernel_name, tti_kernel_name):
+    kernel_name = "unary-tti"
+
+    jinja_env = Environment(
+        loader=FileSystemLoader("kernel_templates"),
+    )
+
+    with open(f"kernels/tti/{tti_kernel_name}.cpp", "r") as f:
+        tti_kernel_code = f.read()
+
+    template = jinja_env.get_template(f"{kernel_name}.cpp.j2")
+
+    kernel_source_code = template.render(
+        SFPU_KERNEL_NAME=f"calculate_tti_kernel",
+        SFPU_KERNEL_IMPL=tti_kernel_code,
+    )
+
+    return kernel_source_code
 
 def generate_kernel_source_code_from_polynomial(kernel_name, sfpi_kernel_name, polynomial_coefficients):
 
