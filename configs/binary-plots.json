@@ -847,7 +847,10 @@
                     "files": [
                         "accuracy_results/results/binary/pow/pow[float32].csv"
                     ],
-                    "plot_params": {}
+                    "plot_params": {
+                        "yscale": "asinh",
+                        "xscale": "asinh"
+                    }
                 },
                 {
                     "id": "hypot-float32-histogram",
@@ -916,7 +919,6 @@
                     "plot_params": {
                         "yscale": "logit",
                         "xscale": "asinh"
-
                     }
                 },
                 {

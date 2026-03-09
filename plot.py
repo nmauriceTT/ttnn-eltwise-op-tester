@@ -160,8 +160,10 @@ def plot(plot_entry):
         ax.set_yscale(yscale, linear_width=0.01)
     elif yscale == "linear":
         ax.set_yscale("linear")
-    else:
+    elif yscale == "log":
         ax.set_yscale(yscale, base=ybase)
+    else:
+        ax.set_yscale(yscale)
 
     if title is not None:
         ax.set_title(title)

@@ -78,6 +78,13 @@ def create_parser(operation_type="unary"):
             help="Size of measurements batches (default: 1 for bfloat16, 65536 for float32). Higher values increases size of output files."
         )
 
+    parser.add_argument(
+        "--fast", "-f",
+        action="store_true",
+        default=False,
+        help="Fast mode: only run measurements on values with exact bfloat16 representation"
+    )
+
     return parser
 
 

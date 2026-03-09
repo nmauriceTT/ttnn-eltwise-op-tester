@@ -145,7 +145,7 @@ def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, de
 
 
 
-def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, dest_dir, group_size=None):
+def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, dest_dir, group_size=None, dtype="bfloat16"):
     """
     Measure accuracy of multiple TTNN implementations against a golden reference.
     
@@ -173,6 +173,9 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
 
     start_time = time.time()
 
+    torch_dtype = getattr(torch, dtype)
+    ttnn_dtype = getattr(ttnn, dtype)
+
     # Create input tensors (computed ONCE)
     input_np = np.arange(0, 2**16, dtype=np.uint32).astype(np.uint16)  # All possible bfloat16 values
     torch_value = torch.from_numpy(input_np).reshape(size)
@@ -184,7 +187,9 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
 
     # Create TTNN input (reused for all implementations)
-    ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
+    # Also convert to specified dtype
+    torch_input_dtype = torch_input_bf16.to(torch_dtype)
+    ttnn_input = ttnn.from_torch(torch_input_dtype, device=device, dtype=ttnn_dtype, layout=ttnn.TILE_LAYOUT)
 
     # Ensure output directory exists
     os.makedirs(f"{dest_dir}/{operation_name}", exist_ok=True)
@@ -197,26 +202,26 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         impl_start_time = time.time()
         
         # Run TTNN operation
-        ttnn_output = ttnn.zeros(size, dtype=ttnn.bfloat16, device=device, layout=ttnn.TILE_LAYOUT)
-        calculated_ttnn_bf16 = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
+        ttnn_output = ttnn.zeros(size, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT)
+        calculated_ttnn_dtype = ttnn_unary_op(ttnn_input, output_tensor=ttnn_output)
 
         # Use compare_with_golden to compute error metrics
-        accuracy_df = compare_with_golden(torch_input_f64, torch_golden_f64, calculated_ttnn_bf16, group_size)
+        accuracy_df = compare_with_golden(torch_input_f64, torch_golden_f64, calculated_ttnn_dtype, group_size)
         accuracy_df["operation"] = implementation_name
-        accuracy_df["dtype"] = "bfloat16"
+        accuracy_df["dtype"] = dtype
 
         # Store results for summary generation
         impl_results[implementation_name].append(accuracy_df)
 
         # Save results with new naming pattern: {implementation_name}[{group_size}]-{dtype}.csv
-        accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-bfloat16-[{group_size}].csv", na_rep="NaN", index_label="index")
+        accuracy_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}-{dtype}-[{group_size}].csv", na_rep="NaN", index_label="index")
 
         impl_end_time = time.time()
         impl_elapsed_s = impl_end_time - impl_start_time
-        print(f"{implementation_name} [bfloat16] Duration = {impl_elapsed_s:.4f}s")
+        print(f"{implementation_name} [{dtype}] Duration = {impl_elapsed_s:.4f}s")
 
     # Generate summary
-    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "bfloat16", impl_results_dict=impl_results)
+    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, dtype, impl_results_dict=impl_results)
 
     end_time = time.time()
     elapsed_s = end_time - start_time
@@ -526,7 +531,7 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
         all_df.to_csv(f"{dest_dir}/{operation_name}/{implementation_name}[{dtype}].csv", na_rep="NaN", index_label="index")
 
 
-def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_name_filter=None, **kwargs):
+def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_name_filter=None, dtype=None, **kwargs):
     """
     Execute benchmarks for operations in the given operations dictionary.
     
@@ -536,6 +541,7 @@ def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_nam
         dest_dir: Destination directory for results
         operation_name_filter: Optional operation name to filter by (if None, process all operations)
         group_size: Optional group size parameter to pass to measurement function
+        dtype: Data type string ("float32" or "bfloat16")
         **kwargs: Additional keyword arguments to pass to measurement function
     
     Returns:
@@ -569,7 +575,7 @@ def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_nam
             
             # Call measurement function with implementations, golden_op, operation_name, dest_dir, and optional group_size
             
-            measurement_fun(implementations, golden_op, operation_name, dest_dir, **kwargs)
+            measurement_fun(implementations, golden_op, operation_name, dest_dir, dtype=dtype, **kwargs)
 
             end_time = time.time()
             elapsed_s = end_time - start_time
@@ -588,7 +594,7 @@ def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_nam
     else:
         total_impl_count = sum(len(op_data['implementations']) for op_data in operations_dict.values())
     
-    print(f"\nSucessfully ran {success_count} / {total_impl_count} operations")
+    print(f"\nSucessfully ran {success_count} / {total_impl_count} operations [{dtype}]")
     print(f"{TERM_GREEN}SUCCESS: {successfull_operations}{TERM_RESET}")
     logger.warning(f"FAILED: {failed_operations}")
     
@@ -616,6 +622,8 @@ def main(args, operation_type=None):
         if operation_type is None:
             operation_type = "unary"
     
+    fast_mode = temp_args.fast
+
     # Use the parsed args (they're already validated if operation was specified)
     # Note: group-size will be None for binary operations, which is fine
     args = temp_args
@@ -644,7 +652,7 @@ def main(args, operation_type=None):
     else:
         # Unary operations
         if args.group_size is None:
-            if args.type == "bfloat16":
+            if args.type == "bfloat16" or fast_mode:
                 group_size = 1
             elif args.type == "float32":
                 group_size = 65536
@@ -657,7 +665,7 @@ def main(args, operation_type=None):
         os.makedirs(dest_dir, exist_ok=True)
 
         # Select measurement function based on data type
-        if args.type == "bfloat16":
+        if args.type == "bfloat16" or fast_mode:
             measurement_fun = measure_op_accuracy_bf16
         elif args.type == "float32":
             measurement_fun = measure_op_accuracy_f32
@@ -670,7 +678,8 @@ def main(args, operation_type=None):
             operations_dict=UNARY_OPERATIONS,
             dest_dir=dest_dir,
             operation_name_filter=args.operation,
-            group_size=group_size
+            group_size=group_size,
+            dtype=args.type
         )
 
 

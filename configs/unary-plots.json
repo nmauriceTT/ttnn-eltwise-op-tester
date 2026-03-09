@@ -133,7 +133,7 @@
                         ],
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "yscale": "linear",
                         "xbase": 2,
@@ -339,7 +339,7 @@
                         ],
                         "ylim": [
                             0,
-                            50
+                            10
                         ],
                         "yscale": "linear",
                         "xscale": "linear",
@@ -358,8 +358,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -1,
-                            1
+                            -150,
+                            150
                         ],
                         "ylim": [
                             0,
@@ -538,7 +538,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            40
+                            10
                         ],
                         "xlim": [
                             -10,
@@ -642,7 +642,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1000
+                            2e38
                         ],
                         "ylim": [
                             0,
@@ -664,7 +664,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1000
+                            2e38
                         ],
                         "ylim": [
                             0,
@@ -685,7 +685,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1000
+                            2e38
                         ],
                         "ylim": [
                             0,
@@ -706,7 +706,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            100
+                            2e38
                         ],
                         "ylim": [
                             0,
@@ -743,8 +743,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -0.02,
-                            0.02
+                            -1,
+                            2e38
                         ],
                         "ylim": [
                             0,
@@ -870,14 +870,10 @@
                         "accuracy_results/results/unary/atan/atan-bfloat16-[1].csv"
                     ],
                     "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ],
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            20
+                            10
                         ]
                     }
                 },
@@ -982,7 +978,7 @@
                         ],
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1003,7 +999,7 @@
                         ],
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1065,13 +1061,13 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -1e38,
-                            1e38
+                            -100,
+                            100
                         ],
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            20
+                            10
                         ]
                     }
                 },
@@ -1180,7 +1176,12 @@
                         "xlim": [
                             -200,
                             100
-                        ]
+                        ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -1217,10 +1218,6 @@
                         "accuracy_results/results/unary/softsign/softsign-bfloat16-[1].csv"
                     ],
                     "plot_params": {
-                        "xlim": [
-                            -10,
-                            10
-                        ],
                         "yscale": "linear",
                         "ylim": [
                             0,
@@ -1236,7 +1233,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/gelu/gelu_mp-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1289,7 +1287,7 @@
                         ],
                         "ylim": [
                             0,
-                            200
+                            80
                         ],
                         "yscale": "linear",
                         "xscale": "linear"
@@ -1354,7 +1352,7 @@
                         ],
                         "ylim": [
                             0,
-                            50
+                            30
                         ],
                         "yscale": "linear"
                     }
@@ -1413,12 +1411,33 @@
                     ],
                     "plot_params": {
                         "xlim": [
+                            -1e6,
+                            1e6
+                        ],
+                        "ylim": [
+                            0,
+                            50
+                        ],
+                        "yscale": "linear"
+                    }
+                },
+                {
+                    "id": "xielu-bfloat16-ulp",
+                    "name": "xielu",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/xielu/xielu-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/xielu/xielu-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
                             -100,
                             100
                         ],
                         "ylim": [
                             0,
-                            50
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1440,7 +1459,7 @@
                         ],
                         "ylim": [
                             0,
-                            400
+                            10
                         ],
                         "yscale": "linear"
                     }
@@ -1475,7 +1494,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "xlim": [
                             -0.01,
@@ -1496,7 +1515,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            100
+                            10
                         ]
                     }
                 },
@@ -1556,7 +1575,7 @@
                         ],
                         "ylim": [
                             0,
-                            50000.0
+                            500
                         ]
                     }
                 },
@@ -1575,7 +1594,7 @@
                             1.0
                         ],
                         "ylim": [
-                            1e-3, 2e5
+                            0, 200
                         ],
                         "xscale": "linear",
                         "yscale": "linear"
@@ -1762,7 +1781,7 @@
                         ],
                         "ylim": [
                             0,
-                            20
+                            10
                         ],
                         "horizontal_lines": [
                             [
@@ -1938,7 +1957,8 @@
                     "id": "exp-accurate-float32-ulp",
                     "name": "exp",
                     "outputs": [
-                        "accuracy_results/plots/unary/ulp/exp/exp-accurate-float32.png"
+                        "accuracy_results/plots/unary/ulp/exp/exp-accurate-float32.png",
+                        "accuracy_results/plots/unary/ulp/exp/exp-accurate-float32.svg"
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-float32-[65536].csv",
@@ -1951,12 +1971,12 @@
                         ],
                         "ylim": [
                             0,
-                            10
+                            10000
                         ],
                         "horizontal_lines": [ 
                             [ 1, "1 ULP" ]
                         ],
-                        "yscale": "linear",
+                        "yscale": "asinh",
                         "xbase": 2
                     }
                 },
@@ -2242,7 +2262,7 @@
                         "xbase": 2,
                         "ylim": [
                             0,
-                            10
+                            1000
                         ],
                         "yscale": "linear"
                     }
@@ -2436,7 +2456,7 @@
                         "accuracy_results/results/unary/tan/tan-float32-[65536].csv"
                     ],
                     "plot_params": {
-                        "yscale": "linear"
+                        "yscale": "log"
                     }
                 },
                 {
@@ -2499,8 +2519,8 @@
                             10
                         ],
                         "xlim": [
-                            -100.0,
-                            100.0
+                            -1000.0,
+                            1000.0
                         ]
                     }
                 },
@@ -2605,6 +2625,11 @@
                             -1000,
                             1000
                         ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "yscale": "linear",
                         "horizontal_lines": [
                             [
                                 1,
@@ -2679,12 +2704,12 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -20,
-                            20
+                            -100,
+                            100
                         ],
                         "ylim": [
                             0,
-                            200000
+                            500000
                         ],
                         "yscale": "linear"
                     }
@@ -2703,7 +2728,11 @@
                             -10,
                             10
                         ],
-                        "yscale": "linear"
+                        "ylim": [
+                            0,
+                            1e10
+                        ],
+                        "yscale": "log"
                     }
                 },
                 {
@@ -2719,7 +2748,12 @@
                         "xlim": [
                             -200,
                             100
-                        ]
+                        ],
+                        "ylim": [
+                            0,
+                            2e5
+                        ],
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -2747,18 +2781,49 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-float32-[65536].csv",
-                        "accuracy_results/results/unary/gelu/gelu_approx-float32-[65536].csv"
+                        "accuracy_results/results/unary/gelu/gelu_approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/gelu/gelu_mp-float32-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
-                            -20,
-                            20
+                            -10,
+                            10
                         ],
-                        "yscale": "linear",
-                        "ylim": [
-                            0,
-                            2000000
+                        "yscale": "log",
+                        "xscale": "linear",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
                         ]
+                    }
+                },
+                {
+                    "id": "gelu-mpref-float32-ulp",
+                    "name": "gelu",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/gelu/gelu-mpref-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/gelu/gelu-float32-[65536].csv",
+                        "accuracy_results/results/unary/gelu/gelu_approx-float32-[65536].csv",
+                        "accuracy_results/results/unary/gelu/gelu_torch-float32-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "log",
+                        "xscale": "linear",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "title": "ULP Error of ttnn.{} against mpmath\n[float32]"
                     }
                 },
                 {
@@ -2777,7 +2842,7 @@
                         ],
                         "ylim": [
                             0,
-                            400000
+                            100
                         ],
                         "yscale": "linear",
                         "xscale": "linear"
@@ -3775,7 +3840,8 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-21f-v3-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-21f-v3-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-tti-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [

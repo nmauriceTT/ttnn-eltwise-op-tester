@@ -2,11 +2,58 @@ import ttnn
 import torch
 from .utils import TERM_RED, TERM_RESET
 
-from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
+import mpmath as mp
+
+
+from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk, generate_kernel_from_tti_source
 
 
 global_device = None
 
+
+def gelu_mp(tensor, output_tensor):
+
+    torch_tensor = tensor
+    if isinstance(tensor, ttnn.Tensor):
+        torch_tensor = ttnn.to_torch(tensor)
+
+    ctx = mp.MPContext()
+    ctx.prec = 300
+
+    # Compute GELU(x)
+    def local_gelu_lambda(x):
+        mpx = ctx.mpf(x)
+        res = mp.mpf(0.5) * mpx * (mp.mpf(1) + mp.erf(mpx / mp.sqrt(mp.mpf(2))))
+        return float(res)
+
+    torch_output_tensor = torch.clone(torch_tensor)
+    torch_output_tensor.apply_(local_gelu_lambda)
+
+    if isinstance(tensor, ttnn.Tensor):
+        output_tensor = ttnn.from_torch(torch_output_tensor, layout=tensor.layout, device=tensor.device())
+    else:
+        output_tensor = torch_output_tensor
+
+    return output_tensor
+
+def gelu_torch(tensor, output_tensor):
+
+    torch_tensor = tensor
+    if isinstance(tensor, ttnn.Tensor):
+        torch_tensor = ttnn.to_torch(tensor)
+
+    input_dtype = torch_tensor.dtype
+    torch_tensor = torch_tensor.to(dtype=torch.float64)
+
+    torch_output = torch.nn.functional.gelu(torch_tensor)
+    torch_output = torch_output.to(dtype=input_dtype)
+
+    if isinstance(tensor, ttnn.Tensor):
+        output_tensor = ttnn.from_torch(torch_output, layout=tensor.layout, device=tensor.device())
+    else:
+        output_tensor = torch_output
+
+    return output_tensor
 
 def run_op_fp32(ttnn_op, args, device=None):
     ttnn_args = [convert_to_ttn(arg, device) for arg in args]
@@ -48,6 +95,8 @@ UNARY_OPERATIONS = {
             "exp": ttnn.exp,
             # "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            # "exp-tti": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("unary", "exp"), x, output_tensor),
+            # "exp-new": ttnn.exp,
         },
         "golden": torch.exp,
     },
@@ -132,7 +181,10 @@ UNARY_OPERATIONS = {
         "implementations": {
             "gelu": ttnn.gelu,
             "gelu_approx": lambda x, output_tensor: ttnn.gelu(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            # "gelu_mp": gelu_mp,
+            "gelu_torch": gelu_torch,
         },
+        "golden": lambda x, out: gelu_mp(x, out)
     },
     "logit": {
         "implementations": {
@@ -162,9 +214,15 @@ UNARY_OPERATIONS = {
         },
         "golden": lambda x, out: torch.nn.functional.celu(x)
     },
+    # "xielu": {
+    #     "implementations": {
+    #         "xielu": lambda x, output_tensor: ttnn.xielu(x, output_tensor=output_tensor)
+    #     }
+    # },
     "sigmoid": {
         "implementations": {
             "sigmoid": ttnn.sigmoid,
+            "sigmoid-approx": lambda x, output_tensor: ttnn.sigmoid(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
         },
     },
     "log_sigmoid": {
