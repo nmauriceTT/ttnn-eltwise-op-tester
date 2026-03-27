@@ -486,12 +486,14 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
             
             calculated_torch_output = ttnn.to_torch(ttnn_output).to(torch.float32)
 
-            ulp_delta = torch.abs(calculated_torch_output - golden_result_f32) / golden_ulp
+            abs_error = torch.abs(calculated_torch_output - golden_result_f32)
+            ulp_delta = abs_error / golden_ulp
 
             # Reduce values to same mantissa
             # This should give 1D tensors with 2**9 elements,
             # Each elements is the min/max/mean/... error for a pair of (mantissa_a, mantissa_b)
             ulp_batch = reduce_on_batch_and_cols(ulp_delta)
+            abs_batch = reduce_on_batch_and_cols(abs_error)
 
             rows = 2**9
 
@@ -512,6 +514,7 @@ def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name
                 "a": series_a_reduced,
                 "b": series_b_reduced,
                 "max_ulp_error": ulp_batch["max"],
+                "abs_error": abs_batch["max"],
                 "operation": implementation_name,
                 "dtype": dtype,
             })

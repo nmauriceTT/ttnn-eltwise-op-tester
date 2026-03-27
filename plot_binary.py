@@ -172,23 +172,23 @@ def plot_heatmap(plot_entry):
         plt.close()
 
 
-def preprocess_data(data):
-    """
-    Remove rows where 'a' or 'b' are either infinite or NaN.
-    Assumes columns are named 'a' and 'b'.
-    """
-    # Remove rows where 'a' or 'b' are NaN or infinite
-    mask = (np.isfinite(data["a"])) & (np.isfinite(data["b"]))
-    print(f"Preprocessed data shape: {data[mask].shape}")
+# def preprocess_data(data):
+#     """
+#     Remove rows where 'a' or 'b' are either infinite or NaN.
+#     Assumes columns are named 'a' and 'b'.
+#     """
+#     # Remove rows where 'a' or 'b' are NaN or infinite
+#     mask = (np.isfinite(data["a"])) & (np.isfinite(data["b"]))
+#     print(f"Preprocessed data shape: {data[mask].shape}")
 
-    data = data[mask]
+#     data = data[mask]
 
-    # mask_useful = (
-    #    (data['a'] > -1e3) & (data['a'] < 1e3) &
-    #    (data['b'] > -1e3) & (data['b'] < 1e3)
-    # )
+#     # mask_useful = (
+#     #    (data['a'] > -1e3) & (data['a'] < 1e3) &
+#     #    (data['b'] > -1e3) & (data['b'] < 1e3)
+#     # )
 
-    # data = data[mask_useful]
+#     # data = data[mask_useful]
 
     return data
 
@@ -249,6 +249,9 @@ def plot_histogram(plot_entry):
         operation_name = plot_entry["name"]
         output_paths = plot_entry["outputs"]
         
+        if operation_name != "pow":
+            return
+
         # Extract column name for the error values
         valuename = plot_entry.get("valuename", "max_ulp_error")
         
@@ -262,9 +265,9 @@ def plot_histogram(plot_entry):
         
         # Save debug CSV with raw values (no binning)
         # Generate CSV path from the first PNG output path
-        # if output_paths:
-        #     csv_path = output_paths[0].replace('.png', '_debug.csv')
-        #     save_histogram_debug_csv(error_values, csv_path)
+        if output_paths:
+            csv_path = output_paths[0].replace('.png', '_debug.csv')
+            save_histogram_debug_csv(error_values, csv_path)
         
         # Calculate statistics
         max_error = np.max(error_values)

@@ -97,6 +97,50 @@
                     }
                 },
                 {
+                    "id": "multiply-fp32acc-bfloat16-ulp",
+                    "name": "multiply-fp32acc",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/multiply/multiply-fp32acc[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/multiply/multiply-fp32acc[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a \\times 0$"]
+                        ],
+                        "vertical_lines": [
+                            [1, "$y = 0 \\times b$"]
+                        ],
+                        "alim": [-1e38, 1e38],
+                        "blim": [-1e38, 1e38],
+                        "ascale": "symlog",
+                        "bscale": "symlog"
+                    }
+                },
+                {
+                    "id": "multiply_accumulate-bfloat16-ulp",
+                    "name": "multiply_accumulate",
+                    "outputs": [
+                        "accuracy_results/plots/binary/heatmaps/multiply_accumulate/multiply_accumulate[bfloat16].png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/binary/multiply_accumulate/multiply_accumulate[bfloat16].csv"
+                    ],
+                    "plot_params": {
+                        "horizontal_lines": [
+                            [0, "$y = a \\times 0$"]
+                        ],
+                        "vertical_lines": [
+                            [0, "$y = 0 \\times b$"]
+                        ],
+                        "alim": [-10, 10],
+                        "blim": [-10, 10],
+                        "ascale": "linear",
+                        "bscale": "linear"
+                    }
+                },
+                {
                     "id": "pow-bfloat16-ulp",
                     "name": "pow",
                     "outputs": [
