@@ -6,3 +6,5 @@ accuracy_results/
 *.html
 *.png
 *.jpg
+
+*.csv
