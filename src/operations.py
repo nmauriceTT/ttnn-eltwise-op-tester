@@ -409,43 +409,81 @@ BINARY_OPERATIONS = {
 }
 
 
-def exp_bw_golden(x, out=None):
-    grad = torch.ones_like(x)
-    x_req = x.detach().requires_grad_(True)
-    y = torch.exp(x_req)
-    y.backward(gradient=grad)
-    result = x_req.grad
-    if out is not None:
-        out.copy_(result)
-        return out
-    return result
+def make_unary_bw_golden(ttnn_bw_op):
+    """Wrap a ttnn backward golden (grad, input) -> [tensor] into a unary golden (x, out=None) -> tensor.
+    Uses grad=1 (ones_like), matching the TTNN implementation convention."""
+    bw_golden = ttnn.get_golden_function(ttnn_bw_op)
+    def golden(x, out=None):
+        grad = torch.ones_like(x)
+        x_req = x.detach().requires_grad_(True)
+        result = bw_golden(grad, x_req)[0]
+        if out is not None:
+            out.copy_(result)
+            return out
+        return result
+    return golden
 
 
-def gelu_bw_golden(x, out=None):
-    grad = torch.ones_like(x)
-    x_req = x.detach().requires_grad_(True)
-    y = torch.nn.functional.gelu(x_req)
-    y.backward(gradient=grad)
-    result = x_req.grad
-    if out is not None:
-        out.copy_(result)
-        return out
-    return result
+def _bw_golden_from_torch(torch_op):
+    """Fallback for backward ops whose ttnn golden requires hardware-specific kwargs (e.g., device)."""
+    def golden(x, out=None):
+        grad = torch.ones_like(x)
+        x_req = x.detach().requires_grad_(True)
+        y = torch_op(x_req)
+        y.backward(gradient=grad)
+        result = x_req.grad
+        if out is not None:
+            out.copy_(result)
+            return out
+        return result
+    return golden
+
+
+def _bw_impl(ttnn_bw_op):
+    """Standard TTNN backward implementation with grad=1."""
+    return lambda x, output_tensor: ttnn_bw_op(ttnn.ones_like(x), x)[0]
 
 
 UNARY_BW_OPERATIONS = {
-    "exp_bw": {
-        "implementations": {
-            "exp_bw": lambda x, output_tensor: ttnn.exp_bw(ttnn.ones_like(x), x)[0],
-        },
-        "golden": lambda x, out:ttnn.get_golden_function(ttnn.exp_bw)(ttnn.ones_like(x), x)[0],
-    },
-    "gelu_bw": {
-        "implementations": {
-            "gelu_bw": lambda x, output_tensor: ttnn.gelu_bw(ttnn.ones_like(x), x)[0],
-        },
-        "golden": gelu_bw_golden,
-    },
+    # --- Misc ---
+    "abs_bw":   {"implementations": {"abs_bw":   _bw_impl(ttnn.abs_bw)},   "golden": make_unary_bw_golden(ttnn.abs_bw)},
+    "floor_bw": {"implementations": {"floor_bw": _bw_impl(ttnn.floor_bw)}, "golden": make_unary_bw_golden(ttnn.floor_bw)},
+
+    # --- Exponentials ---
+    "exp_bw":   {"implementations": {"exp_bw":   _bw_impl(ttnn.exp_bw)},   "golden": make_unary_bw_golden(ttnn.exp_bw)},
+    "exp2_bw":  {"implementations": {"exp2_bw":  _bw_impl(ttnn.exp2_bw)},  "golden": make_unary_bw_golden(ttnn.exp2_bw)},
+    "expm1_bw": {"implementations": {"expm1_bw": _bw_impl(ttnn.expm1_bw)}, "golden": make_unary_bw_golden(ttnn.expm1_bw)},
+
+    # --- Logarithms ---
+    "log_bw":   {"implementations": {"log_bw":   _bw_impl(ttnn.log_bw)},   "golden": make_unary_bw_golden(ttnn.log_bw)},
+    "log10_bw": {"implementations": {"log10_bw": _bw_impl(ttnn.log10_bw)}, "golden": make_unary_bw_golden(ttnn.log10_bw)},
+    "log2_bw":  {"implementations": {"log2_bw":  _bw_impl(ttnn.log2_bw)},  "golden": make_unary_bw_golden(ttnn.log2_bw)},
+    "log1p_bw": {"implementations": {"log1p_bw": _bw_impl(ttnn.log1p_bw)}, "golden": make_unary_bw_golden(ttnn.log1p_bw)},
+
+    # --- Square root ---
+    "sqrt_bw":  {"implementations": {"sqrt_bw":  _bw_impl(ttnn.sqrt_bw)},  "golden": make_unary_bw_golden(ttnn.sqrt_bw)},
+    "rsqrt_bw": {"implementations": {"rsqrt_bw": _bw_impl(ttnn.rsqrt_bw)}, "golden": make_unary_bw_golden(ttnn.rsqrt_bw)},
+
+    # --- Trigonometric ---
+    "sin_bw":  {"implementations": {"sin_bw":  _bw_impl(ttnn.sin_bw)},  "golden": make_unary_bw_golden(ttnn.sin_bw)},
+    "cos_bw":  {"implementations": {"cos_bw":  _bw_impl(ttnn.cos_bw)},  "golden": make_unary_bw_golden(ttnn.cos_bw)},
+    "asin_bw": {"implementations": {"asin_bw": _bw_impl(ttnn.asin_bw)}, "golden": make_unary_bw_golden(ttnn.asin_bw)},
+    "acos_bw": {"implementations": {"acos_bw": _bw_impl(ttnn.acos_bw)}, "golden": make_unary_bw_golden(ttnn.acos_bw)},
+
+    # --- Hyperbolic ---
+    "sinh_bw":  {"implementations": {"sinh_bw":  _bw_impl(ttnn.sinh_bw)},  "golden": make_unary_bw_golden(ttnn.sinh_bw)},
+    "cosh_bw":  {"implementations": {"cosh_bw":  _bw_impl(ttnn.cosh_bw)},  "golden": make_unary_bw_golden(ttnn.cosh_bw)},
+    "asinh_bw": {"implementations": {"asinh_bw": _bw_impl(ttnn.asinh_bw)}, "golden": make_unary_bw_golden(ttnn.asinh_bw)},
+    # acosh_bw golden requires a ttnn device kwarg for hardware nan handling; use torch directly.
+    "acosh_bw": {"implementations": {"acosh_bw": _bw_impl(ttnn.acosh_bw)}, "golden": _bw_golden_from_torch(torch.acosh)},
+
+    # --- Activation functions ---
+    "sigmoid_bw": {"implementations": {"sigmoid_bw": _bw_impl(ttnn.sigmoid_bw)}, "golden": make_unary_bw_golden(ttnn.sigmoid_bw)},
+    "silu_bw":    {"implementations": {"silu_bw":    _bw_impl(ttnn.silu_bw)},    "golden": make_unary_bw_golden(ttnn.silu_bw)},
+    "gelu_bw":    {"implementations": {"gelu_bw":    _bw_impl(ttnn.gelu_bw)},    "golden": make_unary_bw_golden(ttnn.gelu_bw)},
+    "celu_bw":    {"implementations": {"celu_bw":    _bw_impl(ttnn.celu_bw)},    "golden": make_unary_bw_golden(ttnn.celu_bw)},
+    "elu_bw":     {"implementations": {"elu_bw":     _bw_impl(ttnn.elu_bw)},     "golden": make_unary_bw_golden(ttnn.elu_bw)},
+    "selu_bw":    {"implementations": {"selu_bw":    _bw_impl(ttnn.selu_bw)},    "golden": make_unary_bw_golden(ttnn.selu_bw)},
 }
 
 
