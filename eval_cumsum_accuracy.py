@@ -1,8 +1,8 @@
 """
 Cumsum accuracy vs tensor length.
 
-For a tensor of shape (1024, 32, 32), run ttnn.cumsum once along dim=0.
-For each N in [1, 1024], read slice [N-1] and compare against a float32
+For a tensor of shape (4096, 32, 32), run ttnn.cumsum once along dim=0.
+For each N in [1, 4096], read slice [N-1] and compare against a float32
 PyTorch golden to measure how error accumulates with increasing length.
 
 Three input distributions × two dtypes (bfloat16, float32) are evaluated.
@@ -12,6 +12,7 @@ Usage:
 
 Outputs:
     accuracy_results/cumsum_accuracy.csv
+    accuracy_results/cumsum_accuracy_summary_N1000.csv
     accuracy_results/cumsum_accuracy_bfloat16.png
     accuracy_results/cumsum_accuracy_float32.png
 """
@@ -35,19 +36,19 @@ from models.common.utility_functions import ulp
 # Constants
 # ---------------------------------------------------------------------------
 
-SHAPE = (1024, 32, 32)   # run cumsum once; read N-th slice for "length N"
+SHAPE = (4096, 32, 32)   # run cumsum once; read N-th slice for "length N"
 DIM   = 0
 SEED  = 42
 
 TORCH_TO_TTNN = {
-    torch.bfloat16: ttnn.bfloat16,
+    # torch.bfloat16: ttnn.bfloat16,
     torch.float32:  ttnn.float32,
 }
 
 DISTRIBUTIONS: dict[str, callable] = {
+    "ones":      lambda: torch.ones(*SHAPE),
     "randn":     lambda: torch.randn(*SHAPE),
     "randn+0.5": lambda: torch.randn(*SHAPE) + 0.5,
-    "ones":      lambda: torch.ones(*SHAPE),
 }
 
 EPSILON = 1e-6   # guard against division-by-zero in relative error
@@ -72,7 +73,7 @@ def compute_slice_metrics(
     # Mean ULP error — ULP is computed in the output dtype
     golden_in_out_dtype = slice_golden.to(out_dtype)
     ulp_vals = ulp(golden_in_out_dtype).float().clamp(min=torch.finfo(torch.float32).tiny)
-    ulp_error = (abs_err / ulp_vals).mean().item()
+    ulp_error = (abs_err / ulp_vals).max().item()
 
     # PSNR
     mse  = (abs_err ** 2).mean().item()
@@ -124,14 +125,39 @@ def collect(device: ttnn.Device) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# Summary CSV
+# ---------------------------------------------------------------------------
+
+def save_summary(df: pd.DataFrame, output_dir: str) -> None:
+    """Save a per-(dtype, distribution) summary for the N=1…1000 window.
+
+    Columns per metric:
+      avg_<metric>   — mean over N=1…1000
+      n1000_<metric> — value at the 1000th slice
+      last_<metric>  — value at the final slice (N=SHAPE[DIM])
+    """
+    metrics = ["rel_error", "ulp_error", "psnr"]
+    key     = ["dtype", "distribution"]
+    sub     = df[df["N"] <= 1000]
+    agg     = sub.groupby(key)[metrics].mean().add_prefix("avg_")
+    at_1000 = df[df["N"] == 1000].set_index(key)[metrics].add_prefix("n1000_")
+    at_last = df[df["N"] == df["N"].max()].set_index(key)[metrics].add_prefix("last_")
+    summary = agg.join(at_1000).join(at_last)
+    path    = os.path.join(output_dir, "cumsum_accuracy_summary_N1000.csv")
+    summary.to_csv(path)
+    print(f"  Summary saved: {path}")
+
+
+# ---------------------------------------------------------------------------
 # Plotting
 # ---------------------------------------------------------------------------
 
 def plot(df: pd.DataFrame, output_dir: str) -> None:
     metrics = [
+        # (column name, ylabel, log scale)
         ("rel_error", "Mean relative error",  True),
-        ("ulp_error", "Mean ULP error",        True),
-        ("psnr",      "PSNR (dB)",             False),
+        ("ulp_error", "Max ULP error",        True),
+        ("psnr",      "PSNR (dB) \n(higher is better)",             False),
     ]
 
     for torch_dtype in TORCH_TO_TTNN:
@@ -148,7 +174,16 @@ def plot(df: pd.DataFrame, output_dir: str) -> None:
             ax.set_title(ylabel)
             if log_scale:
                 ax.set_yscale("log")
-            ax.legend(title="distribution")
+                # Ensure y=1 is visible and draw a reference line
+                ymin, ymax = ax.get_ylim()
+                ax.set_ylim(min(ymin, 0.5), max(ymax, 2.0))
+                ax.axhline(y=1, color="black", linestyle="--", linewidth=1.0, alpha=0.6, label="y=1")
+                # Re-draw legend to include the y=1 line
+                handles, labels = ax.get_legend_handles_labels()
+                ax.legend(handles=handles, labels=labels, title="distribution")
+            else:
+                ax.set_ylim(0,)
+                ax.legend(title="distribution")
 
         fig.tight_layout()
         out_path = os.path.join(output_dir, f"cumsum_accuracy_{dtype_name}.png")
@@ -182,6 +217,9 @@ def main() -> None:
 
     df.to_csv(args.output, index=False)
     print(f"\nCSV saved: {args.output}")
+
+    print("Generating summary …")
+    save_summary(df, output_dir)
 
     print("Generating plots …")
     plot(df, output_dir)
