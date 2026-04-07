@@ -1,6 +1,6 @@
 import argparse
 import sys
-from .operations import UNARY_OPERATIONS, BINARY_OPERATIONS
+from .operations import UNARY_OPERATIONS, BINARY_OPERATIONS, UNARY_BW_OPERATIONS
 
 
 def get_available_operations(operation_type="unary"):
@@ -9,8 +9,10 @@ def get_available_operations(operation_type="unary"):
         return list(UNARY_OPERATIONS.keys())
     elif operation_type == "binary":
         return list(BINARY_OPERATIONS.keys())
+    elif operation_type == "unary-bw":
+        return list(UNARY_BW_OPERATIONS.keys())
     else:
-        raise ValueError("operation_type must be 'unary' or 'binary'")
+        raise ValueError("operation_type must be 'unary', 'binary', or 'unary-bw'")
 
 
 def validate_operation(operation_name, operation_type="unary", operation_dtype="bfloat16"):
@@ -77,6 +79,13 @@ def create_parser(operation_type="unary"):
             default=None,
             help="Size of measurements batches (default: 1 for bfloat16, 65536 for float32). Higher values increases size of output files."
         )
+
+    parser.add_argument(
+        "--backward",
+        action="store_true",
+        default=False,
+        help="Run backward operations (UNARY_BW_OPERATIONS) instead of forward operations"
+    )
 
     return parser
 

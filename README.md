@@ -21,9 +21,11 @@ source <path/to/tt-metal>/python_env/bin/activate
 ├── accuracy_results/
 │   ├── results/
 │   │   ├── unary/            # Raw accuracy measurement results (CSV)
+│   │   ├── unary-bw/         # Raw accuracy measurement results for backward ops (CSV)
 │   │   └── binary/           # Raw accuracy measurement results (CSV)
 │   └── plots/
 │       ├── unary/            # Generated plots for unary operations
+│       ├── unary-bw/         # Generated plots for backward operations
 │       └── binary/           # Generated plots for binary operations
 ├── templates/
 │   └── report.md.j2          # Jinja2 template for PDF report
@@ -62,6 +64,20 @@ python measure_accuracy.py -t "float32"
 python measure_accuracy.py -t "bfloat16" -o "atan2"
 ```
 
+### Backward Operations
+
+Test backward (gradient) operations with grad=1. Results go to `accuracy_results/results/unary-bw/`.
+
+```bash
+python measure_accuracy.py --backward -t "bfloat16"
+```
+
+Test a specific backward operation:
+```bash
+python measure_accuracy.py --backward -t "bfloat16" -o "exp_bw"
+python measure_accuracy.py --backward -t "bfloat16" -o "gelu_bw"
+```
+
 ### Command Line Options
 
 | Option | Short | Description | Default |
@@ -70,6 +86,7 @@ python measure_accuracy.py -t "bfloat16" -o "atan2"
 | `--operation` | `-o` | Specific operation to test | All operations |
 | `--output-dir` | `-O` | Output directory for results | `accuracy_results/results/` |
 | `--group-size` | `-g` | Measurement batch size (unary only) | 1 (bf16) / 65536 (f32) |
+| `--backward` | | Run backward operations instead of forward | `false` |
 
 ## Plot Generation
 

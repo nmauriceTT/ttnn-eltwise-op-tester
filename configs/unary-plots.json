@@ -4041,6 +4041,125 @@
                     }
                 }
             ]
+        },
+        {
+            "id": "unary_bw_ulp_plots",
+            "default_params": {
+                "type": "scatterplot",
+                "dtype": "bfloat16",
+                "xname": "base_x",
+                "ynames": [
+                    [
+                        "max_ulp_error",
+                        "",
+                        "-"
+                    ]
+                ],
+                "hue": "operation",
+                "plot_params": {
+                    "xscale": "symlog",
+                    "xlabel": "x",
+                    "ylabel": "ULP Error",
+                    "yscale": "asinh",
+                    "ylim": [
+                        0,
+                        null
+                    ],
+                    "horizontal_lines": [
+                        [
+                            1,
+                            "1 ULP - \"great\""
+                        ],
+                        [
+                            3,
+                            "3 ULP - \"accurate\""
+                        ],
+                        [
+                            10,
+                            "10 ULP - \"approx\""
+                        ]
+                    ]
+                }
+            },
+            "plots": [
+                {
+                    "id": "exp_bw-bfloat16-ulp",
+                    "name": "exp_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/exp_bw/exp_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/exp_bw/exp_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.exp_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -100,
+                            100
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "gelu_bw-bfloat16-ulp",
+                    "name": "gelu_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/gelu_bw/gelu_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/gelu_bw/gelu_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.gelu_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -20,
+                            10
+                        ]
+                    }
+                }
+                {
+                    "id": "exp_bw-float32-ulp",
+                    "name": "exp_bw-float32",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/exp_bw/exp_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/exp_bw/exp_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.exp_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -100,
+                            100
+                        ]
+                    }
+                }
+            ]
         }
     ]
 }

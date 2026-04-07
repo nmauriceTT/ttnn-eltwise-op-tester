@@ -16,7 +16,7 @@ from models.common.utility_functions import ulp
 
 
 from src.arg_parser import parse_args
-from src.operations import UNARY_OPERATIONS, BINARY_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function, run_ttnn_op
+from src.operations import UNARY_OPERATIONS, BINARY_OPERATIONS, UNARY_BW_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function, run_ttnn_op
 
 
 device_id = 0
@@ -230,13 +230,15 @@ def parse_operations_config_file(config_file):
 
 
 def detect_operation_type(operation_name):
-    """Automatically determine if an operation is unary or binary by checking both dictionaries."""
+    """Automatically determine if an operation is unary, binary, or unary-bw by checking all dictionaries."""
     if operation_name in UNARY_OPERATIONS:
         return "unary"
     elif operation_name in BINARY_OPERATIONS:
         return "binary"
+    elif operation_name in UNARY_BW_OPERATIONS:
+        return "unary-bw"
     else:
-        raise ValueError(f"Operation '{operation_name}' not found in UNARY_OPERATIONS or BINARY_OPERATIONS")
+        raise ValueError(f"Operation '{operation_name}' not found in UNARY_OPERATIONS, BINARY_OPERATIONS, or UNARY_BW_OPERATIONS")
 
 
 # Binary operation measurement functions (from measure_binary.py)
@@ -609,8 +611,13 @@ def main(args, operation_type=None):
     # args is sys.argv, so skip the script name
     temp_args = basic_parser.parse_args(args[1:])
     
-    # If operation is specified, auto-detect the type
-    if temp_args.operation is not None:
+    # If --backward is set, override operation_type
+    if temp_args.backward:
+        operation_type = "unary-bw"
+        if temp_args.operation is not None:
+            temp_args.operation, temp_args.type = validate_operation(temp_args.operation, "unary-bw", temp_args.type)
+    elif temp_args.operation is not None:
+        # Auto-detect the type from the operation name
         operation_type = detect_operation_type(temp_args.operation)
         # Validate the operation with the detected type
         temp_args.operation, temp_args.type = validate_operation(temp_args.operation, operation_type, temp_args.type)
@@ -643,6 +650,35 @@ def main(args, operation_type=None):
             dest_dir=dest_dir,
             operation_name_filter=args.operation,
             dtype=args.type,
+        )
+    elif operation_type == "unary-bw":
+        # Backward operations reuse the unary measurement pipeline
+        if args.group_size is None:
+            if args.type == "bfloat16":
+                group_size = 1
+            elif args.type == "float32":
+                group_size = 65536
+            else:
+                raise ValueError(f"Invalid data type: {args.type}")
+        else:
+            group_size = args.group_size
+
+        dest_dir = f"accuracy_results/results/unary-bw/"
+        os.makedirs(dest_dir, exist_ok=True)
+
+        if args.type == "bfloat16":
+            measurement_fun = measure_op_accuracy_bf16
+        elif args.type == "float32":
+            measurement_fun = measure_op_accuracy_f32
+        else:
+            raise ValueError(f"Invalid data type: {args.type}")
+
+        (successfull_operations, failed_operations) = execute_benchmarks(
+            measurement_fun=measurement_fun,
+            operations_dict=UNARY_BW_OPERATIONS,
+            dest_dir=dest_dir,
+            operation_name_filter=args.operation,
+            group_size=group_size
         )
     else:
         # Unary operations

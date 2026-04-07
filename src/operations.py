@@ -2,10 +2,59 @@ import ttnn
 import torch
 from .utils import TERM_RED, TERM_RESET
 
+import mpmath as mp
+
+
 from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
+from .kernel_generator import make_generic_binary_kernel_op, generic_binary_kernel_with_dst_init, generate_kernel_from_source_path
 
 
 global_device = None
+
+
+def gelu_mp(tensor, output_tensor):
+
+    torch_tensor = tensor
+    if isinstance(tensor, ttnn.Tensor):
+        torch_tensor = ttnn.to_torch(tensor)
+
+    ctx = mp.MPContext()
+    ctx.prec = 300
+
+    # Compute GELU(x)
+    def local_gelu_lambda(x):
+        mpx = ctx.mpf(x)
+        res = ctx.mpf(0.5) * mpx * (ctx.erfc(-mpx / ctx.sqrt(ctx.mpf(2))))
+        return float(res)
+
+    torch_output_tensor = torch.clone(torch_tensor)
+    torch_output_tensor.apply_(local_gelu_lambda)
+
+    if isinstance(tensor, ttnn.Tensor):
+        output_tensor = ttnn.from_torch(torch_output_tensor, layout=tensor.layout, device=tensor.device())
+    else:
+        output_tensor = torch_output_tensor
+
+    return output_tensor
+
+def gelu_torch(tensor, output_tensor):
+
+    torch_tensor = tensor
+    if isinstance(tensor, ttnn.Tensor):
+        torch_tensor = ttnn.to_torch(tensor)
+
+    input_dtype = torch_tensor.dtype
+    torch_tensor = torch_tensor.to(dtype=torch.float64)
+
+    torch_output = torch.nn.functional.gelu(torch_tensor)
+    torch_output = torch_output.to(dtype=input_dtype)
+
+    if isinstance(tensor, ttnn.Tensor):
+        output_tensor = ttnn.from_torch(torch_output, layout=tensor.layout, device=tensor.device())
+    else:
+        output_tensor = torch_output
+
+    return output_tensor
 
 
 def run_op_fp32(ttnn_op, args, device=None):
@@ -302,7 +351,8 @@ BINARY_OPERATIONS = {
     },
     "multiply": {
         "implementations": {
-            "multiply": ttnn.multiply
+            "multiply": ttnn.multiply,
+            "multiply-fp32acc": make_generic_binary_kernel_op("mul_tiles_init", "mul_tiles"),
         },
         "golden": torch.multiply
     },
@@ -350,7 +400,52 @@ BINARY_OPERATIONS = {
         },
         "golden": torch.subtract
     },
+    "multiply_accumulate": {
+        "implementations": {
+            "multiply_accumulate": lambda x, y: generic_binary_kernel_with_dst_init(generate_kernel_from_source_path("kernels/mul_with_dst_init.cpp"),x, y,-1.00000011920928955078125)
+        },
+        "golden": lambda x, y: torch.add(torch.mul(x, y), -1.00000011920928955078125)
+    }
+}
 
+
+def exp_bw_golden(x, out=None):
+    grad = torch.ones_like(x)
+    x_req = x.detach().requires_grad_(True)
+    y = torch.exp(x_req)
+    y.backward(gradient=grad)
+    result = x_req.grad
+    if out is not None:
+        out.copy_(result)
+        return out
+    return result
+
+
+def gelu_bw_golden(x, out=None):
+    grad = torch.ones_like(x)
+    x_req = x.detach().requires_grad_(True)
+    y = torch.nn.functional.gelu(x_req)
+    y.backward(gradient=grad)
+    result = x_req.grad
+    if out is not None:
+        out.copy_(result)
+        return out
+    return result
+
+
+UNARY_BW_OPERATIONS = {
+    "exp_bw": {
+        "implementations": {
+            "exp_bw": lambda x, output_tensor: ttnn.exp_bw(ttnn.ones_like(x), x)[0],
+        },
+        "golden": lambda x, out:ttnn.get_golden_function(ttnn.exp_bw)(ttnn.ones_like(x), x)[0],
+    },
+    "gelu_bw": {
+        "implementations": {
+            "gelu_bw": lambda x, output_tensor: ttnn.gelu_bw(ttnn.ones_like(x), x)[0],
+        },
+        "golden": gelu_bw_golden,
+    },
 }
 
 
