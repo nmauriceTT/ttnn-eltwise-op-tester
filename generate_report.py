@@ -32,14 +32,16 @@ def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_templat
 
     unary_operations = operations["unary"]
     binary_operations = operations["binary"]
+    unary_bw_operations = operations["unary_bw"]
 
     template = env.get_template(jinja_template)
 
     with open(output_file, "w") as f:
         f.write(template.render(
-            unary_operations=unary_operations, 
-            binary_operations=binary_operations, 
-            timestamp=timestamp, 
+            unary_operations=unary_operations,
+            binary_operations=binary_operations,
+            unary_bw_operations=unary_bw_operations,
+            timestamp=timestamp,
             dtypes=dtypes
         ))
 
@@ -94,17 +96,27 @@ def main():
     all_dtypes = ["bfloat16", "float32"]
     
     all_unary_operations = [
-        "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos", 
-        "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "celu", "sigmoid", "log_sigmoid", "selu", "softplus", "softsign", "tan", 
+        "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos",
+        "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "celu", "sigmoid", "log_sigmoid", "selu", "softplus", "softsign", "tan",
         "atan", "sin", "cos", "sqrt", "relu", "relu_max", "relu_min", "cbrt", "rsqrt", "reciprocal",
         "digamma", "lgamma", "tanhshrink", "erfinv"
     ]
     all_binary_operations = [
         "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2", "rsub"
     ]
+    all_unary_bw_operations = [
+        "abs_bw", "floor_bw",
+        "exp_bw", "exp2_bw", "expm1_bw",
+        "log_bw", "log10_bw", "log2_bw", "log1p_bw",
+        "sqrt_bw", "rsqrt_bw",
+        "sin_bw", "cos_bw", "asin_bw", "acos_bw",
+        "sinh_bw", "cosh_bw", "asinh_bw", "acosh_bw",
+        "sigmoid_bw", "silu_bw", "gelu_bw", "celu_bw", "elu_bw", "selu_bw",
+    ]
     all_operations = {
         "unary": all_unary_operations,
-        "binary": all_binary_operations
+        "binary": all_binary_operations,
+        "unary_bw": all_unary_bw_operations,
     }
 
     create_markdown_report_jinja2("accuracy_report.md", all_dtypes, all_operations, "report.md.j2")

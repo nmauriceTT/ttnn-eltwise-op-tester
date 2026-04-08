@@ -8,6 +8,7 @@ The following sections contain accuracy plots for different types of operations:
 
 1. **Unary Operations** - f(a) = y
 2. **Binary Operations** - f(a, b) = y
+3. **Unary Backward Operations** - grad_input = op_bw(grad=1, a)
 
 Note: Tenstorrent hardware does not support subnormals and flushes subnormals values to zero. To reduce clutter, the following graphs do not plot subnoramls outputs.
 
@@ -48,6 +49,26 @@ This means that for a given ULP error of 1 with bfloat16, the ULP error for floa
 {% endfor %}
 
 {% endfor %}
+
+# Unary Backward Operations
+
+Backward operations are tested with `grad=1` (ones tensor), so `op_bw(1, x) = op'(x)`.
+The golden reference uses `ttnn.get_golden_function` where available (PyTorch autograd with grad=1).
+
+{% for dtype in dtypes %}
+
+## {{ dtype }}
+
+{% for operation in unary_bw_operations %}
+
+### ttnn.{{ operation }}
+
+![ttnn.{{ operation }}](accuracy_results/plots/unary-bw/ulp/{{operation}}/{{ operation }}-{{ dtype }}.png)
+
+{% endfor %}
+
+{% endfor %}
+
 
 ## Notes
 
