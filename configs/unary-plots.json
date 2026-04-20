@@ -1065,8 +1065,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -1e38,
-                            1e38
+                            -1e+38,
+                            1e+38
                         ],
                         "yscale": "linear",
                         "ylim": [
@@ -1264,7 +1264,7 @@
                     "files": [
                         "accuracy_results/results/unary/gelu/gelu-bfloat16-[1].csv",
                         "accuracy_results/results/unary/gelu/gelu_approx-bfloat16-[1].csv",
-                         "accuracy_results/results/unary/gelu/gelu-tanh-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/gelu/gelu-tanh-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1580,7 +1580,8 @@
                             1.0
                         ],
                         "ylim": [
-                            1e-3, 200
+                            0.001,
+                            200
                         ],
                         "xscale": "linear"
                     }
@@ -1957,8 +1958,11 @@
                             0,
                             10
                         ],
-                        "horizontal_lines": [ 
-                            [ 1, "1 ULP" ]
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
                         ],
                         "yscale": "linear",
                         "xbase": 2
@@ -1996,7 +2000,8 @@
                                 "100 ULP - \"great\""
                             ],
                             [
-                                300, "300 ULP - \"accurate\""
+                                300,
+                                "300 ULP - \"accurate\""
                             ]
                         ]
                     }
@@ -2281,7 +2286,7 @@
                     "plot_params": {
                         "xlim": [
                             0,
-                            1e+10
+                            10000000000.0
                         ],
                         "ylim": [
                             0,
@@ -2309,11 +2314,11 @@
                     "plot_params": {
                         "xlim": [
                             1,
-                            1e38
+                            1e+38
                         ],
                         "ylim": [
                             0,
-                            1e7
+                            10000000.0
                         ],
                         "horizontal_lines": [
                             [
@@ -2392,7 +2397,7 @@
                     "plot_params": {
                         "xlim": [
                             -0.9,
-                            1e+4
+                            10000.0
                         ],
                         "ylim": [
                             0,
@@ -2417,7 +2422,7 @@
                             2
                         ],
                         "ylim": [
-                            1e-1,
+                            0.1,
                             10
                         ],
                         "horizontal_lines": [
@@ -2525,8 +2530,8 @@
                             100
                         ],
                         "xlim": [
-                            -1e5,
-                            1e5
+                            -100000.0,
+                            100000.0
                         ]
                     }
                 },
@@ -2632,8 +2637,8 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -1e38,
-                            1e38
+                            -1e+38,
+                            1e+38
                         ],
                         "ylim": [
                             0,
@@ -2942,7 +2947,7 @@
                         "yscale": "linear",
                         "ylim": [
                             0,
-                            1e6
+                            1000000.0
                         ]
                     }
                 },
@@ -4038,7 +4043,8 @@
                             10
                         ],
                         "ylim": [
-                            -10, 10
+                            -10,
+                            10
                         ],
                         "xscale": "linear",
                         "yscale": "linear"
@@ -4125,6 +4131,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "dtype": "float32"
@@ -4164,6 +4174,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "dtype": "float32"
@@ -4219,6 +4233,11 @@
                             -100,
                             100
                         ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ],
                         "dtype": "float32"
                     }
                 },
@@ -4273,6 +4292,11 @@
                             -130,
                             130
                         ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            100
+                        ],
                         "dtype": "float32"
                     }
                 },
@@ -4310,6 +4334,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "dtype": "float32"
@@ -4543,6 +4571,11 @@
                             -1,
                             100
                         ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ],
                         "dtype": "float32"
                     }
                 },
@@ -4640,11 +4673,11 @@
                             ]
                         ],
                         "xscale": "log",
-                        "yscale": "linear",
                         "ylim": [
                             0,
-                            10
+                            200
                         ],
+                        "yscale": "linear",
                         "dtype": "float32"
                     }
                 },
@@ -4666,8 +4699,8 @@
                             ]
                         ],
                         "xlim": [
-                            -1e12,
-                            1e12
+                            -1000000000000.0,
+                            1000000000000.0
                         ]
                     }
                 },
@@ -4686,11 +4719,15 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "xlim": [
-                            -1e12,
-                            1e12
+                            -1000000000000.0,
+                            1000000000000.0
                         ],
                         "dtype": "float32"
                     }
@@ -4713,8 +4750,8 @@
                             ]
                         ],
                         "xlim": [
-                            -1e12,
-                            1e12
+                            -1000000000000.0,
+                            1000000000000.0
                         ]
                     }
                 },
@@ -4733,11 +4770,74 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "xlim": [
-                            -1e12,
-                            1e12
+                            -1000000000000.0,
+                            1000000000000.0
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "tan_bw-bfloat16-ulp",
+                    "name": "tan_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/tan_bw/tan_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/tan_bw/tan_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.tan_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "tan_bw-float32-ulp",
+                    "name": "tan_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/tan_bw/tan_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/tan_bw/tan_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.tan_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
                         ],
                         "dtype": "float32"
                     }
@@ -4861,6 +4961,65 @@
                     }
                 },
                 {
+                    "id": "atan_bw-bfloat16-ulp",
+                    "name": "atan_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/atan_bw/atan_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/atan_bw/atan_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.atan_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "atan_bw-float32-ulp",
+                    "name": "atan_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/atan_bw/atan_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/atan_bw/atan_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.atan_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -100.0,
+                            100.0
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
                     "id": "sinh_bw-bfloat16-ulp",
                     "name": "sinh_bw",
                     "outputs": [
@@ -4899,12 +5058,11 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
-                        ],
-                        "yscale": "linear",
-                        "ylim": [
-                            0,
-                            10
                         ],
                         "dtype": "float32"
                     }
@@ -4943,7 +5101,69 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "tanh_bw-bfloat16-ulp",
+                    "name": "tanh_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/tanh_bw/tanh_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/tanh_bw/tanh_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.tanh_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "tanh_bw-float32-ulp",
+                    "name": "tanh_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/tanh_bw/tanh_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/tanh_bw/tanh_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.tanh_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
                         ],
                         "dtype": "float32"
                     }
@@ -4966,8 +5186,8 @@
                             ]
                         ],
                         "xlim": [
-                            -1e12,
-                            1e12
+                            -1000000000000.0,
+                            1000000000000.0
                         ],
                         "yscale": "linear",
                         "ylim": [
@@ -4994,8 +5214,8 @@
                             ]
                         ],
                         "xlim": [
-                            -1e12,
-                            1e12
+                            -1000000000000.0,
+                            1000000000000.0
                         ],
                         "yscale": "linear",
                         "ylim": [
@@ -5065,6 +5285,330 @@
                     }
                 },
                 {
+                    "id": "atanh_bw-bfloat16-ulp",
+                    "name": "atanh_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/atanh_bw/atanh_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/atanh_bw/atanh_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.atanh_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -1.5,
+                            1.5
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "atanh_bw-float32-ulp",
+                    "name": "atanh_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/atanh_bw/atanh_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/atanh_bw/atanh_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.atanh_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -1.5,
+                            1.5
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "tanhshrink_bw-bfloat16-ulp",
+                    "name": "tanhshrink_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/tanhshrink_bw/tanhshrink_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/tanhshrink_bw/tanhshrink_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.tanhshrink_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xlim": [
+                            -10000.0,
+                            10000.0
+                        ]
+                    }
+                },
+                {
+                    "id": "tanhshrink_bw-float32-ulp",
+                    "name": "tanhshrink_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/tanhshrink_bw/tanhshrink_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/tanhshrink_bw/tanhshrink_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.tanhshrink_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
+                            ]
+                        ],
+                        "xlim": [
+                            -10000.0,
+                            10000.0
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "hardtanh_bw-bfloat16-ulp",
+                    "name": "hardtanh_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/hardtanh_bw/hardtanh_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/hardtanh_bw/hardtanh_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.hardtanh_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "hardtanh_bw-float32-ulp",
+                    "name": "hardtanh_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/hardtanh_bw/hardtanh_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/hardtanh_bw/hardtanh_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.hardtanh_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "digamma_bw-bfloat16-ulp",
+                    "name": "digamma_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/digamma_bw/digamma_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/digamma_bw/digamma_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.digamma_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xlim": [
+                            -200,
+                            10000.0
+                        ]
+                    }
+                },
+                {
+                    "id": "digamma_bw-float32-ulp",
+                    "name": "digamma_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/digamma_bw/digamma_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/digamma_bw/digamma_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.digamma_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
+                            ]
+                        ],
+                        "xlim": [
+                            -200,
+                            10000.0
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "lgamma_bw-bfloat16-ulp",
+                    "name": "lgamma_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/lgamma_bw/lgamma_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/lgamma_bw/lgamma_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.lgamma_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xlim": [
+                            -200,
+                            200
+                        ]
+                    }
+                },
+                {
+                    "id": "lgamma_bw-float32-ulp",
+                    "name": "lgamma_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/lgamma_bw/lgamma_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/lgamma_bw/lgamma_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.lgamma_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
+                            ]
+                        ],
+                        "xlim": [
+                            -200,
+                            200
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "erfinv_bw-bfloat16-ulp",
+                    "name": "erfinv_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/erfinv_bw/erfinv_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/erfinv_bw/erfinv_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.erfinv_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -1.0,
+                            1.0
+                        ]
+                    }
+                },
+                {
+                    "id": "erfinv_bw-float32-ulp",
+                    "name": "erfinv_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/erfinv_bw/erfinv_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/erfinv_bw/erfinv_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.erfinv_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -1.0,
+                            1.0
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
                     "id": "sigmoid_bw-bfloat16-ulp",
                     "name": "sigmoid_bw",
                     "outputs": [
@@ -5098,6 +5642,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "dtype": "float32"
@@ -5141,6 +5689,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "xlim": [
@@ -5189,6 +5741,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "xscale": "linear",
@@ -5242,6 +5798,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "xlim": [
@@ -5294,6 +5854,10 @@
                             [
                                 1,
                                 "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
                             ]
                         ],
                         "xlim": [
@@ -5347,6 +5911,121 @@
                                 1,
                                 "1 ULP"
                             ]
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "softplus_bw-bfloat16-ulp",
+                    "name": "softplus_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/softplus_bw/softplus_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/softplus_bw/softplus_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.softplus_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xlim": [
+                            -200,
+                            100
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "softplus_bw-float32-ulp",
+                    "name": "softplus_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/softplus_bw/softplus_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/softplus_bw/softplus_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.softplus_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                32000,
+                                "bfloat16 equivalent"
+                            ]
+                        ],
+                        "xlim": [
+                            -200,
+                            100
+                        ],
+                        "dtype": "float32"
+                    }
+                },
+                {
+                    "id": "softsign_bw-bfloat16-ulp",
+                    "name": "softsign_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/softsign_bw/softsign_bw-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/softsign_bw/softsign_bw-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.softsign_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "yscale": "linear",
+                        "ylim": [
+                            0,
+                            10
+                        ]
+                    }
+                },
+                {
+                    "id": "softsign_bw-float32-ulp",
+                    "name": "softsign_bw",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/softsign_bw/softsign_bw-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/softsign_bw/softsign_bw-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of ttnn.softsign_bw (grad=1) against torch\n[float32]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -10,
+                            10
                         ],
                         "yscale": "linear",
                         "ylim": [

@@ -467,15 +467,26 @@ UNARY_BW_OPERATIONS = {
     # --- Trigonometric ---
     "sin_bw":  {"implementations": {"sin_bw":  _bw_impl(ttnn.sin_bw)},  "golden": make_unary_bw_golden(ttnn.sin_bw)},
     "cos_bw":  {"implementations": {"cos_bw":  _bw_impl(ttnn.cos_bw)},  "golden": make_unary_bw_golden(ttnn.cos_bw)},
+    "tan_bw":  {"implementations": {"tan_bw":  _bw_impl(ttnn.tan_bw)},  "golden": make_unary_bw_golden(ttnn.tan_bw)},
     "asin_bw": {"implementations": {"asin_bw": _bw_impl(ttnn.asin_bw)}, "golden": make_unary_bw_golden(ttnn.asin_bw)},
     "acos_bw": {"implementations": {"acos_bw": _bw_impl(ttnn.acos_bw)}, "golden": make_unary_bw_golden(ttnn.acos_bw)},
+    "atan_bw": {"implementations": {"atan_bw": _bw_impl(ttnn.atan_bw)}, "golden": make_unary_bw_golden(ttnn.atan_bw)},
 
     # --- Hyperbolic ---
     "sinh_bw":  {"implementations": {"sinh_bw":  _bw_impl(ttnn.sinh_bw)},  "golden": make_unary_bw_golden(ttnn.sinh_bw)},
     "cosh_bw":  {"implementations": {"cosh_bw":  _bw_impl(ttnn.cosh_bw)},  "golden": make_unary_bw_golden(ttnn.cosh_bw)},
+    "tanh_bw":  {"implementations": {"tanh_bw":  _bw_impl(ttnn.tanh_bw)},  "golden": make_unary_bw_golden(ttnn.tanh_bw)},
     "asinh_bw": {"implementations": {"asinh_bw": _bw_impl(ttnn.asinh_bw)}, "golden": make_unary_bw_golden(ttnn.asinh_bw)},
     # acosh_bw golden requires a ttnn device kwarg for hardware nan handling; use torch directly.
     "acosh_bw": {"implementations": {"acosh_bw": _bw_impl(ttnn.acosh_bw)}, "golden": _bw_golden_from_torch(torch.acosh)},
+    "atanh_bw": {"implementations": {"atanh_bw": _bw_impl(ttnn.atanh_bw)}, "golden": make_unary_bw_golden(ttnn.atanh_bw)},
+
+    # --- Miscellaneous numeric ---
+    "tanhshrink_bw": {"implementations": {"tanhshrink_bw": _bw_impl(ttnn.tanhshrink_bw)}, "golden": make_unary_bw_golden(ttnn.tanhshrink_bw)},
+    "hardtanh_bw": {"implementations": {"hardtanh_bw": _bw_impl(ttnn.hardtanh_bw)}, "golden": make_unary_bw_golden(ttnn.hardtanh_bw)},
+    "digamma_bw": {"implementations": {"digamma_bw": _bw_impl(ttnn.digamma_bw)}, "golden": make_unary_bw_golden(ttnn.digamma_bw)},
+    "lgamma_bw": {"implementations": {"lgamma_bw": _bw_impl(ttnn.lgamma_bw)}, "golden": make_unary_bw_golden(ttnn.lgamma_bw)},
+    "erfinv_bw": {"implementations": {"erfinv_bw": _bw_impl(ttnn.erfinv_bw)}, "golden": make_unary_bw_golden(ttnn.erfinv_bw)},
 
     # --- Activation functions ---
     "sigmoid_bw": {"implementations": {"sigmoid_bw": _bw_impl(ttnn.sigmoid_bw)}, "golden": make_unary_bw_golden(ttnn.sigmoid_bw)},
@@ -484,6 +495,8 @@ UNARY_BW_OPERATIONS = {
     "celu_bw":    {"implementations": {"celu_bw":    _bw_impl(ttnn.celu_bw)},    "golden": make_unary_bw_golden(ttnn.celu_bw)},
     "elu_bw":     {"implementations": {"elu_bw":     _bw_impl(ttnn.elu_bw)},     "golden": make_unary_bw_golden(ttnn.elu_bw)},
     "selu_bw":    {"implementations": {"selu_bw":    _bw_impl(ttnn.selu_bw)},    "golden": make_unary_bw_golden(ttnn.selu_bw)},
+    "softplus_bw": {"implementations": {"softplus_bw": _bw_impl(ttnn.softplus_bw)}, "golden": make_unary_bw_golden(ttnn.softplus_bw)},
+    "softsign_bw": {"implementations": {"softsign_bw": _bw_impl(ttnn.softsign_bw)}, "golden": make_unary_bw_golden(ttnn.softsign_bw)},
 }
 
 

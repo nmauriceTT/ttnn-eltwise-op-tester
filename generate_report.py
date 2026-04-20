@@ -109,9 +109,11 @@ def main():
         "exp_bw", "exp2_bw", "expm1_bw",
         "log_bw", "log10_bw", "log2_bw", "log1p_bw",
         "sqrt_bw", "rsqrt_bw",
-        "sin_bw", "cos_bw", "asin_bw", "acos_bw",
-        "sinh_bw", "cosh_bw", "asinh_bw", "acosh_bw",
+        "sin_bw", "cos_bw", "tan_bw", "asin_bw", "acos_bw", "atan_bw",
+        "sinh_bw", "cosh_bw", "tanh_bw", "asinh_bw", "acosh_bw", "atanh_bw",
+        "tanhshrink_bw", "hardtanh_bw", "digamma_bw", "lgamma_bw", "erfinv_bw",
         "sigmoid_bw", "silu_bw", "gelu_bw", "celu_bw", "elu_bw", "selu_bw",
+        "softplus_bw", "softsign_bw",
     ]
     all_operations = {
         "unary": all_unary_operations,
