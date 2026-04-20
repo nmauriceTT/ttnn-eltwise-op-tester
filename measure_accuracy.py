@@ -44,9 +44,12 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
         # Move ttnn to torch
         calculated_torch = ttnn.to_torch(calculated_ttnn)
 
-        # Convert torch output to ttnn dtype for ulp computation
-        golden_downcast = golden_torch.to(calculated_torch.dtype)
+        # Flush subnormal goldens to 0 so they match hardware flush-to-zero.
+        # Without this, abs(subnormal_golden - 0) / ulp(~0) reports spurious
+        # errors on the order of 2**23 that drown out real accuracy signal.
+        golden_downcast = flush_subnormals(golden_torch.to(calculated_torch.dtype))
         golden_ulp = ulp(golden_downcast).to(golden_torch.dtype)
+        golden_torch = flush_subnormals(golden_torch)
 
 
         torch_input_size = torch_input.nelement()
@@ -115,10 +118,13 @@ def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, de
 
         # Convert to FP64 for golden function (computed ONCE per iteration)
         torch_input_fp64 = input_tensor.to(torch.float64)
-        
-        # Run golden operation (computed ONCE per iteration for all implementations)
-        golden_torch_fp64 = torch.zeros_like(input_tensor, dtype=torch.float64)
-        golden_torch_fp64 = golden_unary_op(torch_input_fp64, out=golden_torch_fp64)
+
+        # Run golden operation (computed ONCE per iteration for all implementations).
+        # We only need forward outputs, so disable autograd bookkeeping to save time.
+        # Backward goldens locally re-enable grad via torch.enable_grad().
+        with torch.no_grad():
+            golden_torch_fp64 = torch.zeros_like(input_tensor, dtype=torch.float64)
+            golden_torch_fp64 = golden_unary_op(torch_input_fp64, out=golden_torch_fp64)
 
         # Create TTNN input (reused for all implementations)
         ttnn_input = ttnn.from_torch(input_tensor, device=device, dtype=ttnn.float32, layout=ttnn.TILE_LAYOUT)
@@ -179,9 +185,11 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
     torch_input_bf16 = torch_value.view(torch.bfloat16)  # reinterpret data as bfloat16
     torch_input_f64 = torch_input_bf16.to(torch.float64)  # Convert to float64 for torch golden function
 
-    # Run golden operation (computed ONCE for all implementations)
-    torch_output_ref = torch.zeros(size, dtype=torch.float64)
-    torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
+    # Run golden operation (computed ONCE for all implementations).
+    # Forward-only path: disable autograd. Backward goldens use torch.enable_grad() internally.
+    with torch.no_grad():
+        torch_output_ref = torch.zeros(size, dtype=torch.float64)
+        torch_golden_f64 = golden_unary_op(torch_input_f64, out=torch_output_ref)
 
     # Create TTNN input (reused for all implementations)
     ttnn_input = ttnn.from_torch(torch_input_bf16, device=device, dtype=ttnn.bfloat16, layout=ttnn.TILE_LAYOUT)
@@ -346,20 +354,31 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
     # Process each implementation
     for ttnn_unary_op, implementation_name in implementations:
         try:
-            # Get max ULP error (excluding special numbers and subnormals)
+            # Get max / mean ULP error (excluding special numbers and subnormals)
             max_ulp_error = np.nan
-            
+            mean_ulp_error = np.nan
+            # Useful-range average: restricts to groups where the op actually
+            # does non-trivial work. For functions like exp that return exact
+            # 0 / inf far from the origin, whole groups have ULP = 0 and would
+            # otherwise dilute the mean.
+            useful_average_ulp = np.nan
+
             if implementation_name in impl_results_dict:
                 all_df = pd.concat(impl_results_dict[implementation_name])
-                
+
                 # Filter out special numbers and subnormals
                 # Check if input is normal
                 x_normal_mask = is_normal_number(all_df["base_x"], dtype)
                 yref_normal_mask = is_normal_number(all_df["base_yref"], dtype)
                 normal_mask = x_normal_mask & yref_normal_mask
-                
+
                 if np.any(normal_mask):
                     max_ulp_error = np.nanmax(all_df.loc[normal_mask, "max_ulp_error"].values)
+                    mean_ulp_error = np.nanmean(all_df.loc[normal_mask, "mean_ulp_error"].values)
+
+                    useful_mask = normal_mask & (all_df["mean_ulp_error"].values > 0)
+                    if np.any(useful_mask):
+                        useful_average_ulp = np.nanmean(all_df.loc[useful_mask, "mean_ulp_error"].values)
             
             # Compute values at specific points: x=0, x=1, x=+inf, x=-inf
             test_points = {
@@ -385,6 +404,8 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
             summary_rows.append({
                 "implementation": implementation_name,
                 "max_ulp_error": max_ulp_error,
+                "mean_ulp_error": mean_ulp_error,
+                "useful_average_ulp": useful_average_ulp,
                 "value_at_x_0": values_at_points["x_0"],
                 "value_at_x_1": values_at_points["x_1"],
                 "value_at_x_pos_inf": values_at_points["x_pos_inf"],
@@ -396,6 +417,8 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
             summary_rows.append({
                 "implementation": implementation_name,
                 "max_ulp_error": np.nan,
+                "mean_ulp_error": np.nan,
+                "useful_average_ulp": np.nan,
                 "value_at_x_0": np.nan,
                 "value_at_x_1": np.nan,
                 "value_at_x_pos_inf": np.nan,
@@ -415,13 +438,14 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
         try:
             # Convert to float64 for golden function
             test_input_fp64 = test_input.to(torch.float64)
-            # Try with out parameter first, fallback to without
-            try:
-                golden_output = torch.zeros_like(test_input_fp64, dtype=torch.float64)
-                golden_result = golden_unary_op(test_input_fp64, out=golden_output)
-            except TypeError:
-                # Function doesn't accept out parameter
-                golden_result = golden_unary_op(test_input_fp64)
+            with torch.no_grad():
+                # Try with out parameter first, fallback to without
+                try:
+                    golden_output = torch.zeros_like(test_input_fp64, dtype=torch.float64)
+                    golden_result = golden_unary_op(test_input_fp64, out=golden_output)
+                except TypeError:
+                    # Function doesn't accept out parameter
+                    golden_result = golden_unary_op(test_input_fp64)
             # Convert back to target dtype
             golden_result_dtype = golden_result.to(torch_dtype)
             golden_values_at_points[point_name] = golden_result_dtype.item()
@@ -432,6 +456,8 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
     summary_rows.append({
         "implementation": "golden",
         "max_ulp_error": 0.0,  # Golden function has 0 ULP error by definition
+        "mean_ulp_error": 0.0,
+        "useful_average_ulp": 0.0,
         "value_at_x_0": golden_values_at_points["x_0"],
         "value_at_x_1": golden_values_at_points["x_1"],
         "value_at_x_pos_inf": golden_values_at_points["x_pos_inf"],
