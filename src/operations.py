@@ -414,9 +414,12 @@ def make_unary_bw_golden(ttnn_bw_op):
     Uses grad=1 (ones_like), matching the TTNN implementation convention."""
     bw_golden = ttnn.get_golden_function(ttnn_bw_op)
     def golden(x, out=None):
-        grad = torch.ones_like(x)
-        x_req = x.detach().requires_grad_(True)
-        result = bw_golden(grad, x_req)[0]
+        # Backward goldens call .backward() internally; re-enable grad in case
+        # the measurement pipeline wrapped us in torch.no_grad().
+        with torch.enable_grad():
+            grad = torch.ones_like(x)
+            x_req = x.detach().requires_grad_(True)
+            result = bw_golden(grad, x_req)[0]
         if out is not None:
             out.copy_(result)
             return out
@@ -427,11 +430,12 @@ def make_unary_bw_golden(ttnn_bw_op):
 def _bw_golden_from_torch(torch_op):
     """Fallback for backward ops whose ttnn golden requires hardware-specific kwargs (e.g., device)."""
     def golden(x, out=None):
-        grad = torch.ones_like(x)
-        x_req = x.detach().requires_grad_(True)
-        y = torch_op(x_req)
-        y.backward(gradient=grad)
-        result = x_req.grad
+        with torch.enable_grad():
+            grad = torch.ones_like(x)
+            x_req = x.detach().requires_grad_(True)
+            y = torch_op(x_req)
+            y.backward(gradient=grad)
+            result = x_req.grad
         if out is not None:
             out.copy_(result)
             return out
