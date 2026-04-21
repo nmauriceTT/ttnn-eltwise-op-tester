@@ -291,6 +291,7 @@ UNARY_OPERATIONS = {
         "implementations": {
             "reciprocal": ttnn.reciprocal
         },
+        "golden": lambda x, out: torch.reciprocal(x)
     },
     "digamma": {
         "implementations": {
