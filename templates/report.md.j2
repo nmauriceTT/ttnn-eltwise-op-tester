@@ -26,7 +26,19 @@ This means that for a given ULP error of 1 with bfloat16, the ULP error for floa
 
 ### ttnn.{{ operation }}
 
+
 ![ttnn.{{ operation }}](accuracy_results/plots/unary/ulp/{{operation}}/{{ operation }}-{{ dtype }}.png)
+
+{% set summary = unary_summaries[dtype][operation] %}
+{% if summary %}
+| Implementation | Max ULP Error | Mean ULP Error |
+|---|---|---|
+{% for row in summary %}| {{ row.implementation }} | {{ row.max_ulp }} | {{ row.mean_ulp }} |
+{% endfor %}
+{% else %}
+_No summary available._
+{% endif %}
+
 
 {% endfor %}
 

@@ -1565,6 +1565,28 @@
                         ]
                     }
                 },
+		{
+                    "id": "erf-bfloat16-ulp",
+                    "name": "erf",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/erf/erf-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/erf/erf-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -20,
+                            20
+                        ],
+                        "ylim": [
+                            0,
+                            10
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"			
+                    }
+		},
                 {
                     "id": "erfinv-bfloat16-ulp",
                     "name": "erfinv",
@@ -3047,6 +3069,55 @@
                             0,
                             100000000.0
                         ]
+                    }
+                },
+		{
+                    "id": "erf-float32-ulp",
+                    "name": "erf",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/erf/erf-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/erf/erf-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -10,
+                            10
+                        ],
+                        "ylim": [
+                            0,
+                            10.0
+                        ],
+			"yscale": "linear",
+			"xscale": "linear",
+			"horizontal_lines": [
+			    [
+                                1,
+                                "1 ULP"
+                            ]
+                        ]
+                    }
+		},
+		{
+                    "id": "erfinv-float32-ulp",
+                    "name": "erfinv",
+                    "outputs": [
+                        "accuracy_results/plots/unary/ulp/erfinv/erfinv-float32.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary/erfinv/erfinv-float32-[65536].csv"
+                    ],
+                    "plot_params": {
+                        "xlim": [
+                            -1.1,
+                            1.1
+                        ],
+                        "ylim": [
+                            0,
+                            100000000.0
+                        ],
+			"xscale": "linear"
                     }
                 }
             ]

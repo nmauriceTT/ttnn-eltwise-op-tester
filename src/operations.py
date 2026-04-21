@@ -310,6 +310,12 @@ UNARY_OPERATIONS = {
         },
         "golden": lambda x, out: torch.nn.functional.tanhshrink(x)
     },
+    "erf": {
+        "implementations": {
+            "erf": lambda x, output_tensor: ttnn.erf(x)
+        },
+        "golden": lambda x, out: torch.special.erf(x)
+    },
     "erfinv": {
         "implementations": {
             "erfinv": lambda x, output_tensor: ttnn.erfinv(x)

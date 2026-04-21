@@ -9,6 +9,7 @@ This script:
 4. Converts the markdown to PDF using pandoc
 """
 
+import csv
 import os
 from stat import FILE_ATTRIBUTE_SYSTEM
 import sys
@@ -19,6 +20,35 @@ from datetime import datetime
 
 from jinja2 import Environment, FileSystemLoader
 
+
+SUMMARY_ROOT = Path("accuracy_results/results")
+
+
+def _fmt(value):
+    if value is None or value == "":
+        return "—"
+    try:
+        return f"{float(value):.3g}"
+    except ValueError:
+        return value
+
+
+def load_summary_rows(kind, operation, dtype):
+    path = SUMMARY_ROOT / kind / operation / f"summary[{dtype}].csv"
+    if not path.is_file():
+        return None
+    rows = []
+    with path.open() as f:
+        for row in csv.DictReader(f):
+            impl = row.get("implementation", "")
+            if impl == "golden":
+                continue
+            rows.append({
+                "implementation": impl,
+                "max_ulp": _fmt(row.get("max_ulp_error")),
+                "mean_ulp": _fmt(row.get("mean_ulp_error")),
+            })
+    return rows
 
 
 def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_template):
@@ -34,6 +64,11 @@ def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_templat
     binary_operations = operations["binary"]
     unary_bw_operations = operations["unary_bw"]
 
+    unary_summaries = {
+        dtype: {op: load_summary_rows("unary", op, dtype) for op in unary_operations}
+        for dtype in dtypes
+    }
+
     template = env.get_template(jinja_template)
 
     with open(output_file, "w") as f:
@@ -41,6 +76,7 @@ def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_templat
             unary_operations=unary_operations,
             binary_operations=binary_operations,
             unary_bw_operations=unary_bw_operations,
+            unary_summaries=unary_summaries,
             timestamp=timestamp,
             dtypes=dtypes
         ))
@@ -99,7 +135,7 @@ def main():
         "abs", "identity", "fill", "exp", "exp2", "expm1", "log", "log10", "log2", "log1p", "tanh", "cosh", "sinh", "tan", "atan", "cos",
         "sin", "silu", "gelu", "logit", "swish", "mish", "elu", "celu", "sigmoid", "log_sigmoid", "selu", "softplus", "softsign", "tan",
         "atan", "sin", "cos", "sqrt", "relu", "relu_max", "relu_min", "cbrt", "rsqrt", "reciprocal",
-        "digamma", "lgamma", "tanhshrink", "erfinv"
+        "digamma", "lgamma", "tanhshrink", "erf", "erfinv"
     ]
     all_binary_operations = [
         "add", "multiply", "hypot", "pow", "divide", "div", "div-accurate", "atan2", "rsub"
