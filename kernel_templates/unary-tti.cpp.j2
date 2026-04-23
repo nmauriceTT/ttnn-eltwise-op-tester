@@ -25,13 +25,7 @@ using namespace ckernel::sfpu;
 
 template <bool is_fp32_dest_acc_en>
 void sfpu_kernel_generic() {
-    constexpr unsigned VECTORS_PER_FACE = 8;
-    for (unsigned i = 0; i < VECTORS_PER_FACE; i++) {
-        
-        calculate_tti_kernel<is_fp32_dest_acc_en>();
-
-        sfpi::dst_reg++;
-    }
+    calculate_tti_kernel<is_fp32_dest_acc_en, 8>();
 }
 
 

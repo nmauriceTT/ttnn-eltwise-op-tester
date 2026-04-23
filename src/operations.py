@@ -4,8 +4,7 @@ from .utils import TERM_RED, TERM_RESET
 
 import mpmath as mp
 
-
-from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
+from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk, generate_kernel_from_tti_source
 from .kernel_generator import make_generic_binary_kernel_op, generic_binary_kernel_with_dst_init, generate_kernel_from_source_path
 
 
@@ -95,8 +94,9 @@ UNARY_OPERATIONS = {
     "exp": {
         "implementations": {
             "exp": ttnn.exp,
-            # "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
+            "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
+            # "exp-tti": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp"), x, output_tensor),
         },
         "golden": torch.exp,
     },
