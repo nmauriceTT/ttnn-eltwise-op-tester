@@ -153,9 +153,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-claude0-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-claude2-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-claude2-ttnn-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-tti-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -1536,13 +1534,15 @@
                     ],
                     "plot_params": {
                         "xlim": [
-                            -200,
-                            200
+                            -10,
+                            10
                         ],
                         "ylim": [
                             0,
-                            null
-                        ]
+                            100
+                        ],
+                        "xscale": "linear",
+                        "yscale": "linear"
                     }
                 },
                 {
@@ -3855,7 +3855,7 @@
                     ],
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-21f-v3-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-tti-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
@@ -3863,7 +3863,7 @@
                             2
                         ],
                         "ylim": [
-                            0,
+                            -1,
                             10
                         ],
                         "xscale": "linear",

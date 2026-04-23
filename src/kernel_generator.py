@@ -48,7 +48,7 @@ def generate_kernel_from_sfpi_source(kernel_name, sfpi_kernel_name):
 
     return kernel_source_code
 
-def generate_kernel_from_tti_source(kernel_name, tti_kernel_name):
+def generate_kernel_from_tti_source(tti_kernel_name):
     kernel_name = "unary-tti"
 
     jinja_env = Environment(
@@ -58,7 +58,7 @@ def generate_kernel_from_tti_source(kernel_name, tti_kernel_name):
     with open(f"kernels/tti/{tti_kernel_name}.cpp", "r") as f:
         tti_kernel_code = f.read()
 
-    template = jinja_env.get_template(f"{kernel_name}.cpp.j2")
+    template = jinja_env.get_template(f"unary-tti.cpp.j2")
 
     kernel_source_code = template.render(
         SFPU_KERNEL_NAME=f"calculate_tti_kernel",
@@ -674,7 +674,7 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
     compute_kernel_config.fp32_dest_acc_en = ttnn_input_tensor.dtype == ttnn.float32
     compute_kernel_config.math_approx_mode = False
     compute_kernel_config.math_fidelity = ttnn.MathFidelity.HiFi4
-    compute_kernel_config.unpack_to_dest_mode = [ttnn._ttnn.program_descriptor.UnpackToDestMode.UnpackToDestFp32] * 32 #  ttnn.UnpackToDestMode.UnpackToDestFp32
+    # compute_kernel_config.unpack_to_dest_mode = [ttnn._ttnn.program_descriptor.UnpackToDestMode.UnpackToDestFp32] * 32 #  ttnn.UnpackToDestMode.UnpackToDestFp32
     # math_fidelity=ttnn.MathFidelity.HiFi4,
 
     compute_kernel_descriptor = ttnn.KernelDescriptor(
