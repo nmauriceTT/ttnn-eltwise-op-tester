@@ -106,6 +106,46 @@ python plot_binary.py
 
 Reads configuration from `configs/binary-plots.json` and outputs plots to `accuracy_results/plots/binary/`.
 
+## Performance Benchmarking
+
+The `bench.py` script measures operation throughput via tracy profiling. Results are written to `generated/benchmarks/<type>/`.
+
+See [`PERFORMANCE_MICROBENCHMARK.md`](PERFORMANCE_MICROBENCHMARK.md) for details on what is measured (tensor layout, warmup, supported op types).
+
+### Run all unary operations
+
+```bash
+python bench.py --type unary -t bfloat16
+```
+
+### Run all binary operations
+
+```bash
+python bench.py --type binary -t bfloat16
+```
+
+### Run a specific operation (all variants)
+
+```bash
+python bench.py -k exp -t bfloat16
+```
+
+### Command Line Options
+
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--type` | | Operation type (`unary` or `binary`) | `unary` |
+| `--dtype` | `-t` | Data type (`bfloat16` or `float32`) | `bfloat16` |
+| `--operation` | `-k` | Filter by base operation name (runs all variants) | All operations |
+
+### Output Files
+
+Results are saved as CSV files in `generated/benchmarks/<type>/`:
+- `<op>.csv` — results for a specific operation (when `-k` is used)
+- `processed_results.csv` — results for all operations
+
+Each CSV contains `implementation_name`, `cycles_per_datum`, and `cycles_per_tile` columns.
+
 ## Accuracy Report Generation
 
 Generate a comprehensive PDF report with all accuracy plots.
