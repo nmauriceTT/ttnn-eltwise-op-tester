@@ -412,7 +412,34 @@ BINARY_OPERATIONS = {
             "multiply_accumulate": lambda x, y: generic_binary_kernel_with_dst_init(generate_kernel_from_source_path("kernels/mul_with_dst_init.cpp"),x, y,-1.00000011920928955078125)
         },
         "golden": lambda x, y: torch.add(torch.mul(x, y), -1.00000011920928955078125)
-    }
+    }, 
+    # Relational operations
+    # Note: At the moment, this is mainly useful for benchmarking (no uint verification)
+    "eq": {
+        "implementations": {
+            "eq": ttnn.eq
+        },
+    },
+    "le": {
+        "implementations": {
+            "le": ttnn.le
+        },
+    },
+    "lt": {
+        "implementations": {
+            "lt": ttnn.lt
+        },
+    },
+    "gt": {
+        "implementations": {
+            "gt": ttnn.gt
+        },
+    },
+    "ge": {
+        "implementations": {
+            "ge": ttnn.ge
+        },
+    },
 }
 
 

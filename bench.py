@@ -224,7 +224,8 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
                 print(f"{'='*80}\n")
                 return pd.DataFrame() # Return empty dataframe for incomplete benchmark
         
-        print(f"DF: {df}")
+        # TODO: Print if using --verbose flag
+        # print(f"DF: {df}")
 
         df["base_operation_name"] = base_operation_name
         df["implementation_name"] = implementation_name
@@ -340,6 +341,8 @@ def process_benchmarks(df_all_results):
 
 def main(args):
 
+    ALLOWED_DTYPES = ["float32", "bfloat16", "uint16", "uint32"]
+
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="Benchmark TTNN unary and binary operations")
     parser.add_argument(
@@ -352,7 +355,7 @@ def main(args):
         "--dtype", "-t",
         type=str,
         default="bfloat16",
-        help="Data type to benchmark (default: bfloat16). Must be one of: float32, bfloat16"
+        help=f"Data type to benchmark (default: bfloat16). Must be one of: {', '.join(ALLOWED_DTYPES)}"
     )
     parser.add_argument(
         "--type",
@@ -389,7 +392,14 @@ def main(args):
         operation_file = "templates/bench-unary.py"
         output_dir = "generated/benchmarks/unary/"
     
-    print(f"All {operation_type} operations: {all_operations}")
+    # TODO: Only print if unknown operation is specified
+    # print(f"All {operation_type} operations: {all_operations}")
+
+    if parsed_args.dtype not in ALLOWED_DTYPES:
+        print(f"Error: Data type '{parsed_args.dtype}' not found in allowed data types.")
+        print(f"Allowed data types: {', '.join(ALLOWED_DTYPES)}")
+        sys.exit(1)
+
 
     # Filter by base operation name if -k is specified
     if parsed_args.operation:

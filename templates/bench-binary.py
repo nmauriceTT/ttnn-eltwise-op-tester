@@ -34,10 +34,8 @@ try:
     ttnn_dtype = getattr(ttnn, DTYPE)
 
     # Create two input tensors for binary operations
-    # input_tensor_a = ttnn.rand(shape, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
-    # input_tensor_b = ttnn.rand(shape, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
     input_tensor_a = ttnn.full(shape=shape, fill_value=2.0, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
-    input_tensor_b = ttnn.full(shape=shape, fill_value=1.5, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
+    input_tensor_b = ttnn.full(shape=shape, fill_value=3.0, dtype=ttnn_dtype, device=device, layout=ttnn.TILE_LAYOUT, memory_config=mem_config)
     output_tensor = ttnn.zeros_like(input_tensor_a)
 
     ttnn_operation, _ = get_operation_variant_by_name(BINARY_OPERATIONS, IMPLEMENTATION_NAME)
