@@ -21,7 +21,7 @@ try:
     if DTYPE == "float32":
         shard_shape = [256, 128]
 
-    grid = ttnn.CoreGrid(x=8, y=8)
+    grid = device.core_grid
 
     shape = (1, 1, grid.y * grid.x * shard_shape[0], shard_shape[1])
     mem_config = ttnn.create_sharded_memory_config(
