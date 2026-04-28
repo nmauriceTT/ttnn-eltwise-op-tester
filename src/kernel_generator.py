@@ -182,13 +182,13 @@ def generic_binary_kernel(
     # Runtime: dst_addr, num_tiles, start_id
     writer_rt_vals = [ttnn_output.buffer_address(), num_tiles, 0]
 
-    reader_rt_args = ttnn.RuntimeArgs()
-    writer_rt_args = ttnn.RuntimeArgs()
+    reader_rt_args = []
+    writer_rt_args = []
     for core_range in core_grid.ranges():
         for x in range(core_range.start.x, core_range.end.x + 1):
             for y in range(core_range.start.y, core_range.end.y + 1):
-                reader_rt_args[x][y] = reader_rt_vals
-                writer_rt_args[x][y] = writer_rt_vals
+                reader_rt_args.append((ttnn.CoreCoord(x, y), reader_rt_vals))
+                writer_rt_args.append((ttnn.CoreCoord(x, y), writer_rt_vals))
 
     reader_config = ttnn.DataMovementConfigDescriptor(
         processor=ttnn.DataMovementProcessor.RISCV_1,
@@ -204,7 +204,6 @@ def generic_binary_kernel(
             f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/binary"
             "/device/kernels/dataflow/reader_binary_interleaved_start_id.cpp"
         ),
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=reader_ct_args,
         runtime_args=reader_rt_args,
@@ -215,7 +214,6 @@ def generic_binary_kernel(
             f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary"
             "/device/kernels/dataflow/writer_unary_interleaved_start_id.cpp"
         ),
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=writer_ct_args,
         runtime_args=writer_rt_args,
@@ -229,7 +227,7 @@ def generic_binary_kernel(
 
     compute_kernel = ttnn.KernelDescriptor(
         kernel_source=compute_kernel_source_code,
-        source_type=ttnn.KernelDescriptor.SourceType.SOURCE_CODE,
+        source_type=ttnn._ttnn.program_descriptor.KernelDescriptor.SourceType.SOURCE_CODE,
         core_ranges=core_grid,
         compile_time_args=[num_tiles],
         defines=[],
@@ -323,13 +321,13 @@ def generic_binary_kernel_with_dst_init(
     writer_ct_args.extend(ttnn.TensorAccessorArgs(ttnn_output).get_compile_time_args())
     writer_rt_vals = [ttnn_output.buffer_address(), num_tiles, 0]
 
-    reader_rt_args = ttnn.RuntimeArgs()
-    writer_rt_args = ttnn.RuntimeArgs()
+    reader_rt_args = []
+    writer_rt_args = []
     for core_range in core_grid.ranges():
         for x in range(core_range.start.x, core_range.end.x + 1):
             for y in range(core_range.start.y, core_range.end.y + 1):
-                reader_rt_args[x][y] = reader_rt_vals
-                writer_rt_args[x][y] = writer_rt_vals
+                reader_rt_args.append((ttnn.CoreCoord(x, y), reader_rt_vals))
+                writer_rt_args.append((ttnn.CoreCoord(x, y), writer_rt_vals))
 
     reader_config = ttnn.DataMovementConfigDescriptor(
         processor=ttnn.DataMovementProcessor.RISCV_1,
@@ -345,7 +343,6 @@ def generic_binary_kernel_with_dst_init(
             f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/binary"
             "/device/kernels/dataflow/reader_binary_interleaved_start_id.cpp"
         ),
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=reader_ct_args,
         runtime_args=reader_rt_args,
@@ -356,7 +353,6 @@ def generic_binary_kernel_with_dst_init(
             f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary"
             "/device/kernels/dataflow/writer_unary_interleaved_start_id.cpp"
         ),
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=writer_ct_args,
         runtime_args=writer_rt_args,
@@ -370,7 +366,7 @@ def generic_binary_kernel_with_dst_init(
 
     compute_kernel = ttnn.KernelDescriptor(
         kernel_source=compute_kernel_source_code,
-        source_type=ttnn.KernelDescriptor.SourceType.SOURCE_CODE,
+        source_type=ttnn._ttnn.program_descriptor.KernelDescriptor.SourceType.SOURCE_CODE,
         core_ranges=core_grid,
         compile_time_args=[num_tiles, dst_init_u32],
         defines=[],
@@ -487,13 +483,13 @@ def generic_ternary_mul_accum_kernel(
     writer_ct_args.extend(ttnn.TensorAccessorArgs(ttnn_output).get_compile_time_args())
     writer_rt_vals = [ttnn_output.buffer_address(), num_tiles, 0]
 
-    reader_rt_args = ttnn.RuntimeArgs()
-    writer_rt_args = ttnn.RuntimeArgs()
+    reader_rt_args = []
+    writer_rt_args = []
     for core_range in core_grid.ranges():
         for x in range(core_range.start.x, core_range.end.x + 1):
             for y in range(core_range.start.y, core_range.end.y + 1):
-                reader_rt_args[x][y] = reader_rt_vals
-                writer_rt_args[x][y] = writer_rt_vals
+                reader_rt_args.append((ttnn.CoreCoord(x, y), reader_rt_vals))
+                writer_rt_args.append((ttnn.CoreCoord(x, y), writer_rt_vals))
 
     reader_config = ttnn.DataMovementConfigDescriptor(
         processor=ttnn.DataMovementProcessor.RISCV_1,
@@ -509,7 +505,6 @@ def generic_ternary_mul_accum_kernel(
             f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/ternary"
             "/device/kernels/dataflow/ternary_reader_nobcast_ttt.cpp"
         ),
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=reader_ct_args,
         runtime_args=reader_rt_args,
@@ -520,7 +515,6 @@ def generic_ternary_mul_accum_kernel(
             f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary"
             "/device/kernels/dataflow/writer_unary_interleaved_start_id.cpp"
         ),
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=writer_ct_args,
         runtime_args=writer_rt_args,
@@ -539,7 +533,7 @@ def generic_ternary_mul_accum_kernel(
 
     compute_kernel = ttnn.KernelDescriptor(
         kernel_source=kernel_source_code,
-        source_type=ttnn.KernelDescriptor.SourceType.SOURCE_CODE,
+        source_type=ttnn._ttnn.program_descriptor.KernelDescriptor.SourceType.SOURCE_CODE,
         core_ranges=core_grid,
         compile_time_args=[num_tiles],
         defines=[],
@@ -622,16 +616,17 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
     writer_compile_time_args.extend(ttnn.TensorAccessorArgs(ttnn_output_tensor).get_compile_time_args())
     compute_compile_time_args = [num_tiles, 1]
 
+    
     shared_reader_rt_args = [ttnn_input_tensor.buffer_address(), num_tiles, 0]
     shared_writer_rt_args = [ttnn_output_tensor.buffer_address(), num_tiles, 0]
 
-    reader_rt_args = ttnn.RuntimeArgs()
-    writer_rt_args = ttnn.RuntimeArgs()
+    reader_rt_args = []
+    writer_rt_args = []
     for core_range in core_grid.ranges():
         for x in range(core_range.start.x, core_range.end.x + 1):
             for y in range(core_range.start.y, core_range.end.y + 1):
-                reader_rt_args[x][y] = shared_reader_rt_args
-                writer_rt_args[x][y] = shared_writer_rt_args
+                reader_rt_args.append((ttnn.CoreCoord(x, y), shared_reader_rt_args))
+                writer_rt_args.append((ttnn.CoreCoord(x, y), shared_writer_rt_args))
 
     # Reader runs on NCRISC (RISCV_1), Writer runs on BRISC (RISCV_0)
     reader_config = ttnn.DataMovementConfigDescriptor(
@@ -645,7 +640,6 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
 
     reader_kernel_descriptor = ttnn.KernelDescriptor(
         kernel_source=f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary/device/kernels/dataflow/reader_unary_interleaved_start_id.cpp",
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=reader_compile_time_args,
         runtime_args=reader_rt_args,
@@ -653,7 +647,6 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
     )
     writer_kernel_descriptor = ttnn.KernelDescriptor(
         kernel_source=f"{metal_home_dir}/ttnn/cpp/ttnn/operations/eltwise/unary/device/kernels/dataflow/writer_unary_interleaved_start_id.cpp",
-        source_type=ttnn.KernelDescriptor.SourceType.FILE_PATH,
         core_ranges=core_grid,
         compile_time_args=writer_compile_time_args,
         runtime_args=writer_rt_args,
@@ -661,25 +654,14 @@ def generic_unary_kernel(compute_kernel_source_code, ttnn_input_tensor, ttnn_out
     )
 
     sfpu_defines = []
-    # MathFidelity math_fidelity = MathFidelity::HiFi4;
-    # bool fp32_dest_acc_en = false;
-    # bool dst_full_sync_en = false;
-    # UnpackToDestModes unpack_to_dest_mode;
-    # bool bfp8_pack_precise = false;
-    # bool math_approx_mode = false;
-    # };
-
     compute_kernel_config = ttnn.ComputeConfigDescriptor()
-    # compute_kernel_config.dst_full_sync_en = True
     compute_kernel_config.fp32_dest_acc_en = ttnn_input_tensor.dtype == ttnn.float32
     compute_kernel_config.math_approx_mode = False
     compute_kernel_config.math_fidelity = ttnn.MathFidelity.HiFi4
-    # compute_kernel_config.unpack_to_dest_mode = [ttnn._ttnn.program_descriptor.UnpackToDestMode.UnpackToDestFp32] * 32 #  ttnn.UnpackToDestMode.UnpackToDestFp32
-    # math_fidelity=ttnn.MathFidelity.HiFi4,
 
     compute_kernel_descriptor = ttnn.KernelDescriptor(
         kernel_source=compute_kernel_source_code,
-        source_type=ttnn.KernelDescriptor.SourceType.SOURCE_CODE,
+        source_type=ttnn._ttnn.program_descriptor.KernelDescriptor.SourceType.SOURCE_CODE,
         core_ranges=core_grid,
         compile_time_args=compute_compile_time_args,
         defines=sfpu_defines,
