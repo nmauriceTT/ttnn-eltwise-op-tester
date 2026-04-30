@@ -25,7 +25,6 @@ void calculate_tti_kernel() {
     // LReg[2] = 255.f
     TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
 
-    
     for (int i = 0; i < ITERATIONS; i++) {
 
         
@@ -101,11 +100,8 @@ void calculate_tti_kernel() {
             TTI_SFP_STOCH_RND(SFPSTOCHRND_RND_NEAREST, 0, p_sfpu::LREG1, p_sfpu::LREG1, p_sfpu::LREG1, SFPSTOCHRND_MOD1_FP32_TO_FP16B);
         }
 
-
-        TTI_SFPSTORE(p_sfpu::LREG1, input_type, ADDR_MOD_7, 0);
-        sfpi::dst_reg++;
+        TTI_SFPSTORE(p_sfpu::LREG1, input_type, ADDR_MOD_6, 0);
     }
-
 }
 
 template <bool is_fp32_dest_acc_en>
