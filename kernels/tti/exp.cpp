@@ -60,17 +60,18 @@ void calculate_tti_kernel() {
         // Refine approximation of 2**(x_f)
         // ACC = 7.839635491371155e-08f + 4.791750143340323e-15f * frac 
         TTI_SFPMAD(p_sfpu::LREG1, p_sfpu::LREG4, p_sfpu::LREG5, p_sfpu::LREG2, 0);
+        TTI_SFPNOP;
 
         // frac = 1.0017248f + frac * ACC
         TTI_SFPMAD(p_sfpu::LREG2, p_sfpu::LREG1, p_sfpu::LREG6, p_sfpu::LREG1, 0);
 
-	// LReg[2] = 255.f (for next iteration)
-	// (Instruction latency hidden by SFPMAD)
-	TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
-	
+        // LReg[2] = 255.f (for next iteration)
+        // (Instruction latency hidden by SFPMAD)
+        TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
+        
         constexpr unsigned SFPSETEXP_MOD1_ARG_IMM = 1;
-	constexpr unsigned SFPSETEXP_MOD1_ARG_EXPONENT = 2;
-	TTI_SFPSETEXP(0, p_sfpu::LREG1, p_sfpu::LREG0, SFPSETEXP_MOD1_ARG_EXPONENT);
+        constexpr unsigned SFPSETEXP_MOD1_ARG_EXPONENT = 2;
+        TTI_SFPSETEXP(0, p_sfpu::LREG1, p_sfpu::LREG0, SFPSETEXP_MOD1_ARG_EXPONENT);
 	
         if constexpr (!is_fp32_dest_acc_en) {
             constexpr unsigned SFPSTOCHRND_RND_NEAREST = 0;
@@ -78,7 +79,7 @@ void calculate_tti_kernel() {
         }
 
         TTI_SFPSTORE(p_sfpu::LREG0, input_type, ADDR_MOD_6, 0);
-	//sfpi::dst_reg++;
+	    //sfpi::dst_reg++;
     }
 }
 
