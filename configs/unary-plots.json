@@ -124,7 +124,8 @@
                     "files": [
                         "accuracy_results/results/unary/exp/exp-bfloat16-[1].csv",
                         "accuracy_results/results/unary/exp/exp-approx-bfloat16-[1].csv",
-                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv"
+                        "accuracy_results/results/unary/exp/exp-fast-approx-bfloat16-[1].csv",
+                        "accuracy_results/results/unary/exp/exp-tti-bfloat16-[1].csv"
                     ],
                     "plot_params": {
                         "xlim": [
