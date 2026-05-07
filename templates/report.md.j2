@@ -39,6 +39,16 @@ This means that for a given ULP error of 1 with bfloat16, the ULP error for floa
 _No summary available._
 {% endif %}
 
+{% set special = unary_special_values[dtype][operation] %}
+{% if special %}
+**Special inputs:**
+
+| x | {% for col in special.columns %}{{ col }} | {% endfor %}
+|---|{% for col in special.columns %}---|{% endfor %}
+{% for row in special.table_rows %}| {{ row.label }} | {% for col in special.columns %}{{ row["values"][col] }} | {% endfor %}
+{% endfor %}
+{% endif %}
+
 
 {% endfor %}
 

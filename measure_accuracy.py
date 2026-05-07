@@ -28,7 +28,16 @@ TERM_RED = "\033[91m"
 TERM_GREEN = "\033[92m"
 TERM_RESET = "\033[0m"
 
-    
+
+def _make_neg_nan(torch_dtype):
+    import struct
+    if torch_dtype == torch.float32:
+        return torch.frombuffer(struct.pack('<I', 0xFFC00000), dtype=torch.float32).clone()
+    elif torch_dtype == torch.bfloat16:
+        return torch.frombuffer(struct.pack('<H', 0xFFC0), dtype=torch.bfloat16).clone()
+    raise ValueError(f"No neg-NaN for {torch_dtype}")
+
+
 def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, calculated_ttnn: ttnn.Tensor, group_size: int):
 
 
@@ -380,12 +389,15 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
                     if np.any(useful_mask):
                         useful_average_ulp = np.nanmean(all_df.loc[useful_mask, "mean_ulp_error"].values)
             
-            # Compute values at specific points: x=0, x=1, x=+inf, x=-inf
+            # Compute values at specific points: x=0, x=1, x=+inf, x=-inf, x=-0, x=±NaN
             test_points = {
                 "x_0": torch.tensor([0.0], dtype=torch_dtype),
                 "x_1": torch.tensor([1.0], dtype=torch_dtype),
                 "x_pos_inf": torch.tensor([float('inf')], dtype=torch_dtype),
                 "x_neg_inf": torch.tensor([float('-inf')], dtype=torch_dtype),
+                "x_neg_zero": torch.tensor([-0.0], dtype=torch_dtype),
+                "x_pos_nan": torch.tensor([float('nan')], dtype=torch_dtype),
+                "x_neg_nan": _make_neg_nan(torch_dtype),
             }
             
             values_at_points = {}
@@ -410,6 +422,9 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
                 "value_at_x_1": values_at_points["x_1"],
                 "value_at_x_pos_inf": values_at_points["x_pos_inf"],
                 "value_at_x_neg_inf": values_at_points["x_neg_inf"],
+                "value_at_x_neg_zero": values_at_points["x_neg_zero"],
+                "value_at_x_pos_nan": values_at_points["x_pos_nan"],
+                "value_at_x_neg_nan": values_at_points["x_neg_nan"],
             })
         except Exception as e:
             logger.warning(f"Error generating summary for {implementation_name}: {e}")
@@ -423,6 +438,9 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
                 "value_at_x_1": np.nan,
                 "value_at_x_pos_inf": np.nan,
                 "value_at_x_neg_inf": np.nan,
+                "value_at_x_neg_zero": np.nan,
+                "value_at_x_pos_nan": np.nan,
+                "value_at_x_neg_nan": np.nan,
             })
     
     # Add golden function row
@@ -431,6 +449,9 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
         "x_1": torch.tensor([1.0], dtype=torch_dtype),
         "x_pos_inf": torch.tensor([float('inf')], dtype=torch_dtype),
         "x_neg_inf": torch.tensor([float('-inf')], dtype=torch_dtype),
+        "x_neg_zero": torch.tensor([-0.0], dtype=torch_dtype),
+        "x_pos_nan": torch.tensor([float('nan')], dtype=torch_dtype),
+        "x_neg_nan": _make_neg_nan(torch_dtype),
     }
     
     golden_values_at_points = {}
@@ -462,6 +483,9 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
         "value_at_x_1": golden_values_at_points["x_1"],
         "value_at_x_pos_inf": golden_values_at_points["x_pos_inf"],
         "value_at_x_neg_inf": golden_values_at_points["x_neg_inf"],
+        "value_at_x_neg_zero": golden_values_at_points["x_neg_zero"],
+        "value_at_x_pos_nan": golden_values_at_points["x_pos_nan"],
+        "value_at_x_neg_nan": golden_values_at_points["x_neg_nan"],
     })
     
     # Create summary DataFrame and save
