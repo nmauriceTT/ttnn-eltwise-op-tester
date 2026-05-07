@@ -33,6 +33,67 @@ def _fmt(value):
         return value
 
 
+_SPECIAL_ROWS = [
+    ("-inf", "value_at_x_neg_inf"),
+    ("-NaN", "value_at_x_neg_nan"),
+    ("-0",   "value_at_x_neg_zero"),
+    ("0",    "value_at_x_0"),
+    ("+NaN", "value_at_x_pos_nan"),
+    ("+inf", "value_at_x_pos_inf"),
+]
+
+
+def _fmt_special(value):
+    if value is None or value == "":
+        return "—"
+    v = value.strip()
+    low = v.lower()
+    if low == "nan":
+        return "NaN"
+    if low == "inf":
+        return "+inf"
+    if low == "-inf":
+        return "-inf"
+    if v in ("0.0", "0"):
+        return "0"
+    if v == "-0.0":
+        return "-0"
+    try:
+        return f"{float(v):.3g}"
+    except ValueError:
+        return v
+
+
+def load_special_value_table(kind, operation, dtype):
+    path = SUMMARY_ROOT / kind / operation / f"summary[{dtype}].csv"
+    if not path.is_file():
+        return None
+
+    by_impl = {}
+    with path.open() as f:
+        for row in csv.DictReader(f):
+            by_impl[row["implementation"]] = row
+
+    if not by_impl:
+        return None
+
+    sample = next(iter(by_impl.values()))
+    # golden first, then remaining impls in file order
+    columns = (["golden"] if "golden" in by_impl else []) + [k for k in by_impl if k != "golden"]
+
+    table_rows = []
+    for label, col_key in _SPECIAL_ROWS:
+        if col_key not in sample:
+            table_rows.append({"label": label, "values": {c: "—" for c in columns}})
+        else:
+            table_rows.append({
+                "label": label,
+                "values": {c: _fmt_special(by_impl[c].get(col_key, "")) for c in columns},
+            })
+
+    return {"columns": columns, "table_rows": table_rows}
+
+
 def load_summary_rows(kind, operation, dtype):
     path = SUMMARY_ROOT / kind / operation / f"summary[{dtype}].csv"
     if not path.is_file():
@@ -69,6 +130,11 @@ def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_templat
         for dtype in dtypes
     }
 
+    unary_special_values = {
+        dtype: {op: load_special_value_table("unary", op, dtype) for op in unary_operations}
+        for dtype in dtypes
+    }
+
     template = env.get_template(jinja_template)
 
     with open(output_file, "w") as f:
@@ -77,6 +143,7 @@ def create_markdown_report_jinja2(output_file, dtypes, operations, jinja_templat
             binary_operations=binary_operations,
             unary_bw_operations=unary_bw_operations,
             unary_summaries=unary_summaries,
+            unary_special_values=unary_special_values,
             timestamp=timestamp,
             dtypes=dtypes
         ))
