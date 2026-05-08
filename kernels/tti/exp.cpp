@@ -91,48 +91,45 @@ void calculate_tti_kernel() {
 
     constexpr uint32_t input_type = is_fp32_dest_acc_en ? InstrModLoadStore::FP32 : InstrModLoadStore::FP16B;
 
-    // LREG4 = 127.0f (0x42fe)
-    TTI_SFPLOADI(p_sfpu::LREG4, SFPLOADI_MOD0_FLOATB, 0x42fe);
+    // LREG5 = 127.0f (0x42fe)
+    TTI_SFPLOADI(p_sfpu::LREG5, SFPLOADI_MOD0_FLOATB, 0x42fe);
     
-    // Load 4.791750143340323e-15f ( 0x27aca418 )
-    TTI_SFPLOADI(p_sfpu::LREG5, SFPLOADI_MOD0_UPPER, 0x27ac);
-    TTI_SFPLOADI(p_sfpu::LREG5, SFPLOADI_MOD0_LOWER, 0xa418);
 
     // Load 7.839635491371155e-08f ( 0x33a85ada )
     TTI_SFPLOADI(p_sfpu::LREG6, SFPLOADI_MOD0_UPPER, 0x33a8);
     TTI_SFPLOADI(p_sfpu::LREG6, SFPLOADI_MOD0_LOWER, 0x5ada);
-    
 
     // Load 1.0017248f (0x3f803885)
     //TTI_SFPLOADI(p_sfpu::LREG7, SFPLOADI_MOD0_UPPER, 0x3f80);
     //TTI_SFPLOADI(p_sfpu::LREG7, SFPLOADI_MOD0_LOWER, 0x3885);
     TTI_SFPLOADI(p_sfpu::LREG7, SFPLOADI_MOD0_FLOATA, 0x3c02);
-    
-    // LReg[2] = 255.f
-    TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
-    
+        
     for (uint32_t i = 0; i < ITERATIONS; i++) {
         
         TTI_SFPLOAD(p_sfpu::LREG0, input_type, ADDR_MOD_7, 0);
 
 	
         // LREG0 = LREG0 * 1/log(2) + 127.0f
-        // LREG0 = LREG0 * LREG12 + LREG2
-        TTI_SFPMAD(p_sfpu::LREG0, p_sfpu::LREG12, p_sfpu::LREG4, p_sfpu::LREG0, 0);
-	// IDEA: SFPGT on input to generate mask here + modify SFPMAD to write elsewhere 
+        // LREG0 = LREG0 * LREG12 + LREG5
+        TTI_SFPMAD(p_sfpu::LREG0, p_sfpu::LREG12, p_sfpu::LREG5, p_sfpu::LREG3, 0); // xlog2
+	
+        // LReg[2] = 255.f (for next iteration)
+        // (Instruction latency hidden by SFPMAD)
+        TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
 
 	
         // Since LReg[9] (= 0) is a fixed register, it can not be used for SFPSWAP
-        // Instead, we copy LREG9 (LCONST_0) to LREG4 manually
-        TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG3, 0);
-
+        // Instead, we copy LREG9 (LCONST_0) to LREG5 manually
+        TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG4, 0);
+        //TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG1, 0);
+	
         // Clamp using min/max
-        // TTI_SFPSWAP(0, p_sfpu::LREG0, p_sfpu::LREG1, SFPSWAP_MOD1_VEC_MIN_MAX);
-        TTI_SFPSWAP(0, p_sfpu::LREG2, p_sfpu::LREG0, SFPSWAP_MOD1_VEC_MIN_MAX);
-
+        //TTI_SFPSWAP(0, p_sfpu::LREG0, p_sfpu::LREG1, SFPSWAP_MOD1_VEC_MIN_MAX);
+        TTI_SFPSWAP(0, p_sfpu::LREG2, p_sfpu::LREG3, SFPSWAP_MOD1_VEC_MIN_MAX);
+	
         // _float_to_int32_for_exp21f_
-        TTI_SFPEXEXP(0, p_sfpu::LREG0, p_sfpu::LREG1, 0); // exp = exexp(val)
-        TTI_SFPEXMAN(0, p_sfpu::LREG0, p_sfpu::LREG0, 0); // man = exman8(val)
+        TTI_SFPEXEXP(0, p_sfpu::LREG3, p_sfpu::LREG1, 0); // exp = exexp(val)
+        TTI_SFPEXMAN(0, p_sfpu::LREG3, p_sfpu::LREG0, 0); // man = exman8(val)
         TTI_SFPSHFT(0, p_sfpu::LREG1, p_sfpu::LREG0, 0); // man = man << exp
 
 	
@@ -153,25 +150,23 @@ void calculate_tti_kernel() {
 
         // Refine approximation of 2**(x_f)
         // ACC = 7.839635491371155e-08f + 4.791750143340323e-15f * frac 
-        TTI_SFPMAD(p_sfpu::LREG1, p_sfpu::LREG5, p_sfpu::LREG6, p_sfpu::LREG2, 0);
-        constexpr unsigned SFPLE_MOD1_SET_VD = 8;
-        TTI_SFPLE(0, p_sfpu::LREG0, p_sfpu::LREG3, SFPLE_MOD1_SET_VD); // LREG1 = LREG0 > 0 ? -1 : 0
+        TTI_SFPMAD(p_sfpu::LREG1, p_sfpu::LREG13, p_sfpu::LREG6, p_sfpu::LREG2, 0);
 
+	constexpr unsigned SFPLE_MOD1_SET_VD = 8;
+        TTI_SFPLE(0, p_sfpu::LREG3, p_sfpu::LREG4, SFPLE_MOD1_SET_VD); // LREG4 = LREG3 > 0 ? -1 : 0
 	
         // frac = 1.0017248f + frac * ACC
         TTI_SFPMAD(p_sfpu::LREG2, p_sfpu::LREG1, p_sfpu::LREG7, p_sfpu::LREG1, 0);
 
-        // LReg[2] = 255.f (for next iteration)
-        // (Instruction latency hidden by SFPMAD)
-        TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
-        
+	// if input was negative then set output to 0
+        constexpr unsigned SFPAND_MOD1_USE_VB = 1;
+        TTI_SFPAND(p_sfpu::LREG0, p_sfpu::LREG4, p_sfpu::LREG0, SFPAND_MOD1_USE_VB);
+
+	
         constexpr unsigned SFPSETEXP_MOD1_ARG_IMM = 1;
         constexpr unsigned SFPSETEXP_MOD1_ARG_EXPONENT = 2;
         TTI_SFPSETEXP(0, p_sfpu::LREG1, p_sfpu::LREG0, SFPSETEXP_MOD1_ARG_EXPONENT);
-	
-	// if input was negative then set output to 0
-        constexpr unsigned SFPAND_MOD1_USE_VB = 1;
-        TTI_SFPAND(p_sfpu::LREG0, p_sfpu::LREG3, p_sfpu::LREG0, SFPAND_MOD1_USE_VB);
+
 	
         if constexpr (!is_fp32_dest_acc_en) {
             TTI_SFP_STOCH_RND(SFPSTOCHRND_RND_NEAREST, 0, p_sfpu::LREG0, p_sfpu::LREG0, p_sfpu::LREG0, SFPSTOCHRND_MOD1_FP32_TO_FP16B);
@@ -201,5 +196,9 @@ void calculate_tti_kernel_init() {
     TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x3fb8);
     TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xaa3b);
     TTI_SFPCONFIG(0, p_sfpu::LREG12, 0);
-    
+
+    // Load 4.791750143340323e-15f ( 0x27aca418 )
+    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x27ac);
+    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xa418);
+    TTI_SFPCONFIG(0, p_sfpu::LREG13, 0);
 }
