@@ -18,15 +18,6 @@ void calculate_tti_kernel() {
     // LReg[2] = 255.f
     TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
 
-    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x3fb8);
-    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xaa3b);
-    TTI_SFPCONFIG(0, p_sfpu::LREG12, 0);
-
-    // Load 4.791750143340323e-15f ( 0x27aca418 )
-    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x27ac);
-    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xa418);
-    TTI_SFPCONFIG(0, p_sfpu::LREG13, 0);
-
     for (uint32_t i = 0; i < ITERATIONS; i++) {
         
         TTI_SFPLOAD(p_sfpu::LREG0, input_type, ADDR_MOD_3, 0);
@@ -36,13 +27,11 @@ void calculate_tti_kernel() {
         // LREG0 = LREG0 * 1/log(2) + 127.0f
         // LREG0 = LREG0 * LREG12 + LREG3
         TTI_SFPMAD(p_sfpu::LREG0, p_sfpu::LREG12, p_sfpu::LREG3, p_sfpu::LREG0, 0);
-        TTI_SFPNOP;
-
+        
         // Since LReg[9] (= 0) is a fixed register, it can not be used for SFPSWAP
         // Instead, we copy LREG9 (LCONST_0) to LREG3 manually
         TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG1, 0);
-        TTI_SFPNOP;
-	
+        
         // Clamp using min/max
         TTI_SFPSWAP(0, p_sfpu::LREG0, p_sfpu::LREG1, SFPSWAP_MOD1_VEC_MIN_MAX);
         TTI_SFPNOP;
@@ -70,7 +59,7 @@ void calculate_tti_kernel() {
 
         // frac = 1.0017248f + frac * ACC
         TTI_SFPMAD(p_sfpu::LREG2, p_sfpu::LREG1, p_sfpu::LREG6, p_sfpu::LREG1, 0);
-        TTI_SFPNOP;
+        // TTI_SFPNOP;
 
         // LReg[2] = 255.f (for next iteration)
         // (Instruction latency hidden by SFPMAD)
