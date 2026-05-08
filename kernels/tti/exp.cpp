@@ -115,17 +115,17 @@ void calculate_tti_kernel() {
 	
         // LReg[2] = 255.f (for next iteration)
         // (Instruction latency hidden by SFPMAD)
-        TTI_SFPLOADI(p_sfpu::LREG2, SFPLOADI_MOD0_FLOATB, 0x437f);
+        TTI_SFPLOADI(p_sfpu::LREG1, SFPLOADI_MOD0_FLOATB, 0x437f);
 
 	
         // Since LReg[9] (= 0) is a fixed register, it can not be used for SFPSWAP
         // Instead, we copy LREG9 (LCONST_0) to LREG5 manually
-        TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG4, 0);
+        //TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG4, 0);
         //TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG1, 0);
 	
         // Clamp using min/max
         //TTI_SFPSWAP(0, p_sfpu::LREG0, p_sfpu::LREG1, SFPSWAP_MOD1_VEC_MIN_MAX);
-        TTI_SFPSWAP(0, p_sfpu::LREG2, p_sfpu::LREG3, SFPSWAP_MOD1_VEC_MIN_MAX);
+        TTI_SFPSWAP(0, p_sfpu::LREG1, p_sfpu::LREG3, SFPSWAP_MOD1_VEC_MIN_MAX);
 	
         // _float_to_int32_for_exp21f_
         TTI_SFPEXEXP(0, p_sfpu::LREG3, p_sfpu::LREG1, 0); // exp = exexp(val)
@@ -153,14 +153,14 @@ void calculate_tti_kernel() {
         TTI_SFPMAD(p_sfpu::LREG1, p_sfpu::LREG13, p_sfpu::LREG6, p_sfpu::LREG2, 0);
 
 	constexpr unsigned SFPLE_MOD1_SET_VD = 8;
-        TTI_SFPLE(0, p_sfpu::LREG3, p_sfpu::LREG4, SFPLE_MOD1_SET_VD); // LREG4 = LREG3 > 0 ? -1 : 0
+        TTI_SFPGT(0, p_sfpu::LCONST_0, p_sfpu::LREG3, SFPLE_MOD1_SET_VD); // LREG3 = LREG3 > 0 ? -1 : 0
 	
         // frac = 1.0017248f + frac * ACC
         TTI_SFPMAD(p_sfpu::LREG2, p_sfpu::LREG1, p_sfpu::LREG7, p_sfpu::LREG1, 0);
 
 	// if input was negative then set output to 0
         constexpr unsigned SFPAND_MOD1_USE_VB = 1;
-        TTI_SFPAND(p_sfpu::LREG0, p_sfpu::LREG4, p_sfpu::LREG0, SFPAND_MOD1_USE_VB);
+        TTI_SFPAND(p_sfpu::LREG0, p_sfpu::LREG3, p_sfpu::LREG0, SFPAND_MOD1_USE_VB);
 
 	
         constexpr unsigned SFPSETEXP_MOD1_ARG_IMM = 1;
