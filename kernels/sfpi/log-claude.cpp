@@ -6,7 +6,7 @@ sfpi_inline sfpi::vFloat _sfpu_round_(sfpi::vFloat z, sfpi::vInt& k_int) {
 
     sfpi::vFloat z_plus_half = abs_z + sfpi::vFloat(HALF);
     k_int = sfpu::_float_to_int32_(z_plus_half);  // Truncation of z+0.5 ≈ rounding of z
-    sfpi::vFloat k = sfpi::int32_to_float(k_int, 0);
+    sfpi::vFloat k = sfpi::int32_to_float(k_int, sfpi::RoundMode::NearestEven);
 
     v_if (z < -0.5f) {
         k_int = -k_int;
@@ -133,7 +133,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
         // Convert exp to float and multiply by ln(2)
         // Note: exp can be negative for x < 0.5, so we need to handle sign correctly
         // int32_to_float should handle negative values, but ensure proper conversion
-        sfpi::vFloat expf = sfpi::int32_to_float(exp, 0);
+        sfpi::vFloat expf = sfpi::int32_to_float(exp, sfpi::RoundMode::NearestEven);
         temp = expf * sfpi::vFloat(LN2);
         result = temp + ln_m;
     }
@@ -144,7 +144,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
         // This can reduce accuracy: for instance, 9**2 = 80.8 gets round to 80.5
         // rather than 81 (which would have been correct).
         // To avoid this issue, we explicitly convert to bfloat16 using round-to-nearest-even.
-        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
+        result = sfpi::convert<sfpi::vFloat16b>(result, sfpi::RoundMode::NearestEven);
     }
     
     return result;

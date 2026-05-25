@@ -29,7 +29,7 @@ sfpi_inline sfpi::vFloat _sfpu_log_(sfpi::vFloat in) {
     v_if(exp < 0) { exp = sfpi::setsgn(~exp + 1, 1); }
     v_endif;
 
-    sfpi::vFloat expf = sfpi::int32_to_float(exp, 0);
+    sfpi::vFloat expf = sfpi::int32_to_float(exp, sfpi::RoundMode::NearestEven);
     sfpi::vFloat vConstLn2 = 0.692871f;
     sfpi::vFloat result = expf * vConstLn2 + series_result;  // exp correction: ln(1+x) + exp*ln(2)
 
@@ -48,7 +48,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat x) {
     sfpi::vFloat result = _sfpu_log_(value);
     
     if constexpr (!is_fp32_acc_to_dest_mode) {
-        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
+        result = sfpi::convert<sfpi::vFloat16b>(result, sfpi::RoundMode::NearestEven);
     }
 
     return result;

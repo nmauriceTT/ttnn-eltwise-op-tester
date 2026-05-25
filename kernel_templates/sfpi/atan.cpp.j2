@@ -27,7 +27,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat val) {
     v_if(sfpi::abs(val) > 1) { t1 = 1.570796327f - t1; }
     v_endif;
 
-    return sfpi::setsgn(t1, val);   
+    return sfpi::copysgn(t1, val);
 }
 
 template <bool is_fp32_acc_to_dest_mode>

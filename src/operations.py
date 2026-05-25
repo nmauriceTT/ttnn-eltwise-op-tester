@@ -4,7 +4,7 @@ from .utils import TERM_RED, TERM_RESET
 
 import mpmath as mp
 
-from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk, generate_kernel_from_tti_source
+from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk, generate_kernel_from_tti_source, generate_kernel_from_sfpi_source
 from .kernel_generator import make_generic_binary_kernel_op, generic_binary_kernel_with_dst_init, generate_kernel_from_source_path
 
 
@@ -99,6 +99,7 @@ UNARY_OPERATIONS = {
             "exp-tti": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp"), x, output_tensor),
             "exp-tti-fastrounding": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp", "calculate_tti_kernel<DST_ACCUM_MODE, 8, ClampingMode::Default, Variant::FastRounding>", "calculate_tti_kernel_init<DST_ACCUM_MODE, Variant::FastRounding>"), x, output_tensor),
             "exp-dit": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp-dit"), x, output_tensor),
+            "exp-legacy": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_sfpi_source("exp-legacy.cpp", "exp-legacy"), x, output_tensor)
         },
         "golden": torch.exp,
     },

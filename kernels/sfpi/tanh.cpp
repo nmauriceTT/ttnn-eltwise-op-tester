@@ -12,7 +12,7 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat input) {
     result = result * numerator;
 
     if constexpr (!is_fp32_acc_to_dest_mode) {
-        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
+        result = sfpi::convert<sfpi::vFloat16b>(result, sfpi::RoundMode::NearestEven);
     }
 
     return result;

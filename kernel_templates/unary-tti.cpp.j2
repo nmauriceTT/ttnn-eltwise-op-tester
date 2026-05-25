@@ -36,7 +36,7 @@ inline void sfpu_kernel(int dst_reg_index) {
        _llk_math_eltwise_unary_sfpu_params_(
        {{ SFPU_KERNEL_NAME }},
        dst_reg_index,
-       (int)VectorMode::RC));
+       VectorMode::RC));
 }
 
 inline void sfpu_kernel_init() {

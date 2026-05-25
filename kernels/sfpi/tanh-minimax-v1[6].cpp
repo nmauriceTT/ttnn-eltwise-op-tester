@@ -9,10 +9,10 @@ sfpi_inline sfpi::vFloat calculate_sfpi_kernel(sfpi::vFloat x) {
     sfpi::vFloat threshold_value = sfpi::vFloat(1.0f);
     sfpi::vec_min_max(result, threshold_value);
 
-    result = sfpi::setsgn(result, x); // restore sign (i.e. tanh(-x) = -tanh(x))
+    result = sfpi::copysgn(result, x); // restore sign (i.e. tanh(-x) = -tanh(x))
 
     if constexpr (!is_fp32_acc_to_dest_mode) {
-        result = sfpi::reinterpret<sfpi::vFloat>(sfpi::float_to_fp16b(result, 0));
+        result = sfpi::convert<sfpi::vFloat16b>(result, sfpi::RoundMode::NearestEven);
     }
 
     return result;
