@@ -97,6 +97,7 @@ UNARY_OPERATIONS = {
             # "exp-approx": lambda x, output_tensor: generic_unary_kernel(generate_kernel_source_code_from_llk("unary", "exp_tile_init<true, false>", "exp_tile<true, false>"), x, output_tensor),
             "exp-fast-approx": lambda x, output_tensor: ttnn.exp(x, fast_and_approximate_mode=True, output_tensor=output_tensor),
             "exp-tti": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp"), x, output_tensor),
+            "exp-tti-fastrounding": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp", "calculate_tti_kernel<DST_ACCUM_MODE, 8, ClampingMode::Default, Variant::FastRounding>", "calculate_tti_kernel_init<DST_ACCUM_MODE, Variant::FastRounding>"), x, output_tensor),
             "exp-dit": lambda x, output_tensor: generic_unary_kernel(generate_kernel_from_tti_source("exp-dit"), x, output_tensor),
         },
         "golden": torch.exp,

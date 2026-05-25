@@ -48,20 +48,24 @@ def generate_kernel_from_sfpi_source(kernel_name, sfpi_kernel_name):
 
     return kernel_source_code
 
-def generate_kernel_from_tti_source(tti_kernel_name):
+def generate_kernel_from_tti_source(tti_kernel_filename, tti_function_name=None, tti_init_function_name=None):
     kernel_name = "unary-tti"
 
     jinja_env = Environment(
         loader=FileSystemLoader("kernel_templates"),
     )
 
-    with open(f"kernels/tti/{tti_kernel_name}.cpp", "r") as f:
+    with open(f"kernels/tti/{tti_kernel_filename}.cpp", "r") as f:
         tti_kernel_code = f.read()
 
     template = jinja_env.get_template(f"unary-tti.cpp.j2")
 
+    sfpu_kernel_name = "calculate_tti_kernel<DST_ACCUM_MODE, 8>" if tti_function_name is None else tti_function_name
+    sfpu_kernel_init_name = "calculate_tti_kernel_init<DST_ACCUM_MODE>" if tti_init_function_name is None else tti_init_function_name
+    
     kernel_source_code = template.render(
-        SFPU_KERNEL_NAME=f"calculate_tti_kernel",
+        SFPU_KERNEL_NAME=sfpu_kernel_name,
+        SFPU_KERNEL_INIT_NAME=sfpu_kernel_init_name,
         SFPU_KERNEL_IMPL=tti_kernel_code,
     )
 

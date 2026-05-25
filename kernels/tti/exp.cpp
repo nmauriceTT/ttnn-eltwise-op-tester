@@ -1,6 +1,18 @@
 
+enum class ClampingMode {
+  Default, // Only clamp values > 127.f
+  Negative, // Clamp negative values
+};
+
+enum class Variant {
+  Default,
+  FastRounding, 
+};
+
 #ifdef ARCH_WORMHOLE
-template <bool is_fp32_dest_acc_en, int ITERATIONS>
+template <bool is_fp32_dest_acc_en, int ITERATIONS,
+	  ClampingMode CLAMPING_MODE = ClampClampingMode::Default,
+	  Variant VARIANT = Variant::Default>
 void calculate_tti_kernel() {
 
     constexpr uint32_t input_type = is_fp32_dest_acc_en ? InstrModLoadStore::FP32 : InstrModLoadStore::FP16B;
@@ -74,19 +86,26 @@ void calculate_tti_kernel() {
         }
 
         TTI_SFPSTORE(p_sfpu::LREG0, input_type, ADDR_MOD_3, 0);
-	    sfpi::dst_reg++;
+	sfpi::dst_reg++;
     }
 }
 
 #elif defined(ARCH_BLACKHOLE)
-template <bool is_fp32_dest_acc_en, int ITERATIONS>
+template <bool is_fp32_dest_acc_en, int ITERATIONS,
+	  ClampingMode CLAMPING_MODE = ClampingMode::Default,
+	  Variant VARIANT = Variant::Default>
 void calculate_tti_kernel() {
 
     constexpr uint32_t input_type = is_fp32_dest_acc_en ? InstrModLoadStore::FP32 : InstrModLoadStore::FP16B;
 
-    // LREG5 = 127.0f (0x42fe)
-    TTI_SFPLOADI(p_sfpu::LREG5, SFPLOADI_MOD0_FLOATB, 0x42fe);
-    
+
+    if (VARIANT == Variant::Default) {
+	// LREG5 = 127.0f (0x42fe)
+	TTI_SFPLOADI(p_sfpu::LREG5, SFPLOADI_MOD0_FLOATB, 0x42fe);
+    } else { // VARIANT == Variant::FastRounding
+	// LREG5 = 127.0f * 2**23 (0x42fe)
+    	TTI_SFPLOADI(p_sfpu::LREG5, SFPLOADI_MOD0_FLOATB, 0x467e);
+    }
 
     // Load 7.839635491371155e-08f ( 0x33a85ada )
     TTI_SFPLOADI(p_sfpu::LREG6, SFPLOADI_MOD0_UPPER, 0x33a8);
@@ -106,32 +125,33 @@ void calculate_tti_kernel() {
         // LREG0 = LREG0 * LREG12 + LREG5
         TTI_SFPMAD(p_sfpu::LREG0, p_sfpu::LREG12, p_sfpu::LREG5, p_sfpu::LREG3, 0); // xlog2
 	
-        // LReg[2] = 255.f (for next iteration)
-        // (Instruction latency hidden by SFPMAD)
-        TTI_SFPLOADI(p_sfpu::LREG1, SFPLOADI_MOD0_FLOATB, 0x437f);
-
-	
-        // Since LReg[9] (= 0) is a fixed register, it can not be used for SFPSWAP
-        // Instead, we copy LREG9 (LCONST_0) to LREG5 manually
-        //TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG4, 0);
-        //TTI_SFPMOV(0, p_sfpu::LCONST_0, p_sfpu::LREG1, 0);
-	
         // Clamp using min/max
         //TTI_SFPSWAP(0, p_sfpu::LREG0, p_sfpu::LREG1, SFPSWAP_MOD1_VEC_MIN_MAX);
-        TTI_SFPSWAP(0, p_sfpu::LREG1, p_sfpu::LREG3, SFPSWAP_MOD1_VEC_MIN_MAX);
-	
-        // _float_to_int32_for_exp21f_
-        TTI_SFPEXEXP(0, p_sfpu::LREG3, p_sfpu::LREG1, 0); // exp = exexp(val)
-        TTI_SFPEXMAN(0, p_sfpu::LREG3, p_sfpu::LREG0, 0); // man = exman8(val)
-        TTI_SFPSHFT(0, p_sfpu::LREG1, p_sfpu::LREG0, 0); // man = man << exp
+	constexpr unsigned SFPSTOCHRND_RND_NEAREST = 0;
+	if (VARIANT == Variant::Default) {
+	    // LReg[2] = 255.f (for next iteration)
+	    // (Instruction latency hidden by SFPMAD)
+	    TTI_SFPLOADI(p_sfpu::LREG1, SFPLOADI_MOD0_FLOATB, 0x437f);
 
+	    TTI_SFPSWAP(0, p_sfpu::LREG1, p_sfpu::LREG3, SFPSWAP_MOD1_VEC_MIN_MAX);
 	
-        constexpr unsigned SFPSTOCHRND_RND_NEAREST = 0;
-        //constexpr unsigned SFPDIVP2_MOD1_ADD = 1;
-        //TTI_SFPDIVP2(23, p_sfpu::LREG0, p_sfpu::LREG0, SFPDIVP2_MOD1_ADD);
-        //TTI_SFP_STOCH_RND(SFPSTOCHRND_RND_NEAREST, 0, p_sfpu::LREG0, p_sfpu::LREG0, p_sfpu::LREG0, 0);
-        //constexpr unsigned SFPSHFT_MOD1_ARG_IMM = 1; 
-        //TTI_SFPSHFT(16, p_sfpu::LREG0, p_sfpu::LREG0, SFPSHFT_MOD1_ARG_IMM);
+	    // _float_to_int32_for_exp21f_
+	    TTI_SFPEXEXP(0, p_sfpu::LREG3, p_sfpu::LREG1, 0); // exp = exexp(val)
+	    TTI_SFPEXMAN(0, p_sfpu::LREG3, p_sfpu::LREG0, 0); // man = exman8(val)
+	    TTI_SFPSHFT(0, p_sfpu::LREG1, p_sfpu::LREG0, 0); // man = man << exp
+	} else { // Fast Rounding
+	    // Alternative path: Convert to uint16 (~1.38 ULP error)
+	    constexpr unsigned SFPDIVP2_MOD1_ADD = 1;
+	    //TTI_SFPDIVP2(7, p_sfpu::LREG3, p_sfpu::LREG0, SFPDIVP2_MOD1_ADD); // 2**7
+	    TTI_SFP_STOCH_RND(SFPSTOCHRND_RND_NEAREST, 0, 0, p_sfpu::LREG3, p_sfpu::LREG0, SFPSTOCHRND_MOD1_FP32_TO_INT16);
+	    constexpr unsigned SFPSHFT_MOD1_ARG_IMM = 1; 
+	    TTI_SFPSHFT(16, p_sfpu::LREG0, p_sfpu::LREG0, SFPSHFT_MOD1_ARG_IMM);
+	}
+	
+	// Idea:
+	// 1 SFPDIVP2 + 1 SFPSTOCHRND to compute 'exp' ~ 8 bits
+	// 1 SFPSTOCHRND to compute 'mantissa' ~ 16 bits
+	// No need to extract separately
 	
         // extract fractional part
         TTI_SFPEXMAN(0, p_sfpu::LREG0, p_sfpu::LREG1, SFPEXMAN_MOD1_PAD9);
@@ -171,7 +191,7 @@ void calculate_tti_kernel() {
 }
 #endif // ARCH_WORMHOLE
 
-template <bool is_fp32_dest_acc_en>
+template <bool is_fp32_dest_acc_en, Variant VARIANT = Variant::Default>
 void calculate_tti_kernel_init() {
 
 
@@ -195,12 +215,19 @@ void calculate_tti_kernel_init() {
 
     // Store LRegs into programmable constants
 
-    // LREG[13] = 1/log(2)
-    // LREG12 = 1/log(2)
-    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x3fb8);
-    TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xaa3b);
-    TTI_SFPCONFIG(0, p_sfpu::LREG12, 0);
-
+    if constexpr (VARIANT == Variant::Default) {
+	// LREG[13] = 1/log(2)
+	// LREG12 = 1/log(2)
+	TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x3fb8);
+	TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xaa3b);
+	TTI_SFPCONFIG(0, p_sfpu::LREG12, 0);
+    } else { // VARIANT == Variant::FastRounding
+	// Scale by 1/log(2) * 2**23 instead of 1/log(2)
+	TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x4338);
+	TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xaa3b);
+	TTI_SFPCONFIG(0, p_sfpu::LREG12, 0);
+    }
+    
     // Load 4.791750143340323e-15f ( 0x27aca418 )
     TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_UPPER, 0x27ac);
     TTI_SFPLOADI(p_sfpu::LREG0, SFPLOADI_MOD0_LOWER, 0xa418);

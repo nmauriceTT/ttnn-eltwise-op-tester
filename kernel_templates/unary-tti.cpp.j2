@@ -34,19 +34,16 @@ void sfpu_kernel_generic() {
 inline void sfpu_kernel(int dst_reg_index) {
        MATH(
        _llk_math_eltwise_unary_sfpu_params_(
-       calculate_tti_kernel<DST_ACCUM_MODE, 8>,
+       {{ SFPU_KERNEL_NAME }},
        dst_reg_index,
        (int)VectorMode::RC));
 }
 
-
-
 inline void sfpu_kernel_init() {
     MATH(
 	llk_math_eltwise_unary_sfpu_init<SfpuType::exponential>(
-        calculate_tti_kernel_init<DST_ACCUM_MODE>));
+        {{ SFPU_KERNEL_INIT_NAME }} ));
 }
-
 
 
 void kernel_main() {
