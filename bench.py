@@ -2,6 +2,10 @@ import jinja2
 import os
 import sys
 import subprocess
+import shutil
+import tempfile
+import glob
+from collections import Counter
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +23,17 @@ def get_freq():
         return 1.35e9
     else:
         raise ValueError(f"Unknown arch name: {arch_name}")
+
+
+def _implementation_label(base_operation_name, implementation_name, suffix=None):
+    """Stable label for an op variant; omit base name when it matches the implementation."""
+    if base_operation_name == implementation_name:
+        label = base_operation_name
+    else:
+        label = f"{base_operation_name}_{implementation_name}"
+    if suffix is not None:
+        label = f"{label}_{suffix}"
+    return label
 
 
 def list_available_unary_operations():
@@ -136,14 +151,73 @@ def find_latest_profiler_csv(operation, implementation_name):
     return str(csv_files[0])
 
 
-def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"):
+def _find_compute_kernel_elf(cache_root):
+    """Newest compute-kernel trisc1 (MATH/SFPU thread) ELF under an isolated cache.
+
+    Recursive because TT_METAL_CACHE glues the build_key onto the dir name
+    (tt-metal-cache<key>/kernels/...), unlike the default cache's extra level.
+    trisc1 only exists for compute kernels; cq_* are dispatch infra, not the op
+    under test. Custom sfpi/TTI kernels land under kernels/Kernel_Source_Code/,
+    but matching newest-non-cq also covers stock ops (kernels/eltwise_sfpu/).
+    """
+    elfs = glob.glob(os.path.join(cache_root, "**", "kernels", "*", "*", "trisc1", "trisc1.elf"), recursive=True)
+    elfs = [p for p in elfs if not Path(p).parents[2].name.startswith("cq_")]
+    if not elfs:
+        return None
+    return max(elfs, key=os.path.getmtime)
+
+
+def dump_kernel_asm(cache_root, asm_out_dir, label):
+    """Disassemble the op's MATH-thread kernel and write it + an SFPU histogram.
+
+    Returns a dict (label, asm_path, sfp_total, histogram) or None on failure.
+    """
+    metal_home = os.getenv("TT_METAL_HOME")
+    objdump = os.path.join(metal_home, "runtime", "sfpi", "compiler", "bin", "riscv-tt-elf-objdump")
+    if not os.path.isfile(objdump):
+        print(f"asm-dump: objdump not found at {objdump}; skipping")
+        return None
+
+    elf = _find_compute_kernel_elf(cache_root)
+    if elf is None:
+        print(f"asm-dump: no compute-kernel trisc1.elf under {cache_root}; skipping")
+        return None
+
+    try:
+        disasm = subprocess.run([objdump, "-d", elf], check=True, capture_output=True, text=True).stdout
+    except subprocess.CalledProcessError as e:
+        print(f"asm-dump: objdump failed for {elf}: {e.stderr}")
+        return None
+
+    os.makedirs(asm_out_dir, exist_ok=True)
+    asm_path = os.path.join(asm_out_dir, f"{label}_trisc1.asm")
+    with open(asm_path, "w") as f:
+        f.write(disasm)
+
+    # objdump -d formats each instruction as "addr:\tbytes\tmnemonic operands".
+    hist = Counter()
+    for line in disasm.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3 and parts[2].split():
+            mnem = parts[2].split()[0]
+            if "sfp" in mnem.lower():
+                hist[mnem] += 1
+
+    total = sum(hist.values())
+    print(f"asm-dump: {label}: {total} SFPU instrs -> {asm_path}")
+    for mnem, count in hist.most_common():
+        print(f"    {count:3d}  {mnem}")
+    return {"label": label, "asm_path": asm_path, "sfp_total": total, "histogram": dict(hist)}
+
+
+def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary", dump_asm=False, asm_out_dir=None):
 
     implementation_name, base_operation_name = implementation
     print(f"Running benchmark for {base_operation_name} {implementation_name}")
 
     # Create unique name for this benchmark run
     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    name_append = f"{base_operation_name}_{implementation_name}_{timestamp}"
+    name_append = _implementation_label(base_operation_name, implementation_name, timestamp)
     
     BENCH_ITERATIONS = 10
     BENCH_DTYPE = dtype
@@ -167,10 +241,28 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
     print(f"Running tracy: {' '.join(cmd)}")
     subprocess_stdout = ""
     subprocess_stderr = ""
+
+    env = os.environ.copy()
+    asm_cache_base = None
+    if dump_asm:
+        # Isolated, empty kernel cache: forces a fresh compile and makes the op's
+        # compute kernel the only non-dispatch trisc1.elf, so the ELF is
+        # unambiguous. TT_METAL_CACHE has "tt-metal-cache" appended (rtoptions.cpp).
+        asm_cache_base = tempfile.mkdtemp(
+            prefix=f"asmcache_{_implementation_label(base_operation_name, implementation_name)}_"
+        )
+        env["TT_METAL_CACHE"] = asm_cache_base
+
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
         subprocess_stdout = result.stdout
         subprocess_stderr = result.stderr
+        if dump_asm:
+            dump_kernel_asm(
+                asm_cache_base,
+                asm_out_dir,
+                _implementation_label(base_operation_name, implementation_name, BENCH_DTYPE),
+            )
     except subprocess.CalledProcessError as e:
         print(f"Error running tracy for {implementation_name}: {e}")
         if e.returncode == 1:
@@ -186,6 +278,9 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
             print(f"stderr: {e.stderr}")
             print(f"stdout: {e.stdout}")
         return pd.DataFrame() # Return empty dataframe if tracy fails
+    finally:
+        if asm_cache_base is not None:
+            shutil.rmtree(asm_cache_base, ignore_errors=True)
 
     df = pd.DataFrame()
     # Find the ops_perf_results CSV file
@@ -235,12 +330,12 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
     
     return df
 
-def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operation_type="unary"):
-    
+def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operation_type="unary", dump_asm=False, asm_out_dir=None):
+
     df_all_results = pd.DataFrame()
     for implementation in all_implementations:
         print(f"Running benchmark for {implementation}")
-        df = run_bench(operation_file, implementation, dtype, dest_dir, operation_type)
+        df = run_bench(operation_file, implementation, dtype, dest_dir, operation_type, dump_asm=dump_asm, asm_out_dir=asm_out_dir)
         df_all_results = pd.concat([df_all_results, df], ignore_index=True)
 
     return df_all_results
@@ -364,7 +459,12 @@ def main(args):
         choices=["unary", "binary"],
         help="Type of operations to benchmark (default: unary). Must be one of: unary, binary"
     )
-    
+    parser.add_argument(
+        "--dump-asm",
+        action="store_true",
+        help="Disassemble each tested kernel's MATH-thread (trisc1) ELF and write it, with an SFPU instruction histogram, to <output_dir>/asm/. Forces a fresh kernel compile per run."
+    )
+
     parsed_args = parser.parse_args(args)
     
     # Detect operation type if a specific operation is provided
@@ -420,7 +520,8 @@ def main(args):
 
     METAL_HOME = os.getenv("TT_METAL_HOME")
     benchmark_dest_dir = f"{METAL_HOME}/generated/profiler/reports/"
-    df_all_results = run_benchmarks(operation_file, all_operations, parsed_args.dtype, benchmark_dest_dir, operation_type)
+    asm_out_dir = f"{output_dir}/asm"
+    df_all_results = run_benchmarks(operation_file, all_operations, parsed_args.dtype, benchmark_dest_dir, operation_type, dump_asm=parsed_args.dump_asm, asm_out_dir=asm_out_dir)
     df_processed_results = process_benchmarks(df_all_results)
 
     print(f"Processed results: {df_processed_results}")

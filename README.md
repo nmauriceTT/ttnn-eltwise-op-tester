@@ -130,6 +130,16 @@ python bench.py --type binary -t bfloat16
 python bench.py -k exp -t bfloat16
 ```
 
+### Disassemble kernels (`--dump-asm`)
+
+Pass `--dump-asm` to write each tested kernel's MATH-thread (trisc1) disassembly and an SFPU instruction histogram to `generated/benchmarks/<type>/asm/`. Each run uses an isolated kernel cache so the compute kernel ELF is unambiguous.
+
+```bash
+python bench.py -k abs -t bfloat16 --dump-asm
+```
+
+Output files are named `<variant>_<dtype>_trisc1.asm` (e.g. `abs_bfloat16_trisc1.asm`). When an op has multiple implementation variants, the base name is included (e.g. `exp_exp-fast-approx_bfloat16_trisc1.asm`).
+
 ### Command Line Options
 
 | Option | Short | Description | Default |
@@ -137,12 +147,14 @@ python bench.py -k exp -t bfloat16
 | `--type` | | Operation type (`unary` or `binary`) | `unary` |
 | `--dtype` | `-t` | Data type (`bfloat16` or `float32`) | `bfloat16` |
 | `--operation` | `-k` | Filter by base operation name (runs all variants) | All operations |
+| `--dump-asm` | | Disassemble each kernel's trisc1 ELF to `<output>/asm/` | off |
 
 ### Output Files
 
 Results are saved as CSV files in `generated/benchmarks/<type>/`:
 - `<op>.csv` — results for a specific operation (when `-k` is used)
 - `processed_results.csv` — results for all operations
+- `asm/<variant>_<dtype>_trisc1.asm` — kernel disassembly (when `--dump-asm` is used)
 
 Each CSV contains `implementation_name`, `cycles_per_datum`, and `cycles_per_tile` columns.
 
