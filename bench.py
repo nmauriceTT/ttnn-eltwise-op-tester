@@ -243,13 +243,13 @@ def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operati
     if dump_asm and not asm_out_dir:
         raise ValueError("asm_out_dir must be set when dump_asm=True")
 
-    df_all_results = pd.DataFrame()
+    df_frames = []
     asm_failures = []
     for implementation in all_implementations:
         implementation_name, base_operation_name = implementation
         print(f"Running benchmark for {implementation}")
         df = run_bench(operation_file, implementation, dtype, dest_dir, operation_type)
-        df_all_results = pd.concat([df_all_results, df], ignore_index=True)
+        df_frames.append(df)
         if dump_asm:
             result = dump_implementation_asm(
                 implementation_name,
@@ -263,6 +263,8 @@ def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operati
 
     if asm_failures:
         raise RuntimeError(f"Failed to dump asm for: {', '.join(asm_failures)}")
+
+    df_all_results = pd.concat(df_frames, ignore_index=True) if df_frames else pd.DataFrame()
 
     return df_all_results
 
@@ -446,6 +448,9 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     METAL_HOME = os.getenv("TT_METAL_HOME")
+    if not METAL_HOME:
+        print("Error: TT_METAL_HOME is not set.")
+        sys.exit(1)
     benchmark_dest_dir = f"{METAL_HOME}/generated/profiler/reports/"
     asm_out_dir = f"generated/asm/{operation_type}/"
     if parsed_args.dump_asm:

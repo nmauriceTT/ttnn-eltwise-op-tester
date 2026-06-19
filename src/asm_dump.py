@@ -38,7 +38,7 @@ def _find_compute_kernel_elf(cache_root):
 def dump_kernel_asm(cache_root, asm_out_dir, label):
     """Disassemble the op's MATH-thread kernel and write it + an SFPU histogram.
 
-    Returns a dict (label, asm_path, sfp_total, histogram) or None on failure.
+    Returns a dict with keys label, asm_path, sfp_total, histogram, or None on failure.
     """
     metal_home = os.getenv("TT_METAL_HOME")
     if not metal_home:
