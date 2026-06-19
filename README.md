@@ -138,9 +138,9 @@ python bench.py -k abs -t bfloat16 --dump-asm   # benchmark + kernel disassembly
 | Option | Short | Description | Default |
 |--------|-------|-------------|---------|
 | `--type` | | Operation type (`unary` or `binary`) | `unary` |
-| `--dtype` | `-t` | Data type (`bfloat16` or `float32`) | `bfloat16` |
+| `--dtype` | `-t` | Data type (`bfloat16`, `float32`, `uint16`, `uint32`) | `bfloat16` |
 | `--operation` | `-k` | Filter by base operation name (runs all variants) | All operations |
-| `--dump-asm` | | Also disassemble each kernel (see Kernel Disassembly) | off |
+| `--dump-asm` | | Also disassemble each kernel (see Kernel Disassembly). Alias: `--asm-dump` | off |
 
 ### Output Files
 
@@ -167,7 +167,7 @@ python bench.py -k abs -t bfloat16 --dump-asm
 | Option | Short | Description | Default |
 |--------|-------|-------------|---------|
 | `--type` | | Operation type (`unary` or `binary`) | `unary` |
-| `--dtype` | `-t` | Data type (`bfloat16` or `float32`) | `bfloat16` |
+| `--dtype` | `-t` | Data type (`bfloat16`, `float32`, `uint16`, `uint32`) | `bfloat16` |
 | `--operation` | `-k` | Filter by base operation name (runs all variants) | All operations |
 | `--output-dir` | `-o` | Directory for `.asm` files | `generated/asm/<type>/` |
 

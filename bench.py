@@ -240,20 +240,29 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
 
 def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operation_type="unary", dump_asm=False, asm_out_dir=None):
 
+    if dump_asm and not asm_out_dir:
+        raise ValueError("asm_out_dir must be set when dump_asm=True")
+
     df_all_results = pd.DataFrame()
+    asm_failures = []
     for implementation in all_implementations:
         implementation_name, base_operation_name = implementation
         print(f"Running benchmark for {implementation}")
         df = run_bench(operation_file, implementation, dtype, dest_dir, operation_type)
         df_all_results = pd.concat([df_all_results, df], ignore_index=True)
         if dump_asm:
-            dump_implementation_asm(
+            result = dump_implementation_asm(
                 implementation_name,
                 base_operation_name,
                 dtype,
                 asm_out_dir,
                 operation_type=operation_type,
             )
+            if result is None:
+                asm_failures.append(implementation_name)
+
+    if asm_failures:
+        raise RuntimeError(f"Failed to dump asm for: {', '.join(asm_failures)}")
 
     return df_all_results
 
@@ -377,8 +386,9 @@ def main(args):
         help="Type of operations to benchmark (default: unary). Must be one of: unary, binary"
     )
     parser.add_argument(
-        "--dump-asm",
+        "--dump-asm", "--asm-dump",
         action="store_true",
+        dest="dump_asm",
         help="Also disassemble each kernel's trisc1 ELF to generated/asm/<type>/ (see dump_asm.py).",
     )
 

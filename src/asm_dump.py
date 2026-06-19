@@ -41,6 +41,9 @@ def dump_kernel_asm(cache_root, asm_out_dir, label):
     Returns a dict (label, asm_path, sfp_total, histogram) or None on failure.
     """
     metal_home = os.getenv("TT_METAL_HOME")
+    if not metal_home:
+        print("asm-dump: TT_METAL_HOME is not set; skipping")
+        return None
     objdump = os.path.join(metal_home, "runtime", "sfpi", "compiler", "bin", "riscv-tt-elf-objdump")
     if not os.path.isfile(objdump):
         print(f"asm-dump: objdump not found at {objdump}; skipping")
@@ -80,6 +83,8 @@ def dump_kernel_asm(cache_root, asm_out_dir, label):
 
 def dump_implementation_asm(implementation_name, base_operation_name, dtype, asm_out_dir, operation_type="unary"):
     """Run an op once in an isolated kernel cache, then disassemble its trisc1 ELF."""
+    if not asm_out_dir:
+        raise ValueError("asm_out_dir must be set")
     label = implementation_label(base_operation_name, implementation_name, dtype)
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     run_op_script = os.path.join(project_root, "templates", "run-op.py")
