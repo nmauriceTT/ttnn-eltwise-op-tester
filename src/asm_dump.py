@@ -10,9 +10,8 @@ from pathlib import Path
 
 def implementation_label(base_operation_name, implementation_name, suffix=None):
     """Stable label for an op variant; omit base name when it matches the implementation."""
-    if base_operation_name == implementation_name:
-        label = base_operation_name
-    else:
+    label = base_operation_name
+    if base_operation_name != implementation_name:
         label = f"{base_operation_name}_{implementation_name}"
     if suffix is not None:
         label = f"{label}_{suffix}"
