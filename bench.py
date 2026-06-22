@@ -8,6 +8,8 @@ from pathlib import Path
 import re
 import argparse
 
+from src.asm_dump import dump_implementation_asm, implementation_label
+
 def get_freq():
 
     import ttnn
@@ -143,7 +145,7 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
 
     # Create unique name for this benchmark run
     timestamp = datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
-    name_append = f"{base_operation_name}_{implementation_name}_{timestamp}"
+    name_append = implementation_label(base_operation_name, implementation_name, timestamp)
     
     BENCH_ITERATIONS = 10
     BENCH_DTYPE = dtype
@@ -167,6 +169,7 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
     print(f"Running tracy: {' '.join(cmd)}")
     subprocess_stdout = ""
     subprocess_stderr = ""
+
     try:
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
         subprocess_stdout = result.stdout
@@ -235,13 +238,33 @@ def run_bench(impl_file, implementation, dtype, dest_dir, operation_type="unary"
     
     return df
 
-def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operation_type="unary"):
-    
-    df_all_results = pd.DataFrame()
+def run_benchmarks(operation_file, all_implementations, dtype, dest_dir, operation_type="unary", dump_asm=False, asm_out_dir=None):
+
+    if dump_asm and not asm_out_dir:
+        raise ValueError("asm_out_dir must be set when dump_asm=True")
+
+    df_frames = []
+    asm_failures = []
     for implementation in all_implementations:
+        implementation_name, base_operation_name = implementation
         print(f"Running benchmark for {implementation}")
         df = run_bench(operation_file, implementation, dtype, dest_dir, operation_type)
-        df_all_results = pd.concat([df_all_results, df], ignore_index=True)
+        df_frames.append(df)
+        if dump_asm:
+            result = dump_implementation_asm(
+                implementation_name,
+                base_operation_name,
+                dtype,
+                asm_out_dir,
+                operation_type=operation_type,
+            )
+            if result is None:
+                asm_failures.append(implementation_name)
+
+    if asm_failures:
+        raise RuntimeError(f"Failed to dump asm for: {', '.join(asm_failures)}")
+
+    df_all_results = pd.concat(df_frames, ignore_index=True) if df_frames else pd.DataFrame()
 
     return df_all_results
 
@@ -364,7 +387,13 @@ def main(args):
         choices=["unary", "binary"],
         help="Type of operations to benchmark (default: unary). Must be one of: unary, binary"
     )
-    
+    parser.add_argument(
+        "--dump-asm", "--asm-dump",
+        action="store_true",
+        dest="dump_asm",
+        help="Also disassemble each kernel's trisc1 ELF to generated/asm/<type>/ (see dump_asm.py).",
+    )
+
     parsed_args = parser.parse_args(args)
     
     # Detect operation type if a specific operation is provided
@@ -419,8 +448,22 @@ def main(args):
     os.makedirs(output_dir, exist_ok=True)
 
     METAL_HOME = os.getenv("TT_METAL_HOME")
+    if not METAL_HOME:
+        print("Error: TT_METAL_HOME is not set.")
+        sys.exit(1)
     benchmark_dest_dir = f"{METAL_HOME}/generated/profiler/reports/"
-    df_all_results = run_benchmarks(operation_file, all_operations, parsed_args.dtype, benchmark_dest_dir, operation_type)
+    asm_out_dir = f"generated/asm/{operation_type}/"
+    if parsed_args.dump_asm:
+        os.makedirs(asm_out_dir, exist_ok=True)
+    df_all_results = run_benchmarks(
+        operation_file,
+        all_operations,
+        parsed_args.dtype,
+        benchmark_dest_dir,
+        operation_type,
+        dump_asm=parsed_args.dump_asm,
+        asm_out_dir=asm_out_dir,
+    )
     df_processed_results = process_benchmarks(df_all_results)
 
     print(f"Processed results: {df_processed_results}")

@@ -2,6 +2,8 @@
 *~
 
 accuracy_results/
+generated/
+*.asm
 *.pdf
 *.html
 *.png

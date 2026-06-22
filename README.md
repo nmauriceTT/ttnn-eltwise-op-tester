@@ -30,6 +30,8 @@ source <path/to/tt-metal>/python_env/bin/activate
 ├── templates/
 │   └── report.md.j2          # Jinja2 template for PDF report
 ├── measure_accuracy.py       # Main script for accuracy measurements
+├── bench.py                  # Performance benchmarking via tracy
+├── dump_asm.py               # Kernel trisc1 disassembly + SFPU histograms
 ├── plot.py                   # Plot generation for unary operations
 ├── plot_binary.py            # Plot generation for binary operations
 └── generate_report.py        # PDF report generation
@@ -128,6 +130,7 @@ python bench.py --type binary -t bfloat16
 
 ```bash
 python bench.py -k exp -t bfloat16
+python bench.py -k abs -t bfloat16 --dump-asm   # benchmark + kernel disassembly
 ```
 
 ### Command Line Options
@@ -135,8 +138,9 @@ python bench.py -k exp -t bfloat16
 | Option | Short | Description | Default |
 |--------|-------|-------------|---------|
 | `--type` | | Operation type (`unary` or `binary`) | `unary` |
-| `--dtype` | `-t` | Data type (`bfloat16` or `float32`) | `bfloat16` |
+| `--dtype` | `-t` | Data type (`bfloat16`, `float32`, `uint16`, `uint32`) | `bfloat16` |
 | `--operation` | `-k` | Filter by base operation name (runs all variants) | All operations |
+| `--dump-asm` | | Also disassemble each kernel (see Kernel Disassembly). Alias: `--asm-dump` | off |
 
 ### Output Files
 
@@ -145,6 +149,32 @@ Results are saved as CSV files in `generated/benchmarks/<type>/`:
 - `processed_results.csv` — results for all operations
 
 Each CSV contains `implementation_name`, `cycles_per_datum`, and `cycles_per_tile` columns.
+
+## Kernel Disassembly
+
+Implementation lives in `src/asm_dump.py`. Use `dump_asm.py` to disassemble kernels without benchmarking, or pass `--dump-asm` to `bench.py` to run both in one pass.
+
+Each op is executed once in an isolated kernel cache (no tracy), then its MATH-thread (trisc1) ELF is disassembled with an SFPU instruction histogram. Output goes to `generated/asm/<type>/` by default.
+
+```bash
+python dump_asm.py -k abs -t bfloat16
+python dump_asm.py --type binary -k atan2 -t bfloat16
+python bench.py -k abs -t bfloat16 --dump-asm
+```
+
+### Command Line Options
+
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--type` | | Operation type (`unary` or `binary`) | `unary` |
+| `--dtype` | `-t` | Data type (`bfloat16`, `float32`, `uint16`, `uint32`) | `bfloat16` |
+| `--operation` | `-k` | Filter by base operation name (runs all variants) | All operations |
+| `--output-dir` | `-o` | Directory for `.asm` files | `generated/asm/<type>/` |
+
+### Output Files
+
+- `<variant>_<dtype>_trisc1.asm` — e.g. `abs_bfloat16_trisc1.asm`
+- Multi-variant ops include the base name: `exp_exp-fast-approx_bfloat16_trisc1.asm`
 
 ## Accuracy Report Generation
 
