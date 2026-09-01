@@ -6,7 +6,7 @@ import mpmath as mp
 
 
 from .kernel_generator import generate_unary_kernel_from_polynomial, generate_unary_kernel_from_sfpi_source, generic_unary_kernel, generate_kernel_source_code_from_llk
-from .kernel_generator import make_generic_binary_kernel_op, generic_binary_kernel_with_dst_init, generate_kernel_from_source_path
+from .kernel_generator import make_generic_binary_kernel_op
 
 
 global_device = None
@@ -407,12 +407,6 @@ BINARY_OPERATIONS = {
         },
         "golden": torch.subtract
     },
-    "multiply_accumulate": {
-        "implementations": {
-            "multiply_accumulate": lambda x, y: generic_binary_kernel_with_dst_init(generate_kernel_from_source_path("kernels/mul_with_dst_init.cpp"),x, y,-1.00000011920928955078125)
-        },
-        "golden": lambda x, y: torch.add(torch.mul(x, y), -1.00000011920928955078125)
-    }, 
     # Relational operations
     # Note: At the moment, this is mainly useful for benchmarking (no uint verification)
     "eq": {
