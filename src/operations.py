@@ -461,11 +461,11 @@ def make_unary_bw_golden(ttnn_bw_op):
     return golden
 
 
-def _bw_golden_from_torch(torch_op):
+def _bw_golden_from_torch(torch_op, grad_value=1.0):
     """Fallback for backward ops whose ttnn golden requires hardware-specific kwargs (e.g., device)."""
     def golden(x, out=None):
         with torch.enable_grad():
-            grad = torch.ones_like(x)
+            grad = torch.full_like(x, grad_value)
             x_req = x.detach().requires_grad_(True)
             y = torch_op(x_req)
             y.backward(gradient=grad)
@@ -480,6 +480,22 @@ def _bw_golden_from_torch(torch_op):
 def _bw_impl(ttnn_bw_op):
     """Standard TTNN backward implementation with grad=1."""
     return lambda x, output_tensor: ttnn_bw_op(ttnn.ones_like(x), x)[0]
+
+
+def _gelu_bw_tanh_impl_with_grad(grad_value):
+    """Return a tanh GELU backward implementation with a constant gradient."""
+    def implementation(x, output_tensor):
+        grad = ttnn.multiply(ttnn.ones_like(x), grad_value)
+        if hasattr(ttnn.experimental, "gelu_bw"):
+            return ttnn.experimental.gelu_bw(grad, x, approximate="tanh")
+        return ttnn.gelu_bw(grad, x, approximate="tanh")[0]
+
+    return implementation
+
+
+def _gelu_bw_tanh_impl(x, output_tensor):
+    """Tanh GELU backward with grad=1, selecting the available public API."""
+    return _gelu_bw_tanh_impl_with_grad(1.0)(x, output_tensor)
 
 
 UNARY_BW_OPERATIONS = {
@@ -530,6 +546,10 @@ UNARY_BW_OPERATIONS = {
     "sigmoid_bw": {"implementations": {"sigmoid_bw": _bw_impl(ttnn.sigmoid_bw)}, "golden": make_unary_bw_golden(ttnn.sigmoid_bw)},
     "silu_bw":    {"implementations": {"silu_bw":    _bw_impl(ttnn.silu_bw)},    "golden": make_unary_bw_golden(ttnn.silu_bw)},
     "gelu_bw":    {"implementations": {"gelu_bw":    _bw_impl(ttnn.gelu_bw)},    "golden": make_unary_bw_golden(ttnn.gelu_bw)},
+    "gelu_bw_tanh": {
+        "implementations": {"gelu_bw_tanh": _gelu_bw_tanh_impl},
+        "golden": _bw_golden_from_torch(lambda x: torch.nn.functional.gelu(x, approximate="tanh")),
+    },
     "celu_bw":    {"implementations": {"celu_bw":    _bw_impl(ttnn.celu_bw)},    "golden": make_unary_bw_golden(ttnn.celu_bw)},
     "elu_bw":     {"implementations": {"elu_bw":     _bw_impl(ttnn.elu_bw)},     "golden": make_unary_bw_golden(ttnn.elu_bw)},
     "selu_bw":    {"implementations": {"selu_bw":    _bw_impl(ttnn.selu_bw)},    "golden": make_unary_bw_golden(ttnn.selu_bw)},
