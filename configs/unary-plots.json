@@ -5827,6 +5827,34 @@
                     }
                 },
                 {
+                    "id": "gelu_bw_tanh-bfloat16-ulp",
+                    "name": "gelu_bw_tanh",
+                    "outputs": [
+                        "accuracy_results/plots/unary-bw/ulp/gelu_bw_tanh/gelu_bw_tanh-bfloat16.png"
+                    ],
+                    "files": [
+                        "accuracy_results/results/unary-bw/gelu_bw_tanh/gelu_bw_tanh-bfloat16-[1].csv"
+                    ],
+                    "plot_params": {
+                        "title": "ULP Error of tanh ttnn.gelu_bw (grad=1) against torch\n[bfloat16]",
+                        "horizontal_lines": [
+                            [
+                                1,
+                                "1 ULP"
+                            ],
+                            [
+                                3,
+                                "3 ULP"
+                            ]
+                        ],
+                        "xscale": "linear",
+                        "xlim": [
+                            -20,
+                            10
+                        ]
+                    }
+                },
+                {
                     "id": "celu_bw-bfloat16-ulp",
                     "name": "celu_bw",
                     "outputs": [
