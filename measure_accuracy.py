@@ -19,8 +19,7 @@ from src.arg_parser import parse_args
 from src.operations import UNARY_OPERATIONS, BINARY_OPERATIONS, UNARY_BW_OPERATIONS, iterate_all_operations, get_operation_variant_by_name, get_golden_function, run_ttnn_op
 
 
-device_id = 0
-device = ttnn.open_device(device_id=device_id)
+DEVICE_ID = 0
 
 EPSILON = 2**-9
 
@@ -102,7 +101,7 @@ def compare_with_golden(torch_input: torch.Tensor, golden_torch: torch.Tensor, c
     return accuracy_df
 
 
-def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, dest_dir, group_size=128):
+def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, dest_dir, device, group_size=128):
     """
     Measure accuracy of multiple TTNN implementations against a golden reference.
     
@@ -159,11 +158,11 @@ def measure_op_accuracy_f32(implementations, golden_unary_op, operation_name, de
         print(f"Saved results for {implementation_name} [float32]")
     
     # Generate summary
-    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "float32", impl_results_dict=impl_results)
+    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "float32", device, impl_results_dict=impl_results)
 
 
 
-def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, dest_dir, group_size=None):
+def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, dest_dir, device, group_size=None):
     """
     Measure accuracy of multiple TTNN implementations against a golden reference.
     
@@ -238,7 +237,7 @@ def measure_op_accuracy_bf16(implementations, golden_unary_op, operation_name, d
         print(f"{implementation_name} [bfloat16] Duration = {impl_elapsed_s:.4f}s")
 
     # Generate summary
-    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "bfloat16", impl_results_dict=impl_results)
+    generate_summary(implementations, golden_unary_op, operation_name, dest_dir, "bfloat16", device, impl_results_dict=impl_results)
 
     end_time = time.time()
     elapsed_s = end_time - start_time
@@ -349,7 +348,7 @@ def _evaluate_at_test_points(eval_fn, test_points, label):
     return values
 
 
-def _impl_eval_fn(ttnn_unary_op, ttnn_dtype):
+def _impl_eval_fn(ttnn_unary_op, ttnn_dtype, device):
     def run(test_input):
         # Broadcast the test point to a full tile. Custom kernels dispatched via
         # generic_unary_kernel compute num_tiles = volume // 1024, which is 0
@@ -429,7 +428,7 @@ def _print_summary_table(summary_path):
         print()
 
 
-def generate_summary(implementations, golden_unary_op, operation_name, dest_dir, dtype, impl_results_dict=None):
+def generate_summary(implementations, golden_unary_op, operation_name, dest_dir, dtype, device, impl_results_dict=None):
     """Write a per-implementation summary CSV: ULP stats + values at notable test points."""
     torch_dtype = getattr(torch, dtype)
     ttnn_dtype = getattr(ttnn, dtype)
@@ -447,7 +446,7 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
             else:
                 max_ulp = mean_ulp = useful_avg = np.nan
 
-            values = _evaluate_at_test_points(_impl_eval_fn(ttnn_unary_op, ttnn_dtype), test_points, implementation_name)
+            values = _evaluate_at_test_points(_impl_eval_fn(ttnn_unary_op, ttnn_dtype, device), test_points, implementation_name)
         except Exception as e:
             logger.warning(f"Error generating summary for {implementation_name}: {e}")
             max_ulp = mean_ulp = useful_avg = np.nan
@@ -463,7 +462,7 @@ def generate_summary(implementations, golden_unary_op, operation_name, dest_dir,
     print(f"Saved summary to {summary_path}")
 
 
-def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name, dest_dir, dtype):
+def measure_binary_op_accuracy(implementations, golden_binary_op, operation_name, dest_dir, dtype, device):
     """Measure accuracy of a binary operation."""
     assert device is not None
     print(f"device =\n{device}")
@@ -623,7 +622,7 @@ def execute_benchmarks(measurement_fun, operations_dict, dest_dir, operation_nam
 
 
 
-def main(args, operation_type=None):
+def _parse_main_args(args, operation_type):
     from src.arg_parser import create_parser, validate_operation
     
     # Create a parser to get operation name first (using unary parser which has all args)
@@ -648,9 +647,21 @@ def main(args, operation_type=None):
         if operation_type is None:
             operation_type = "unary"
     
-    # Use the parsed args (they're already validated if operation was specified)
-    # Note: group-size will be None for binary operations, which is fine
-    args = temp_args
+    return temp_args, operation_type
+
+
+def main(args, operation_type=None):
+    """Run the accuracy harness in a single, owned TT device session."""
+
+    args, operation_type = _parse_main_args(args, operation_type)
+    device = ttnn.open_device(device_id=DEVICE_ID)
+    try:
+        return _run_measurements(args, operation_type, device)
+    finally:
+        ttnn.close_device(device)
+
+
+def _run_measurements(args, operation_type, device):
 
     # Set numpy floating point warning to reduce stdout clutter
     # Since we test *all* possible floating point values, invalid values
@@ -672,6 +683,7 @@ def main(args, operation_type=None):
             dest_dir=dest_dir,
             operation_name_filter=args.operation,
             dtype=args.type,
+            device=device,
         )
     elif operation_type == "unary-bw":
         # Backward operations reuse the unary measurement pipeline
@@ -700,6 +712,7 @@ def main(args, operation_type=None):
             operations_dict=UNARY_BW_OPERATIONS,
             dest_dir=dest_dir,
             operation_name_filter=args.operation,
+            device=device,
             group_size=group_size
         )
     else:
@@ -731,6 +744,7 @@ def main(args, operation_type=None):
             operations_dict=UNARY_OPERATIONS,
             dest_dir=dest_dir,
             operation_name_filter=args.operation,
+            device=device,
             group_size=group_size
         )
 
@@ -744,4 +758,3 @@ def main(args, operation_type=None):
 if __name__ == "__main__":
     args = sys.argv
     main(args, operation_type="unary")
-    ttnn.close_device(device)
